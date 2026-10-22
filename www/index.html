@@ -381,6 +381,26 @@ html{-webkit-text-size-adjust:100%}
 .members{margin:0;padding-left:18px}
 .iacard{border-top:4px solid var(--brand-gold)}
 @media (max-width:520px){.langbox{margin-left:auto}}
+
+/* ===== Adaptation téléphone / tablette / ordinateur ===== */
+html,body{margin:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+img,svg,video,canvas{max-width:100%}
+@media (max-width:360px){nav.tabs button{font-size:10px;padding:6px 0}nav.tabs button svg{width:22px;height:22px}.card{padding:14px}}
+@media (min-width:640px) and (max-width:1023px){.wrap,.band-in{max-width:900px}nav.tabs{max-width:900px}}
+@media (min-width:1024px){
+  :root{--side:max(24px,calc((100vw - 1240px)/2));--navw:220px}
+  body{padding-bottom:24px}
+  .band-in{max-width:none;margin:0;padding-left:calc(var(--side) - 16px);padding-right:calc(var(--side) - 16px)}
+  .wrap{max-width:none;margin:0;padding-left:calc(var(--side) + var(--navw) + 28px);padding-right:var(--side);padding-top:28px}
+  nav.tabs{position:fixed;top:92px;bottom:auto;left:var(--side);right:auto;width:var(--navw);max-width:none;margin:0;
+    display:grid;grid-template-columns:1fr;grid-auto-rows:auto;gap:4px;padding:10px;border:1px solid var(--line);border-radius:16px;box-shadow:0 6px 24px rgb(0 0 0/.06)}
+  nav.tabs button{display:flex;align-items:center;justify-content:flex-start;gap:12px;font-size:14px;padding:12px 14px;text-align:left;min-height:48px}
+  nav.tabs button svg{flex:none}
+  .sheet{align-items:center;padding:24px}
+  .sheet-in{border-radius:18px}
+}
+@media (min-width:1024px) and (max-height:560px){nav.tabs{top:84px;max-height:calc(100vh - 100px);overflow:auto}}
 </style>
 </head>
 <body>
