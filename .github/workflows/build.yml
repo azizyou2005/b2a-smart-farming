@@ -108,6 +108,7 @@ jobs:
 
       - name: Publier sur GitHub Pages (branche gh-pages)
         run: |
+          cp -r store www/store
           cd www
           touch .nojekyll
           rm -rf .git
