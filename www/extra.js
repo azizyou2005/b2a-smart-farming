@@ -37,7 +37,7 @@ sheet.innerHTML=`<div class="sheet-in">
       <button class="btn small ghost" id="x-apk" type="button">Télécharger l'application Android (APK)</button></div>
     <span class="msg" id="x-amsg" aria-live="polite"></span>
   </section>
-  <p class="note" style="text-align:center">B2A Smart Farming · version gratuite</p>
+  <p class="note" style="text-align:center">B2A Smart Farming · version gratuite · <a href="https://azizyou2005.github.io/b2a-smart-farming/confidentialite.html" target="_blank" rel="noopener">Confidentialité</a></p>
 </div>`;
 document.body.append(sheet);
 let lastFocus=null;

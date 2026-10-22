@@ -1,16 +1,17 @@
 {
   "name": "b2a-smart-farming",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "description": "B2A Smart Farming - application d'élevage hors ligne",
   "scripts": {
     "android": "npx cap add android && npx cap sync android"
   },
+  "engines": { "node": ">=22" },
   "dependencies": {
-    "@capacitor/android": "6.1.2",
-    "@capacitor/cli": "6.1.2",
-    "@capacitor/core": "6.1.2",
-    "@capacitor/filesystem": "6.0.1",
-    "@capacitor/share": "6.0.2"
+    "@capacitor/android": "8.5.3",
+    "@capacitor/cli": "8.5.3",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/filesystem": "8.1.5",
+    "@capacitor/share": "8.0.3"
   }
 }

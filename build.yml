@@ -14,8 +14,11 @@ concurrency:
 
 jobs:
   publier:
-    name: Site web installable (+ APK Android si la clé est fournie)
+    name: Site web + APK + AAB Google Play
     runs-on: ubuntu-latest
+    env:
+      # Numéro de version Android : augmente tout seul à chaque construction (obligatoire pour Google Play)
+      VERSION_CODE: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,31 +32,74 @@ jobs:
           if [ -n "$KEYSTORE_B64" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"
           else
             echo "ok=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Secret ANDROID_KEYSTORE_B64 absent : le site est publié, mais pas de nouvel APK. Voir LISEZ-MOI.md, étape 1, point 4."
+            echo "::warning::Secret ANDROID_KEYSTORE_B64 absent : le site est publié, mais pas d'APK ni d'AAB. Voir LISEZ-MOI.md, étape 1, point 4."
           fi
 
+      # Capacitor 8 : Node 22 et Java 21, cible Android 16 (API 36) exigée par Google Play depuis le 31/08/2026
       - if: steps.cle.outputs.ok == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - if: steps.cle.outputs.ok == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
-      - name: Compiler l'APK
+          java-version: 21
+
+      - name: Préparer le projet Android
         if: steps.cle.outputs.ok == 'true'
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          # Mots de passe : secrets facultatifs ; sinon valeurs de la clé actuelle
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           npm install
           npx cap add android
           npx --yes @capacitor/assets@3.0.5 generate --android --iconBackgroundColor "#1b2e4c" --splashBackgroundColor "#000000" || echo "Icône par défaut conservée"
           npx cap sync android
-          mkdir -p ~/.android
-          echo "$KEYSTORE_B64" | base64 -d > ~/.android/debug.keystore
-          cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
-          cp app/build/outputs/apk/debug/app-debug.apk ../www/b2a-smart-farming.apk
+          VERSION_NAME=$(node -p "require('./package.json').version")
+          sed -i -E "s/versionCode [0-9]+/versionCode ${VERSION_CODE}/; s/versionName \"[^\"]*\"/versionName \"${VERSION_NAME}\"/" android/app/build.gradle
+          grep -E "versionCode|versionName|targetSdk|compileSdk" android/app/build.gradle android/variables.gradle || true
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.keystore"
+          echo "KS_FILE=$RUNNER_TEMP/upload.keystore" >> "$GITHUB_ENV"
+          echo "KS_PASS=${KS_PASS:-android}" >> "$GITHUB_ENV"
+          echo "KEY_ALIAS=${KEY_ALIAS:-androiddebugkey}" >> "$GITHUB_ENV"
+          echo "KEY_PASS=${KEY_PASS:-android}" >> "$GITHUB_ENV"
+          echo "VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+
+      - name: Vérifier la clé (Google Play refuse les certificats « Android Debug »)
+        if: steps.cle.outputs.ok == 'true'
+        run: |
+          keytool -list -v -keystore "$KS_FILE" -storepass "$KS_PASS" -alias "$KEY_ALIAS" | grep -E "^(Owner|Propriétaire|Valid|SHA256)" || true
+          if keytool -list -v -keystore "$KS_FILE" -storepass "$KS_PASS" -alias "$KEY_ALIAS" | grep -q "CN=Android Debug"; then
+            echo "::error::La clé actuelle est une clé de débogage : Google Play la refusera. Voir LISEZ-MOI-GOOGLE-PLAY.md, section « Clé »."
+          fi
+
+      - name: Compiler l'APK et l'AAB signés (mode release)
+        if: steps.cle.outputs.ok == 'true'
+        run: |
+          cd android && chmod +x gradlew
+          ./gradlew assembleRelease bundleRelease --no-daemon \
+            -Pandroid.injected.signing.store.file="$KS_FILE" \
+            -Pandroid.injected.signing.store.password="$KS_PASS" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASS"
+          cp app/build/outputs/apk/release/app-release.apk ../www/b2a-smart-farming.apk
+          cp app/build/outputs/bundle/release/app-release.aab ../b2a-smart-farming-${VERSION_NAME}-${VERSION_CODE}.aab
+          rm -f "$KS_FILE"
+
+      - name: Mettre l'AAB (Google Play) dans une « Release » GitHub
+        if: steps.cle.outputs.ok == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="v${VERSION_NAME}-${VERSION_CODE}"
+          gh release create "$TAG" "b2a-smart-farming-${VERSION_NAME}-${VERSION_CODE}.aab" www/b2a-smart-farming.apk \
+            --title "B2A Smart Farming ${VERSION_NAME} (version ${VERSION_CODE})" \
+            --notes "Fichier .aab : à envoyer dans Google Play Console. Fichier .apk : installation directe sur Android." \
+            --target "$GITHUB_SHA" --latest
 
       - name: Garder l'APK déjà publié (si pas de nouvelle compilation)
         if: steps.cle.outputs.ok != 'true'
