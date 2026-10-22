@@ -34,14 +34,20 @@ sheet.innerHTML=`<div class="sheet-in">
     <h3 class="sec">Installer l'application</h3>
     <p class="note">Android (Chrome) : menu ⋮ puis “Ajouter à l'écran d'accueil”. iPhone (Safari) : bouton Partager puis “Sur l'écran d'accueil”. Après la première ouverture, l'application marche sans internet.</p>
     <div class="row"><button class="btn small" id="x-install" type="button" hidden>Installer maintenant</button>
-      <a class="btn small ghost" id="x-apk" href="b2a-smart-farming.apk" download>Télécharger l'application Android (APK)</a></div>
+      <button class="btn small ghost" id="x-apk" type="button">Télécharger l'application Android (APK)</button></div>
+    <span class="msg" id="x-amsg" aria-live="polite"></span>
   </section>
   <p class="note" style="text-align:center">B2A Smart Farming · version gratuite</p>
 </div>`;
 document.body.append(sheet);
 let lastFocus=null;
-function openSet(){lastFocus=document.activeElement;renderSet();sheet.hidden=false;document.body.style.overflow="hidden";$("x-close").focus()}
-function closeSet(){sheet.hidden=true;document.body.style.overflow="";if(lastFocus&&lastFocus.focus)lastFocus.focus()}
+/* Le bouton « retour » du téléphone ferme les Réglages au lieu de quitter l'application */
+let setHist=false;
+function openSet(){lastFocus=document.activeElement;renderSet();sheet.hidden=false;document.body.style.overflow="hidden";$("x-close").focus();
+  try{history.pushState({b2aSet:1},"");setHist=true}catch(e){}}
+function hideSet(){sheet.hidden=true;document.body.style.overflow="";if(lastFocus&&lastFocus.focus)lastFocus.focus()}
+function closeSet(){if(sheet.hidden)return;if(setHist){setHist=false;history.back()}else hideSet()}
+addEventListener("popstate",()=>{if(!sheet.hidden){setHist=false;hideSet()}});
 gear.onclick=openSet;$("x-close").onclick=closeSet;
 sheet.addEventListener("click",e=>{if(e.target===sheet)closeSet()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!sheet.hidden)closeSet()});
@@ -84,6 +90,16 @@ $("x-import").onchange=async e=>{const f=e.target.files[0];if(!f||!db)return;
 let installEvt=null;addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;$("x-install").hidden=false});
 $("x-install").onclick=async()=>{if(!installEvt)return;installEvt.prompt();await installEvt.userChoice;installEvt=null;$("x-install").hidden=true};
 if(window.Capacitor)$("x-inst").hidden=true;
+/* APK : on vérifie d'abord que le fichier existe, et on ne quitte jamais l'application */
+const APK="b2a-smart-farming.apk";
+$("x-apk").onclick=async()=>{const b=$("x-apk"),m=$("x-amsg");m.className="msg";
+  if(!navigator.onLine){m.textContent="Il faut internet pour télécharger l'application Android.";return}
+  b.disabled=true;m.textContent="Vérification…";
+  let ok=false;try{const r=await fetch(APK,{method:"HEAD",cache:"no-store"});ok=r.ok&&!/text\/html/i.test(r.headers.get("content-type")||"")}catch(e){}
+  b.disabled=false;
+  if(!ok){m.className="msg err";m.textContent="L'application Android (APK) n'est pas encore disponible. Utilisez « Ajouter à l'écran d'accueil » ci-dessus : c'est la même application.";return}
+  const a=document.createElement("a");a.href=APK;a.download=APK;a.target="_blank";a.rel="noopener";document.body.append(a);a.click();a.remove();
+  m.className="msg good";m.textContent="Téléchargement lancé. Ouvrez le fichier reçu pour installer l'application."};
 
 /* ================= Code d'accès IA (onglet Photo IA) ================= */
 const V=$("v-diagnostic");
