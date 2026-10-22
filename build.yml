@@ -1,0 +1,73 @@
+name: Construire et publier B2A Smart Farming
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publication
+  cancel-in-progress: true
+
+jobs:
+  publier:
+    name: Site web installable (+ APK Android si la clé est fournie)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Clé de signature présente ?
+        id: cle
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Secret ANDROID_KEYSTORE_B64 absent : le site est publié, mais pas de nouvel APK. Voir LISEZ-MOI.md, étape 1, point 4."
+          fi
+
+      - if: steps.cle.outputs.ok == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - if: steps.cle.outputs.ok == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Compiler l'APK
+        if: steps.cle.outputs.ok == 'true'
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          npm install
+          npx cap add android
+          npx --yes @capacitor/assets@3.0.5 generate --android --iconBackgroundColor "#1b2e4c" --splashBackgroundColor "#000000" || echo "Icône par défaut conservée"
+          npx cap sync android
+          mkdir -p ~/.android
+          echo "$KEYSTORE_B64" | base64 -d > ~/.android/debug.keystore
+          cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+          cp app/build/outputs/apk/debug/app-debug.apk ../www/b2a-smart-farming.apk
+
+      - name: Garder l'APK déjà publié (si pas de nouvelle compilation)
+        if: steps.cle.outputs.ok != 'true'
+        run: |
+          git fetch origin gh-pages 2>/dev/null && git show origin/gh-pages:b2a-smart-farming.apk > www/b2a-smart-farming.apk 2>/dev/null || rm -f www/b2a-smart-farming.apk
+
+      - name: Publier sur GitHub Pages (branche gh-pages)
+        run: |
+          cd www
+          touch .nojekyll
+          rm -rf .git
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Publication ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages

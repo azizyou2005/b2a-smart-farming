@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Chaque ferme est rangée sous farms/<code>/<collection>/<document>.
+    // Il faut connaître le code exact de la ferme (10 caractères) pour y lire ou écrire.
+    // Il n'existe aucune règle pour lister "farms" : personne ne peut voir la liste des fermes ni leurs codes.
+    match /farms/{farm}/{col}/{doc} {
+      allow read, write: if request.auth != null
+        && farm.matches('^[A-Z0-9]{10}$')
+        && col in ['lots', 'saisies', 'soins', 'analyses', 'previsions', 'formules', 'factures', 'reglages', 'members'];
+    }
+  }
+}

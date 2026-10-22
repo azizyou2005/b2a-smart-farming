@@ -1,0 +1,6 @@
+{
+  "appId": "com.b2a.smartfarming",
+  "appName": "B2A Smart Farming",
+  "webDir": "www",
+  "android": { "backgroundColor": "#000000" }
+}
