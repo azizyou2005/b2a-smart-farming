@@ -768,10 +768,12 @@ function stdFeed(l,w){ // g/sujet/jour
   const k=spKey(l);
   if(k==="chair")return [25,50,80,110,140,160,175,185][Math.min(7,Math.max(0,Math.floor(w)))];
   if(k==="local")return w<4?20:w<8?45:w<12?65:w<16?80:90;
+  if(k==="pondeuse"){const T=[10,17,23,28,34,39,44,49,53,57,61,64,67,70,73,76,80,85,92,98,103,107,110];const i=Math.max(0,Math.floor(w));return i<T.length?T[i]:115}
   if(isPoultry(l))return w<4?25:w<8?45:w<12?60:w<18?80:115;
   if(k==="petitsrum")return 300;if(k==="chevrelait")return 500;if(k==="bovin")return 3000;if(k==="vachelait")return 4000;
   if(k==="porc")return w<8?600:w<16?1600:w<24?2300:2800;
   return 0;}
+function ration(l,s,date){const d=date||today();const w=(Number(l.ageArrivee)||0)+(l.arrivee?Math.max(0,daysBetween(l.arrivee,d))/7:0);const g=stdFeed(l,w);if(!g||!s||!(s.alive>0))return null;return {g,kg:s.alive*g/1000,n:s.alive}}
 function defaultEnd(l){const P=sp(l);if(P.end)return P.end;if(P.emb)return (Number(l.ageArrivee)||0)+P.emb;return 52}
 function fmtW(l,g){return g==null?"—":big(l)?fmt(g/1000,1)+" kg":fmt(g)+" g"}
 function prodSummary(l,s){
@@ -1004,6 +1006,7 @@ async function renderDetail(){
       K.append(kpi("Œufs 7 j",fmt(s.oeufs7),fmt(s.oeufs7/30,1)+" plateaux"));
     }
     K.append(kpi("Aliment",s.gpj7!=null?fmt(s.gpj7)+" g":"—",s.gpj7!=null?`par sujet et par jour · ≈ ${fmt(s.gpj7*7/1000,2)} kg par semaine`:"par sujet et par jour (7 j)"));
+    {const ra=ration(l,s);if(ra)K.append(kpi("Ration conseillée",fmt(ra.kg,1)+" kg / jour",`pour ${fmt(ra.n)} sujets · ${fmt(ra.g)} g par sujet`))}
     const fs=feedStock(l,s);if(fs)K.append(kpi("Stock d'aliment",fmt(Math.max(0,fs.stock))+" kg",fs.days<=0?"rupture : commander":`≈ ${fmt(fs.days)} jours · commander avant le ${fs.order.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}`,fs.days<=7?"down":null));
     if(s.coutOeuf!=null)K.append(kpi("Coût aliment / œuf",fmt(s.coutOeuf,1)+" F","moyenne 7 j"));
     if(s.marge7!=null)K.append(kpi("Marge sur aliment 7 j",fmt(s.marge7)+" F",s.marge7>=0?"ventes − aliment":"perte : à analyser",s.marge7>=0?"up":"down"));
@@ -1101,6 +1104,7 @@ function sMsg(t,cls){$("s-msg").textContent=t||"";$("s-msg").className="msg"+(cl
 function loadSaisie(){const id=$("s-lot").value,d=$("s-date").value;const s=saisies.find(x=>x.lotId===id&&x.date===d);
   $("s-oeufs").value=s?s.oeufs??"":"";$("s-morts").value=s?s.morts??0:0;$("s-aliment").value=s?s.alimentKg??"":"";const lS=lots.find(x=>x.id===$("s-lot").value);const bigS=lS&&big(lS);$("s-poids").value=s&&s.poidsG!=null?(bigS?s.poidsG/1000:s.poidsG):"";
   $("s-poids").previousElementSibling.textContent=bigS?"Poids moyen (kg)":"Poids moyen (g)";$("s-poids").step=bigS?"0.1":"1";$("s-recu").value=s?s.alimentRecu??"":"";$("s-note").value=s?s.note||"":"";
+  {const lR=lots.find(x=>x.id===id),h=$("s-ration");if(h){const ra=lR?ration(lR,stats(lR),d):null;h.textContent=ra?`Conseillé : ≈ ${fmt(ra.kg,1)} kg pour ${fmt(ra.n)} sujets (${fmt(ra.g)} g par sujet), selon l'âge.`:"";h.hidden=!ra;h.onclick=ra?()=>{if(!$("s-aliment").value)$("s-aliment").value=Math.round(ra.kg*10)/10}:null}}
   const l=lots.find(x=>x.id===id);$("s-oeufs").closest(".field").hidden=l?!hasProd(l):false;$("s-oeufs").previousElementSibling.textContent=l&&isDairy(l)?"Lait trait (litres)":"Œufs ramassés";$("s-oeufs").step=l&&isDairy(l)?"0.5":"1";
   sMsg(s?"Fiche existante chargée. Modifiez puis enregistrez.":"")}
 $("s-date").value=today();$("s-lot").onchange=loadSaisie;$("s-date").onchange=loadSaisie;

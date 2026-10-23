@@ -1,6 +1,10 @@
 /* Traductions des écrans propres à la version hors ligne */
 (function(){
 const T={
+"Ration conseillée":["Recommended ration", "Razione consigliata", "Ración recomendada"],
+"{0} kg / jour":["{0} kg / day", "{0} kg / giorno", "{0} kg / día"],
+"pour {0} sujets · {1} g par sujet":["for {0} animals · {1} g per animal", "per {0} capi · {1} g per capo", "para {0} animales · {1} g por animal"],
+"Conseillé : ≈ {0} kg pour {1} sujets ({2} g par sujet), selon l'âge.":["Recommended: ≈ {0} kg for {1} animals ({2} g per animal), based on age.", "Consigliato: ≈ {0} kg per {1} capi ({2} g per capo), in base all'età.", "Recomendado: ≈ {0} kg para {1} animales ({2} g por animal), según la edad."],
 "par sujet et par jour · ≈ {0} kg par semaine":["per animal per day · ≈ {0} kg per week","per capo al giorno · ≈ {0} kg a settimana","por animal y por día · ≈ {0} kg por semana"],
 "Il faut internet pour télécharger l'application Android.":["You need internet to download the Android app.","Serve internet per scaricare l'app Android.","Se necesita internet para descargar la aplicación Android."],
 "L'application Android (APK) n'est pas encore disponible. Utilisez « Ajouter à l'écran d'accueil » ci-dessus : c'est la même application.":["The Android app (APK) is not available yet. Use “Add to Home screen” above: it is the same app.","L'app Android (APK) non è ancora disponibile. Usa « Aggiungi alla schermata Home » qui sopra: è la stessa app.","La aplicación Android (APK) aún no está disponible. Use « Añadir a la pantalla de inicio » arriba: es la misma aplicación."],
