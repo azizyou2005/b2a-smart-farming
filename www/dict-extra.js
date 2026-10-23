@@ -1,6 +1,9 @@
 /* Traductions des écrans propres à la version hors ligne */
 (function(){
 const T={
+"Fabrication et sacs":["Manufacturing and bags", "Lavorazione e sacchi", "Fabricación y sacos"],
+"Fabrication et sacs (F par kg)":["Manufacturing and bags (F per kg)", "Lavorazione e sacchi (F per kg)", "Fabricación y sacos (F por kg)"],
+"Ajouté au coût du mélange. SAPRA : {0} F de fabrication par sac de {1} kg + {2} F le sac vide = {3} F/kg.":["Added to the mix cost. SAPRA: {0} F manufacturing per {1} kg bag + {2} F per empty bag = {3} F/kg.", "Aggiunto al costo della miscela. SAPRA: {0} F di lavorazione per sacco da {1} kg + {2} F il sacco vuoto = {3} F/kg.", "Añadido al coste de la mezcla. SAPRA: {0} F de fabricación por saco de {1} kg + {2} F el saco vacío = {3} F/kg."],
 "Ration conseillée":["Recommended ration", "Razione consigliata", "Ración recomendada"],
 "{0} kg / jour":["{0} kg / day", "{0} kg / giorno", "{0} kg / día"],
 "pour {0} sujets · {1} g par sujet":["for {0} animals · {1} g per animal", "per {0} capi · {1} g per capo", "para {0} animales · {1} g por animal"],
