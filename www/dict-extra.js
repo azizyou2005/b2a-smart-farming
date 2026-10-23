@@ -1,6 +1,9 @@
 /* Traductions des écrans propres à la version hors ligne */
 (function(){
 const T={
+"Caméras de la ferme":["Farm cameras", "Telecamere della fattoria", "Cámaras de la granja"],
+"Voir vos caméras en direct dans l'app EseeCloud.":["Watch your cameras live in the EseeCloud app.", "Guarda le tue telecamere in diretta nell'app EseeCloud.", "Ve tus cámaras en directo en la app EseeCloud."],
+"Ouvrir les caméras":["Open cameras", "Apri le telecamere", "Abrir las cámaras"],
 "Transport (F par kg)":["Transport (F per kg)", "Trasporto (F per kg)", "Transporte (F por kg)"],
 "Ajouté au coût du mélange. {0} F de transport pour {1} kg = {2} F/kg.":["Added to the mix cost. {0} F transport for {1} kg = {2} F/kg.", "Aggiunto al costo della miscela. {0} F di trasporto per {1} kg = {2} F/kg.", "Añadido al coste de la mezcla. {0} F de transporte para {1} kg = {2} F/kg."],
 "Fabrication et sacs":["Manufacturing and bags", "Lavorazione e sacchi", "Fabricación y sacos"],

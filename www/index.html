@@ -89,6 +89,10 @@ textarea{min-height:72px;resize:vertical}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
 .btn.small{padding:8px 12px;font-size:14px}
+.cam-row{display:flex;align-items:center;gap:12px}
+.cam-ico{flex:none;width:44px;height:44px;border-radius:12px;background:var(--navy);display:grid;place-items:center}
+.cam-ico svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linejoin:round}
+.cam-txt{min-width:0}.cam-txt p{margin:2px 0 0;color:var(--muted,#5b6578);font-size:14px}
 .msg{font-size:14px;color:var(--muted)}
 .msg.err{color:var(--bad)} .msg.good{color:var(--ok)}
 .empty{text-align:center;color:var(--muted);padding:12px;display:grid;gap:10px;justify-items:center}
@@ -480,6 +484,13 @@ button{max-width:100%}
     <section class="card">
       <div class="row between"><h2 class="sec">Mes lots</h2><button class="btn small ghost" id="btn-newlot" type="button">+ Nouveau lot</button></div>
       <div class="lots" id="lots"></div>
+    </section>
+    <section class="card cam-card">
+      <div class="cam-row">
+        <span class="cam-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg></span>
+        <div class="cam-txt"><h2 class="sec">Caméras de la ferme</h2><p>Voir vos caméras en direct dans l'app EseeCloud.</p></div>
+      </div>
+      <button class="btn" type="button" id="btn-cameras">Ouvrir les caméras</button>
     </section>
     </div>
 

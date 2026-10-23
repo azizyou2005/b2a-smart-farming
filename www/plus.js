@@ -523,3 +523,24 @@ B.getDb().then(d=>{db=d;
   resched()}).catch(()=>{cCard.hidden=true;kCard.hidden=true});
 renderContacts();renderCaisse();
 })();
+
+/* Caméras de la ferme : ouvre l'app EseeCloud (aucun identifiant ni lien de partage ici, le dépôt est public) */
+(function(){
+const btn=document.getElementById("btn-cameras");if(!btn)return;
+const PKG="com.juanvision.eseecloud30";
+const PLAY="https://play.google.com/store/apps/details?id="+PKG;
+const IOS="https://apps.apple.com/app/id1032277907";
+btn.addEventListener("click",()=>{
+  const ua=navigator.userAgent||"";
+  const C=window.Capacitor,native=!!(C&&C.isNativePlatform&&C.isNativePlatform());
+  if(/Android/i.test(ua)){
+    /* APK : la fiche Play Store s'ouvre avec le bouton « Ouvrir » ; navigateur : lancement direct de l'app */
+    window.location.href=native?"market://details?id="+PKG
+      :"intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package="+PKG+";S.browser_fallback_url="+encodeURIComponent(PLAY)+";end";
+  }else if(/iPhone|iPad|iPod|Macintosh/i.test(ua)&&("ontouchend" in document||/iPhone|iPad|iPod/i.test(ua))){
+    window.location.href=IOS;
+  }else{
+    window.open(PLAY,"_blank","noopener");
+  }
+});
+})();
