@@ -20,7 +20,7 @@ jobs:
       # Numéro de version Android : augmente tout seul à chaque construction (obligatoire pour Google Play)
       VERSION_CODE: ${{ github.run_number }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
