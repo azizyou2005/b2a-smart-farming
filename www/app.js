@@ -34,17 +34,18 @@ function stats(l){
   let alive=(Number(l.effectif)||0)-(Number(l.mortsAvant)||0);const out=[];
   for(const s of rows){const start=alive;const o=N(s.oeufs),m=N(s.morts)||0,a=N(s.alimentKg);
     out.push({date:s.date,start,oeufs:o,morts:m,aliment:a,poids:N(s.poidsG),note:s.note,by:s.by,
-      ponte:o!=null&&start>0&&isLayer(l)?o/start*100:null,lait:o!=null&&start>0&&isDairy(l)?o/start:null,poidsD:N(s.poidsG)!=null?(big(l)?N(s.poidsG)/1000:N(s.poidsG)):null,gpj:a!=null&&start>0?a*1000/start:null});alive-=m;}
+      ponte:o!=null&&start>0&&isLayer(l)?o/start*100:null,lait:o!=null&&start>0&&isDairy(l)?o/start:null,poidsD:N(s.poidsG)!=null?(big(l)?N(s.poidsG)/1000:N(s.poidsG)):null,gpj:a!=null&&a>0&&start>0?a*1000/start:null});alive-=m;}
   const res={rows:out,alive,last:out[out.length-1]||null,l};
   const mean=a=>{const v=a.filter(x=>x!=null);return v.length?v.reduce((p,c)=>p+c,0)/v.length:null};
   const last7=out.slice(-7),prev7=out.slice(-14,-7);
   res.ponte7=mean(last7.map(r=>r.ponte));res.pontePrev=mean(prev7.map(r=>r.ponte));res.lait7=mean(last7.map(r=>r.lait));res.laitPrev=mean(prev7.map(r=>r.lait));
   res.morts7=last7.reduce((p,r)=>p+r.morts,0);res.mortsTot=(Number(l.effectif)||0)-alive;
   res.morts7pct=alive>0?res.morts7/alive*100:0;res.mortsTotPct=l.effectif?res.mortsTot/l.effectif*100:0;
-  res.gpj7=mean(last7.map(r=>r.gpj));
+  {const fr=last7.filter(r=>r.gpj!=null);const bd=fr.reduce((p,r)=>p+r.start,0);res.gpj7=bd>0?fr.reduce((p,r)=>p+r.aliment,0)*1000/bd:null;res.feedDays7=fr.length}
   const pa=Number(l.prixAliment)||0,pv=Number(l.prixOeuf)||0;
-  const o7=last7.reduce((p,r)=>p+(r.oeufs||0),0),a7=last7.reduce((p,r)=>p+(r.aliment||0),0);
-  res.oeufs7=o7;res.coutOeuf=pa&&o7?a7*pa/o7:null;res.marge7=pv&&pa&&last7.length?(o7*pv-a7*pa):null;
+  const o7=last7.reduce((p,r)=>p+(r.oeufs||0),0);
+  const both=last7.filter(r=>r.oeufs!=null&&r.aliment!=null&&r.aliment>0),ob=both.reduce((p,r)=>p+r.oeufs,0),ab=both.reduce((p,r)=>p+r.aliment,0);
+  res.oeufs7=o7;res.coutOeuf=pa&&ob?ab*pa/ob:null;res.marge7=pv&&pa&&both.length?(ob*pv-ab*pa):null;
   const ageW=(Number(l.ageArrivee)||0)+(l.arrivee?Math.floor(daysBetween(l.arrivee,today())/7):0);res.ageW=ageW;
   const poidsRows=out.filter(r=>r.poids!=null);res.poids=poidsRows.length?poidsRows[poidsRows.length-1].poids:null;res.poidsDate=poidsRows.length?poidsRows[poidsRows.length-1].date:null;
   res.gmq=null;if(poidsRows.length>=2){const a=poidsRows[poidsRows.length-2],b=poidsRows[poidsRows.length-1];const dd=daysBetween(a.date,b.date);if(dd>0)res.gmq=(b.poids-a.poids)/dd}
@@ -136,7 +137,7 @@ function feedStock(l,s){
   const rows=saisies.filter(x=>x.lotId===l.id);const recu=rows.reduce((p,r)=>p+(N(r.alimentRecu)||0),0);
   if(l.stockAliment==null&&!recu)return null;
   const used=rows.reduce((p,r)=>p+(N(r.alimentKg)||0),0);const stock=(Number(l.stockAliment)||0)+recu-used;
-  const recent=s.rows.slice(-7).filter(r=>r.aliment!=null);
+  const recent=s.rows.slice(-7).filter(r=>r.aliment!=null&&r.aliment>0);
   let daily=recent.length?recent.reduce((p,r)=>p+r.aliment,0)/recent.length:s.alive*stdFeed(l,s.ageW)/1000;if(!daily||daily<=0)daily=s.alive*0.1||1;
   const days=Math.max(0,stock/daily);const order=addDays(Math.max(0,days-5));const qty=daily*28;
   return {stock,daily,days,rupture:addDays(days),order,qty,cost:qty*(Number(l.prixAliment)||0)};
@@ -462,7 +463,7 @@ function bilanLines(l,s,f,base){const lines=[];const recO=f.rec+base.fut.oeufs,e
   lines.push([`Aliment (≈ ${fmt(alKg/1000,1)} t à ${fmt(Number(l.prixAliment)||0)} F/kg)`,-alF,""]);
   if(f.dep.invest)lines.push(["Investissement de départ",-f.dep.invest,""]);
   if(f.dep.achat)lines.push([`Achat des sujets (${fmt(Number(l.effectif))} × ${fmt(Number(l.prixSujet)||0)} F)`,-f.dep.achat,""]);
-  const chT=f.dep.charges+base.fut.charges;if(chT)lines.push([`Charges (${fmt(Number(l.chargesMois)||0)} F × ${fmt(base.end*7/30.4)} mois)`,-chT,""]);
+  const chT=f.dep.charges+base.fut.charges;if(chT)lines.push([`Charges (${fmt(Number(l.chargesMois)||0)} F × ${fmt((base.end-(Number(l.ageArrivee)||0))*7/30.4)} mois)`,-chT,""]);
   const net=totR-alF-f.dep.invest-f.dep.achat-chT;lines.push(["Bénéfice net du cycle",net,"b"]);
   if(f.dep.invest)lines.push(["Bénéfice sans compter l'investissement",net+f.dep.invest,""]);
   return {lines,alF,chT,net}}
@@ -899,7 +900,7 @@ function renderFinance(D,l,s){
   lines.push([`Aliment (≈ ${fmt(alKg/1000,1)} t à ${fmt(Number(l.prixAliment)||0)} F/kg)`,-alF,""]);
   if(f.dep.invest)lines.push(["Investissement de départ",-f.dep.invest,""]);
   if(f.dep.achat)lines.push([`Achat des sujets (${fmt(Number(l.effectif))} × ${fmt(Number(l.prixSujet)||0)} F)`,-f.dep.achat,""]);
-  const chT=f.dep.charges+base.fut.charges;if(chT)lines.push([`Charges (${fmt(Number(l.chargesMois)||0)} F × ${fmt(base.end*7/30.4)} mois)`,-chT,""]);
+  const chT=f.dep.charges+base.fut.charges;if(chT)lines.push([`Charges (${fmt(Number(l.chargesMois)||0)} F × ${fmt((base.end-(Number(l.ageArrivee)||0))*7/30.4)} mois)`,-chT,""]);
   const net=totR-alF-f.dep.invest-f.dep.achat-chT;lines.push(["Bénéfice net du cycle",net,"b"]);
   if(f.dep.invest)lines.push(["Bénéfice sans compter l'investissement",net+f.dep.invest,""]);
   lines.forEach(([lbl,v,b])=>{const tr=el("tr");const a=el("td",null,lbl),c=el("td","n",money(v));if(b){a.style.fontWeight="700";c.style.fontWeight="700";tr.style.background="var(--bg)"}
@@ -1002,7 +1003,7 @@ async function renderDetail(){
       K.append(kpi("Ponte moy. 7 j",s.ponte7!=null?fmt(s.ponte7,1)+" %":"—",d!=null?(d>=0?"+":"−")+fmt(Math.abs(d),1)+" pt vs sem. préc.":null,d==null?null:d>=0?"up":"down"));
       K.append(kpi("Œufs 7 j",fmt(s.oeufs7),fmt(s.oeufs7/30,1)+" plateaux"));
     }
-    K.append(kpi("Aliment",s.gpj7!=null?fmt(s.gpj7)+" g":"—","par sujet et par jour (7 j)"));
+    K.append(kpi("Aliment",s.gpj7!=null?fmt(s.gpj7)+" g":"—",s.gpj7!=null?`par sujet et par jour · ≈ ${fmt(s.gpj7*7/1000,2)} kg par semaine`:"par sujet et par jour (7 j)"));
     const fs=feedStock(l,s);if(fs)K.append(kpi("Stock d'aliment",fmt(Math.max(0,fs.stock))+" kg",fs.days<=0?"rupture : commander":`≈ ${fmt(fs.days)} jours · commander avant le ${fs.order.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}`,fs.days<=7?"down":null));
     if(s.coutOeuf!=null)K.append(kpi("Coût aliment / œuf",fmt(s.coutOeuf,1)+" F","moyenne 7 j"));
     if(s.marge7!=null)K.append(kpi("Marge sur aliment 7 j",fmt(s.marge7)+" F",s.marge7>=0?"ventes − aliment":"perte : à analyser",s.marge7>=0?"up":"down"));

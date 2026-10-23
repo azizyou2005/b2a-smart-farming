@@ -1,6 +1,7 @@
 /* Traductions des écrans propres à la version hors ligne */
 (function(){
 const T={
+"par sujet et par jour · ≈ {0} kg par semaine":["per animal per day · ≈ {0} kg per week","per capo al giorno · ≈ {0} kg a settimana","por animal y por día · ≈ {0} kg por semana"],
 "Il faut internet pour télécharger l'application Android.":["You need internet to download the Android app.","Serve internet per scaricare l'app Android.","Se necesita internet para descargar la aplicación Android."],
 "L'application Android (APK) n'est pas encore disponible. Utilisez « Ajouter à l'écran d'accueil » ci-dessus : c'est la même application.":["The Android app (APK) is not available yet. Use “Add to Home screen” above: it is the same app.","L'app Android (APK) non è ancora disponibile. Usa « Aggiungi alla schermata Home » qui sopra: è la stessa app.","La aplicación Android (APK) aún no está disponible. Use « Añadir a la pantalla de inicio » arriba: es la misma aplicación."],
 "Téléchargement lancé. Ouvrez le fichier reçu pour installer l'application.":["Download started. Open the downloaded file to install the app.","Download avviato. Apri il file scaricato per installare l'app.","Descarga iniciada. Abra el archivo descargado para instalar la aplicación."],
