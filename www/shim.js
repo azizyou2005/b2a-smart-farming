@@ -1,3 +1,5 @@
+/* sécurité : refuser l'affichage dans un cadre d'un autre site */
+if(window.top!==window.self){try{window.top.location=window.self.location.href}catch(e){document.documentElement.style.display="none"}}
 /* B2A Smart Farming : services de l'application hors ligne
    (données sur le téléphone ou ferme partagée Firebase, IA par code d'accès, téléchargement des PDF) */
 (function(){

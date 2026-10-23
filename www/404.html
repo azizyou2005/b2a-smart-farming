@@ -2,6 +2,8 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>B2A Smart Farming</title>
 <meta name="theme-color" content="#0D1117">
@@ -19,9 +21,6 @@ a{display:inline-flex;align-items:center;justify-content:center;min-height:48px;
   <p>Ce fichier n'est pas (encore) disponible. Vos données sont intactes.</p>
   <a href="./" id="back">Retour à l'application</a>
 </main>
-<script>
-/* Revenir à la racine du site, quel que soit le chemin (GitHub Pages sert cette page pour tout fichier manquant) */
-(function(){var parts=location.pathname.split("/");var root=location.hostname.endsWith("github.io")&&parts[1]?"/"+parts[1]+"/":"/";document.getElementById("back").href=root})();
-</script>
+<script src="404.js"></script>
 </body>
 </html>

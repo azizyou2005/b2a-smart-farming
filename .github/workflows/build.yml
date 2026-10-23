@@ -24,6 +24,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      # Le code publié (site + APK) est compressé et brouillé : plus difficile à lire et à recopier.
+      # Les fichiers lisibles restent seulement dans ce dépôt.
+      - name: Compresser et brouiller le code publié
+        run: |
+          cd www
+          for f in *.js; do
+            npx --yes terser@5.36.0 "$f" --compress passes=2 --mangle --comments false -o "$f.min"
+            mv "$f.min" "$f"
+          done
+          ls -l *.js
+
       - name: Clé de signature présente ?
         id: cle
         env:

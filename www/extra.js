@@ -85,7 +85,12 @@ $("x-export").onclick=async()=>{
   try{const dl=await window.claude.use("downloads");await dl.save({filename:"b2a-sauvegarde-"+today()+".json",data:blob});$("x-bmsg").textContent="Sauvegarde téléchargée. Gardez-la ou envoyez-la par WhatsApp."}
   catch(e){$("x-bmsg").textContent="Le téléchargement a échoué."}};
 $("x-import").onchange=async e=>{const f=e.target.files[0];if(!f||!db)return;
-  try{const d=JSON.parse(await f.text());let n=0;for(const col of B.COLS){for(const x of d[col]||[]){const {id,...rest}=x;if(id){await db.doc(col+"/"+id).set(rest);n++}}}
+  try{if(f.size>30*1024*1024)throw 0;const d=JSON.parse(await f.text());if(!d||typeof d!=="object"||Array.isArray(d))throw 0;
+    /* contrôle du fichier : seulement nos collections, des identifiants simples et des objets ordinaires */
+    const okId=v=>typeof v==="string"&&/^[A-Za-z0-9_.-]{1,150}$/.test(v)&&v!=="."&&v!=="..";
+    const plain=v=>v&&typeof v==="object"&&!Array.isArray(v);
+    const scrub=v=>Array.isArray(v)?v.map(scrub):plain(v)?Object.fromEntries(Object.entries(v).filter(([k])=>!/^__|^(constructor|prototype)$/.test(k)).map(([k,x])=>[k,scrub(x)])):v;
+    let n=0;for(const col of B.COLS){const arr=d[col];if(!Array.isArray(arr))continue;for(const x of arr){if(!plain(x))continue;const {id,...rest}=x;if(okId(id)){await db.doc(col+"/"+id).set(scrub(rest));n++}}}
     $("x-bmsg").textContent=n+" éléments importés."}catch(err){$("x-bmsg").textContent="Fichier non reconnu."}e.target.value=""};
 let installEvt=null;addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;$("x-install").hidden=false});
 $("x-install").onclick=async()=>{if(!installEvt)return;installEvt.prompt();await installEvt.userChoice;installEvt=null;$("x-install").hidden=true};
