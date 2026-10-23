@@ -326,7 +326,8 @@ function formulaForLot(l,s){const key=spKey(l);if(!FORM[key])return null;const f
   return {key,titre:fo.t,fo,f:fo.f,daily,week:Math.ceil(daily*7/5)*5}}
 function nutri(f){let pb=0,em=0,ca=0,t=0;for(const[k,v]of Object.entries(f)){const i=ING[k];if(!i)continue;t+=v;pb+=v*i.pb/100;em+=v*i.em/100;ca+=v*i.ca/100}return {pb,em,ca,t}}
 const pFab=()=>Math.max(0,Number(prixIng._fab??14)||0); // fabrication + sacs vides, F par kg (SAPRA : 500 F/sac de 50 kg + 200 F le sac)
-function formCost(f){let c=0;for(const[k,v]of Object.entries(f))c+=v/100*pIng(k);return Object.keys(f).length?c+pFab():c}
+const pTrans=()=>Math.max(0,Number(prixIng._trans??20)||0); // transport, F par kg (SAPRA : 10 000 F pour 500 kg)
+function formCost(f){let c=0;for(const[k,v]of Object.entries(f))c+=v/100*pIng(k);return Object.keys(f).length?c+pFab()+pTrans():c}
 
 /* état de l'onglet */
 let fMode="animal",fKey="pondeuse",fId="ponte",fCur={},fQty=100,fLot="",fCult="mais",fSurf=1,fUnit="ha",fArbres=100,fAgeArbre=6;
@@ -348,6 +349,7 @@ function renderFormules(){
   const ss=$("f-sp");if(!ss.options.length)Object.entries(SPN).forEach(([k,n])=>{const o=el("option",null,n);o.value=k;ss.append(o)});ss.value=fKey;ss.disabled=!!fLot;
   fOptions();
   if($("f-fab")&&document.activeElement!==$("f-fab"))$("f-fab").value=pFab();
+  if($("f-trans")&&document.activeElement!==$("f-trans"))$("f-trans").value=pTrans();
   const cs=$("f-cult");if(!cs.options.length)Object.entries(CULT).forEach(([k,c])=>{const o=el("option",null,c.n);o.value=k;cs.append(o)});cs.value=fCult;
   if(!Object.keys(fCur).length)fLoad();else renderFormTable();
   renderPlan();
@@ -374,7 +376,7 @@ function renderFormTotals(){
   const q=Math.max(0,N($("f-qty").value)||0);fQty=q;
   document.querySelectorAll("#f-body tr").forEach(tr=>{const k=tr.dataset.k,v=fCur[k]||0;tr.querySelector(".kg").textContent=fmt(v*q/100,v*q/100<10?2:1);tr.querySelector(".cost").textContent=fmt(v/100*q*pIng(k))});
   const n=nutri(fCur),cost=formCost(fCur),b=fBase()||{c:{}};
-  const tot=$("f-total");tot.innerHTML="";if(Object.keys(fCur).length&&pFab()){const fr=el("tr");fr.append(el("td",null,"Fabrication et sacs"),el("td","n","—"),el("td","n","—"),el("td","n",fmt(pFab())),el("td","n",fmt(pFab()*q)),el("td"));fr.style.fontWeight="400";tot.append(fr)}const tr=el("tr");tr.append(el("td",null,"Total"));const tp=el("td","n",fmt(n.t,1)+" %");if(Math.abs(n.t-100)>0.05)tp.style.color="var(--bad)";tr.append(tp,el("td","n",fmt(q*n.t/100,1)),el("td","n",fmt(cost)+" F/kg"),el("td","n",fmt(cost*q)+" F"),el("td"));tot.append(tr);
+  const tot=$("f-total");tot.innerHTML="";if(Object.keys(fCur).length&&pFab()){const fr=el("tr");fr.append(el("td",null,"Fabrication et sacs"),el("td","n","—"),el("td","n","—"),el("td","n",fmt(pFab())),el("td","n",fmt(pFab()*q)),el("td"));fr.style.fontWeight="400";tot.append(fr)}if(Object.keys(fCur).length&&pTrans()){const fr=el("tr");fr.append(el("td",null,"Transport"),el("td","n","—"),el("td","n","—"),el("td","n",fmt(pTrans())),el("td","n",fmt(pTrans()*q)),el("td"));fr.style.fontWeight="400";tot.append(fr)}const tr=el("tr");tr.append(el("td",null,"Total"));const tp=el("td","n",fmt(n.t,1)+" %");if(Math.abs(n.t-100)>0.05)tp.style.color="var(--bad)";tr.append(tp,el("td","n",fmt(q*n.t/100,1)),el("td","n",fmt(cost)+" F/kg"),el("td","n",fmt(cost*q)+" F"),el("td"));tot.append(tr);
   $("f-warn").hidden=Math.abs(n.t-100)<=0.05;$("f-warn").textContent=`Le total fait ${fmt(n.t,1)} % : ajustez les pourcentages pour arriver à 100 %.`;
   const K=$("f-kpis");K.innerHTML="";const C=b.c||{};
   const chk=(v,r)=>!r?null:v<r[0]?"down":v>r[1]?"down":"up";
@@ -393,6 +395,7 @@ $("f-sp").onchange=()=>{fKey=$("f-sp").value;fId=(FORM[fKey]||[{}])[0].id;fOptio
 $("f-phase").onchange=()=>{fId=$("f-phase").value;fLoad()};
 $("f-qty").oninput=renderFormTotals;
 if($("f-fab"))$("f-fab").oninput=()=>{prixIng._fab=Math.max(0,N($("f-fab").value)||0);renderFormTotals();savePrix()};
+if($("f-trans"))$("f-trans").oninput=()=>{prixIng._trans=Math.max(0,N($("f-trans").value)||0);renderFormTotals();savePrix()};
 document.querySelectorAll("[data-weeks]").forEach(b=>b.onclick=()=>{const l=lots.find(x=>x.id===fLot);if(!l){$("f-qty").value=100;renderFormTotals();return}
   const r=formulaForLot(l,stats(l));$("f-qty").value=Math.ceil(r.daily*7*Number(b.dataset.weeks)/5)*5;renderFormTotals()});
 $("f-add").onchange=()=>{const k=$("f-add").value;if(k){fCur[k]=0;renderFormTable()}};
@@ -489,7 +492,7 @@ async function pdfLot(l){const s=stats(l),f=finance(l,s),base=project(l,s,f,1),l
     pdfT(P,["Scénario","Début du bénéfice","Bénéfice net du cycle"],[[`Prudent (${what} -10 %)`,low],["Probable",base],[`Favorable (${what} +5 %)`,high]].map(([n,p])=>[n,beText(p),money(p.final)]),{columnStyles:{2:{halign:"right"}}});
     pdfP(P,"Hypothèses : courbes types de l'espèce ajustées à vos saisies, charges mensuelles constantes. Estimation indicative.",{size:8.5,color:MUTED});P.y+=2}
   const r=formulaForLot(l,s);if(r){pdfH(P,"Formule d'aliment conseillée");pdfP(P,`${r.titre}. Besoin ≈ ${fmt(r.daily,1)} kg par jour, soit ${fmt(r.week)} kg par semaine.`);
-    pdfT(P,["Ingrédient","%","kg pour 1 semaine","Prix (F/kg)","Coût (F)"],Object.entries(r.f).map(([k,v])=>[ING[k].n,fmt(v,2),fmt(v*r.week/100,1),fmt(pIng(k)),fmt(v/100*r.week*pIng(k))]).concat([["Fabrication et sacs","","",fmt(pFab()),fmt(pFab()*r.week)],["Total","100",fmt(r.week),fmt(formCost(r.f)),fmt(formCost(r.f)*r.week)]]),{columnStyles:{1:{halign:"right"},2:{halign:"right"},3:{halign:"right"},4:{halign:"right"}}});
+    pdfT(P,["Ingrédient","%","kg pour 1 semaine","Prix (F/kg)","Coût (F)"],Object.entries(r.f).map(([k,v])=>[ING[k].n,fmt(v,2),fmt(v*r.week/100,1),fmt(pIng(k)),fmt(v/100*r.week*pIng(k))]).concat([["Fabrication et sacs","","",fmt(pFab()),fmt(pFab()*r.week)],["Transport","","",fmt(pTrans()),fmt(pTrans()*r.week)],["Total","100",fmt(r.week),fmt(formCost(r.f)),fmt(formCost(r.f)*r.week)]]),{columnStyles:{1:{halign:"right"},2:{halign:"right"},3:{halign:"right"},4:{halign:"right"}}});
     pdfP(P,r.fo.d,{size:9,color:MUTED});P.y+=2}
   const prog=programme(l).filter(p=>!p.done&&daysBetween(today(),p.date)<=60);if(prog.length){pdfH(P,"Soins en retard et à venir (60 jours)");
     pdfT(P,["Date","Soin","Type","Statut"],prog.map(p=>{const d=daysBetween(today(),p.date);return [fdLong(p.date),p.nom,p.type,d<0?`En retard (${-d} j)`:d===0?"Aujourd'hui":`Dans ${d} j`]}))}
@@ -505,8 +508,8 @@ async function pdfCal(l){const s=stats(l);const P=pdfNew("Calendrier sanitaire :
 async function pdfFormule(){const b=fBase()||{t:"",c:{},d:""};const n=nutri(fCur),cost=formCost(fCur),q=fQty||100;const l=lots.find(x=>x.id===fLot);
   const P=pdfNew("Formule d'aliment : "+(SPN[fKey]||""),b.t+(l?"  ·  pour le lot "+l.nom:""));
   pdfH(P,`Mélange pour ${fmt(q)} kg`);
-  pdfT(P,["Ingrédient","%","Quantité (kg)","Prix (F/kg)","Coût (F)"],Object.entries(fCur).map(([k,v])=>[ING[k].n,fmt(v,2),fmt(v*q/100,2),fmt(pIng(k)),fmt(v/100*q*pIng(k))]).concat([["Fabrication et sacs","","",fmt(pFab()),fmt(pFab()*q)],["Total",fmt(n.t,1),fmt(q*n.t/100,1),fmt(cost),fmt(cost*q)]]),
-    {columnStyles:{1:{halign:"right"},2:{halign:"right"},3:{halign:"right"},4:{halign:"right"}},didParseCell:d=>{if(d.section==="body"&&d.row.index===Object.keys(fCur).length+1)d.cell.styles.fontStyle="bold"}});
+  pdfT(P,["Ingrédient","%","Quantité (kg)","Prix (F/kg)","Coût (F)"],Object.entries(fCur).map(([k,v])=>[ING[k].n,fmt(v,2),fmt(v*q/100,2),fmt(pIng(k)),fmt(v/100*q*pIng(k))]).concat([["Fabrication et sacs","","",fmt(pFab()),fmt(pFab()*q)],["Transport","","",fmt(pTrans()),fmt(pTrans()*q)],["Total",fmt(n.t,1),fmt(q*n.t/100,1),fmt(cost),fmt(cost*q)]]),
+    {columnStyles:{1:{halign:"right"},2:{halign:"right"},3:{halign:"right"},4:{halign:"right"}},didParseCell:d=>{if(d.section==="body"&&d.row.index===Object.keys(fCur).length+2)d.cell.styles.fontStyle="bold"}});
   pdfH(P,"Valeurs nutritives estimées");const C=b.c||{};const rg=(r,dd,u)=>r?`${fmt(r[0],dd)} à ${fmt(r[1],dd)}${u}`:"-";
   const rows=[["Protéines brutes",fmt(n.pb,1)+" %",rg(C.pb,1," %")],["Calcium",fmt(n.ca,2)+" %",rg(C.ca,1," %")]];if(C.em)rows.push(["Énergie métabolisable",fmt(n.em)+" kcal/kg",rg(C.em,0," kcal/kg")]);
   rows.push(["Coût du mélange",fmt(cost)+" F/kg",""]);pdfT(P,["Valeur","Formule","Objectif"],rows);

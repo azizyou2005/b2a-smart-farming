@@ -1,6 +1,8 @@
 /* Traductions des écrans propres à la version hors ligne */
 (function(){
 const T={
+"Transport (F par kg)":["Transport (F per kg)", "Trasporto (F per kg)", "Transporte (F por kg)"],
+"Ajouté au coût du mélange. {0} F de transport pour {1} kg = {2} F/kg.":["Added to the mix cost. {0} F transport for {1} kg = {2} F/kg.", "Aggiunto al costo della miscela. {0} F di trasporto per {1} kg = {2} F/kg.", "Añadido al coste de la mezcla. {0} F de transporte para {1} kg = {2} F/kg."],
 "Fabrication et sacs":["Manufacturing and bags", "Lavorazione e sacchi", "Fabricación y sacos"],
 "Fabrication et sacs (F par kg)":["Manufacturing and bags (F per kg)", "Lavorazione e sacchi (F per kg)", "Fabricación y sacos (F por kg)"],
 "Ajouté au coût du mélange. SAPRA : {0} F de fabrication par sac de {1} kg + {2} F le sac vide = {3} F/kg.":["Added to the mix cost. SAPRA: {0} F manufacturing per {1} kg bag + {2} F per empty bag = {3} F/kg.", "Aggiunto al costo della miscela. SAPRA: {0} F di lavorazione per sacco da {1} kg + {2} F il sacco vuoto = {3} F/kg.", "Añadido al coste de la mezcla. SAPRA: {0} F de fabricación por saco de {1} kg + {2} F el saco vacío = {3} F/kg."],
