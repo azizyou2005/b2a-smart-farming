@@ -424,6 +424,17 @@ html,body{max-width:100%;overflow-x:clip}
 .alerts li>*{min-width:0}.alerts li>span:not(.dot){flex:1 1 0;overflow-wrap:anywhere}
 h1,h2,h3,p,li,small,b,.note,.msg,.kpi small,.alerts li{overflow-wrap:break-word;word-break:normal}
 .tablewrap{max-width:100%}
+/* Diagnostic, rapport IA et guide santé */
+.grid2{grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))}
+.grid3{grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr))}
+.facts{grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr))}
+.meters{grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))}
+.report-head>*,.facts>*,.meters>*,.meter>*,.meter h3>*,.signs li>*,.priority>*,.hist button>*,.drop>*,.pick>*,.chips>*,.legend>*,details.box>*,label{min-width:0}
+.signs li>span:not(.dot){flex:1 1 0}
+.report-head .id,.report-head h2,.sci,.conf,.alts,.signs li,.meter p,.meter li,.priority,.facts dd,.chip,label,summary,.drop,.hist .t{overflow-wrap:anywhere}
+.chip{max-width:100%;white-space:normal;text-align:left}
+.drop,.thumbs,.pick,.chips{max-width:100%}
+#v-diagnostic,#v-diagnostic>*{min-width:0;max-width:100%}
 </style>
 <div class="band" role="banner">
   <div class="band-in">
