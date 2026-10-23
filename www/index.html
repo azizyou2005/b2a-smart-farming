@@ -576,6 +576,7 @@ img,svg,video,canvas{max-width:100%}
           <div class="field"><label for="f-phase">Formule</label><select id="f-phase"></select></div>
           <div class="field"><label for="f-qty">Quantité à préparer (kg)</label><input type="number" id="f-qty" min="1" value="100">
             <div class="btnrow"><button class="btn small ghost" type="button" data-weeks="1">1 semaine</button><button class="btn small ghost" type="button" data-weeks="2">2 semaines</button><button class="btn small ghost" type="button" data-weeks="4">1 mois</button></div></div>
+          <div class="field"><label for="f-fab">Fabrication et sacs (F par kg)</label><input type="number" id="f-fab" min="0" step="1" inputmode="decimal"><small>Ajouté au coût du mélange. SAPRA : 500 F de fabrication par sac de 50 kg + 200 F le sac vide = 14 F/kg.</small></div>
         </div>
         <div id="f-lotinfo"></div>
         <div class="tablewrap"><table class="data ftable">
