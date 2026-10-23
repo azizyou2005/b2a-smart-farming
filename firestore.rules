@@ -7,7 +7,7 @@ service cloud.firestore {
     match /farms/{farm}/{col}/{doc} {
       allow read, write: if request.auth != null
         && farm.matches('^[A-Z0-9]{10}$')
-        && col in ['lots', 'saisies', 'soins', 'analyses', 'previsions', 'formules', 'factures', 'reglages', 'members'];
+        && col in ['lots', 'saisies', 'soins', 'analyses', 'previsions', 'formules', 'factures', 'reglages', 'members', 'contacts', 'depenses'];
     }
   }
 }
