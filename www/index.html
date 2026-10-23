@@ -435,6 +435,13 @@ h1,h2,h3,p,li,small,b,.note,.msg,.kpi small,.alerts li{overflow-wrap:break-word;
 .chip{max-width:100%;white-space:normal;text-align:left}
 .drop,.thumbs,.pick,.chips{max-width:100%}
 #v-diagnostic,#v-diagnostic>*{min-width:0;max-width:100%}
+/* Historique des diagnostics photo (accueil, fiche du lot, onglet Photo IA) */
+.hist{grid-template-columns:minmax(0,1fr)}
+.hist>*,.hist button{min-width:0;max-width:100%;width:100%}
+.hist .t{min-width:0;flex:1 1 0;display:grid;gap:2px}
+.hist .t b{white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.hist small{overflow-wrap:anywhere}
+button{max-width:100%}
 </style>
 <div class="band" role="banner">
   <div class="band-in">
