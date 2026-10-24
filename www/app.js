@@ -253,71 +253,95 @@ $("c-save").onclick=async()=>{const l=lots.find(x=>x.id===calLot);const nom=$("c
     $("c-nom").value="";$("c-msg").textContent="Ajouté.";$("c-msg").className="msg good"}catch(e){$("c-msg").textContent=errText(e);$("c-msg").className="msg err"}};
 /* ---------- formules d'aliment et plans de fumure ---------- */
 const ING={
- mais:{n:"Maïs grain",pb:8.5,em:3300,ca:0.02,prix:200},
- soja:{n:"Tourteau de soja",pb:44,em:2400,ca:0.3,prix:420},
- son:{n:"Son de blé",pb:15,em:1300,ca:0.12,prix:160},
- poisson:{n:"Farine de poisson",pb:55,em:2800,ca:5,prix:400},
- coton:{n:"Tourteau de coton",pb:38,em:1900,ca:0.2,prix:250},
- coquille:{n:"Coquille / calcaire",pb:0,em:0,ca:38,prix:150},
- phosphate:{n:"Phosphate bicalcique",pb:0,em:0,ca:23,prix:800},
- premix:{n:"Prémix (CMV)",pb:0,em:0,ca:0,prix:2000},
- sel:{n:"Sel",pb:0,em:0,ca:0,prix:250},
- methionine:{n:"DL-Méthionine",pb:58,em:0,ca:0,prix:3500},
- lysine:{n:"L-Lysine",pb:95,em:0,ca:0,prix:2500},
- huile:{n:"Huile végétale",pb:0,em:8800,ca:0,prix:1000},
- melasse:{n:"Mélasse",pb:4,em:2000,ca:0.8,prix:150}
+ mais:{n:"Maïs grain",pb:8.5,em:3300,ca:0.02,lys:0.25,met:0.18,prix:200},
+ sorgho:{n:"Sorgho grain",pb:10,em:3200,ca:0.03,lys:0.22,met:0.17,prix:175,note:"Sorgho blanc de préférence (le sorgho rouge contient des tanins)."},
+ mil:{n:"Petit mil",pb:11,em:3100,ca:0.03,lys:0.27,met:0.24,prix:225},
+ son:{n:"Son de blé",pb:15,em:1300,ca:0.12,lys:0.6,met:0.22,prix:160},
+ sonriz:{n:"Son de riz fin",pb:12,em:2200,ca:0.08,lys:0.55,met:0.25,prix:75,note:"Son fin, sans balles de riz, et frais (il rancit vite)."},
+ dreche:{n:"Drêche de dolo séchée",pb:25,em:2000,ca:0.3,lys:0.8,met:0.45,prix:75,note:"Bien sécher au soleil pour éviter les moisissures."},
+ soja:{n:"Tourteau de soja",pb:44,em:2400,ca:0.3,lys:2.8,met:0.62,prix:420},
+ sojagrain:{n:"Soja grain grillé",pb:36,em:3300,ca:0.25,lys:2.2,met:0.5,prix:375,note:"Toujours griller ou cuire : le soja cru freine la croissance."},
+ arachide:{n:"Tourteau d'arachide",pb:45,em:2600,ca:0.2,lys:1.5,met:0.5,prix:300,note:"Seulement sec et sans moisissure (risque d'aflatoxines)."},
+ coton:{n:"Tourteau de coton",pb:38,em:1900,ca:0.2,lys:1.6,met:0.55,prix:250,note:"Contient du gossypol : respecter le taux maximum."},
+ graincoton:{n:"Graine de coton",pb:22,em:0,ca:0.15,lys:0.9,met:0.35,prix:150,note:"Réservée aux ruminants."},
+ fanes:{n:"Fanes d'arachide ou de niébé",pb:12,em:0,ca:1.2,lys:0.5,met:0.15,prix:100,note:"Broyées. Réservées aux ruminants."},
+ poisson:{n:"Farine de poisson",pb:55,em:2800,ca:5,lys:4,met:1.5,prix:400,note:"Au-delà du maximum, goût de poisson dans les œufs et la viande."},
+ sang:{n:"Farine de sang",pb:80,em:2800,ca:0.3,lys:7,met:1,prix:250,note:"Peu appétente : petites quantités seulement."},
+ coquille:{n:"Coquille / calcaire",pb:0,em:0,ca:38,lys:0,met:0,prix:150},
+ phosphate:{n:"Phosphate bicalcique",pb:0,em:0,ca:23,lys:0,met:0,prix:800},
+ premix:{n:"Prémix (CMV)",pb:0,em:0,ca:0,lys:0,met:0,prix:2000,note:"Prendre le prémix adapté à l'espèce (volailles, porcs, poissons ou ruminants)."},
+ sel:{n:"Sel",pb:0,em:0,ca:0,lys:0,met:0,prix:250},
+ methionine:{n:"DL-Méthionine",pb:58,em:0,ca:0,lys:0,met:99,prix:3500},
+ lysine:{n:"L-Lysine",pb:95,em:0,ca:0,lys:78,met:0,prix:2500},
+ huile:{n:"Huile végétale",pb:0,em:8800,ca:0,lys:0,met:0,prix:1000},
+ melasse:{n:"Mélasse",pb:4,em:2000,ca:0.8,lys:0,met:0,prix:150}
 };
-const SPN={pondeuse:"Poules pondeuses",chair:"Poulets de chair",local:"Poulets locaux et pintades",porc:"Porcs",poisson:"Poissons (tilapia, silure)",petitsrum:"Moutons et chèvres (embouche)",chevrelait:"Chèvres laitières",bovin:"Bovins (embouche)",vachelait:"Vaches laitières"};
+/* ingrédients utilisables par groupe d'espèces, avec taux maximum (% du mélange) */
+const ING_LIM={
+ volaille:{mais:70,sorgho:30,mil:30,son:15,sonriz:10,soja:40,sojagrain:20,arachide:8,coton:5,poisson:8,sang:2,huile:4,coquille:10,phosphate:2,premix:1,sel:0.4,lysine:0.5,methionine:0.4},
+ porc:{mais:70,sorgho:40,mil:30,son:30,sonriz:25,dreche:20,soja:30,sojagrain:20,arachide:10,coton:5,poisson:8,sang:3,huile:4,melasse:10,coquille:2,phosphate:2,premix:1,sel:0.5,lysine:0.5,methionine:0.2},
+ poisson:{mais:40,sorgho:20,son:20,sonriz:15,dreche:15,soja:45,sojagrain:25,arachide:20,coton:20,poisson:55,sang:8,huile:6,phosphate:2,premix:1.5,lysine:0.5,methionine:0.4},
+ rum:{mais:50,sorgho:40,mil:30,son:50,sonriz:30,dreche:30,soja:15,arachide:20,coton:35,graincoton:30,fanes:30,melasse:15,coquille:2,phosphate:2,premix:1,sel:2}
+};
+const SP_GRP={pondeuse:"volaille",chair:"volaille",local:"volaille",porc:"porc",poisson:"poisson",petitsrum:"rum",chevrelait:"rum",bovin:"rum",vachelait:"rum"};
+const SP_LIM_X={pondeuse:{coton:3,poisson:6},chair:{son:5,sonriz:5}};
+function ingLim(sp){return Object.assign({},ING_LIM[SP_GRP[sp]]||{},SP_LIM_X[sp]||{})}
+const SPN={pondeuse:"Poules pondeuses",chair:"Poulets de chair",local:"Poulets locaux et pintades",porc:"Porcs",poisson:"Poissons (tilapia, silure)",petitsrum:"Moutons et chèvres (croissance et embouche)",chevrelait:"Chèvres laitières",bovin:"Bovins (croissance et embouche)",vachelait:"Vaches laitières"};
+/* a : âge en semaines [début, fin[ · c : objectifs · g : ration repère en g par animal et par jour */
 const FORM={
  pondeuse:[
-  {id:"demarrage",t:"Démarrage (0 à 6 semaines)",a:[0,6],c:{pb:[19,21],ca:[0.9,1.1],em:[2800,3000]},d:"À volonté. Environ 10 à 45 g par sujet et par jour selon l'âge. Eau propre en permanence.",
-   f:{mais:59.5,soja:28,son:4,poisson:5,coquille:1,phosphate:1.5,premix:0.5,sel:0.25,lysine:0.1,methionine:0.15}},
-  {id:"croissance",t:"Croissance (6 à 10 semaines), formule B2A",a:[6,10],c:{pb:[16,18],ca:[0.8,1.1],em:[2700,2900]},d:"Environ 45 à 60 g par sujet et par jour. Faire la transition sur 3 à 5 jours en mélangeant l'ancien et le nouvel aliment.",
+  {id:"demarrage",t:"Démarrage (0 à 6 semaines)",a:[0,6],g:25,c:{pb:[19.5,21],ca:[0.9,1.1],em:[2800,3000],lys:[1.05,1.2],met:[0.45,0.55]},d:"À volonté. Environ 10 à 45 g par sujet et par jour selon l'âge. Eau propre en permanence.",
+   f:{mais:47.75,sorgho:15,soja:25,poisson:5,son:4,phosphate:1.5,coquille:0.8,premix:0.5,sel:0.25,methionine:0.15,lysine:0.05}},
+  {id:"croissance",t:"Croissance (6 à 10 semaines), formule B2A",a:[6,10],g:52,c:{pb:[16,18],ca:[0.8,1.1],em:[2700,2900],lys:[0.8,1],met:[0.38,0.5]},d:"Environ 45 à 60 g par sujet et par jour. Faire la transition sur 3 à 5 jours en mélangeant l'ancien et le nouvel aliment.",
    f:{mais:66.6,soja:18,son:8,poisson:2,coton:2,coquille:1,phosphate:1.5,premix:0.4,sel:0.3,methionine:0.2}},
-  {id:"poulette",t:"Poulette (10 à 16 semaines)",a:[10,16],c:{pb:[14.5,16.5],ca:[0.8,1.1],em:[2600,2800]},d:"Environ 60 à 80 g par sujet et par jour. Peser chaque semaine pour rester proche du poids standard.",
-   f:{mais:62,son:18,soja:14,coton:2,coquille:1.5,phosphate:1.5,premix:0.5,sel:0.3,methionine:0.1,lysine:0.1}},
-  {id:"preponte",t:"Pré-ponte (16 à 18 semaines)",a:[16,18],c:{pb:[16,17.5],ca:[2,2.8],em:[2650,2850]},d:"Environ 80 à 100 g par sujet et par jour. Installer les pondoirs et allonger la lumière progressivement.",
-   f:{mais:60.5,soja:20,son:9,poisson:3,coquille:5,phosphate:1.5,premix:0.5,sel:0.3,methionine:0.15,lysine:0.05}},
-  {id:"ponte",t:"Ponte (à partir de 18 semaines)",a:[18,999],c:{pb:[16,17.5],ca:[3.5,4.2],em:[2650,2850]},d:"Environ 110 à 120 g par poule et par jour. Coquilles en libre-service en plus. Eau : environ 2 fois le poids d'aliment, davantage par forte chaleur.",
-   f:{mais:58.5,soja:22,son:4,huile:1,poisson:3,coquille:9,phosphate:1.5,premix:0.5,sel:0.3,methionine:0.2}}],
+  {id:"poulette",t:"Poulette (10 à 16 semaines)",a:[10,16],g:70,c:{pb:[14.5,16.5],ca:[0.9,1.1],em:[2600,2800],lys:[0.68,0.85],met:[0.32,0.42]},d:"Environ 60 à 80 g par sujet et par jour. Peser chaque semaine pour rester proche du poids standard.",
+   f:{mais:41.5,sorgho:20,son:15,sonriz:6,arachide:6,poisson:5,coton:3,phosphate:1.5,coquille:1.05,premix:0.5,sel:0.25,lysine:0.15,methionine:0.05}},
+  {id:"preponte",t:"Pré-ponte (16 à 18 semaines)",a:[16,18],g:90,c:{pb:[16,17.5],ca:[2,2.8],em:[2650,2850],lys:[0.78,0.9],met:[0.36,0.45]},d:"Environ 80 à 100 g par sujet et par jour. Installer les pondoirs et allonger la lumière progressivement.",
+   f:{mais:43.35,sorgho:20,son:10,soja:8.5,arachide:6,poisson:5,coquille:4.7,phosphate:1.5,premix:0.5,sel:0.25,lysine:0.1,methionine:0.1}},
+  {id:"ponte",t:"Ponte (à partir de 18 semaines)",a:[18,999],g:115,c:{pb:[16,17.5],ca:[3.5,4.2],em:[2700,2850],lys:[0.8,0.9],met:[0.4,0.48]},d:"Environ 110 à 120 g par poule et par jour. Coquilles en libre-service en plus. Eau : environ 2 fois le poids d'aliment, davantage par forte chaleur.",
+   f:{mais:42.25,sorgho:20,soja:12,coquille:8.3,arachide:6,poisson:5,son:3,phosphate:1.5,huile:1,premix:0.5,sel:0.25,methionine:0.15,lysine:0.05}}],
  chair:[
-  {id:"demarrage",t:"Démarrage (0 à 3 semaines)",a:[0,3],c:{pb:[21.5,23.5],ca:[0.9,1.1],em:[2900,3050]},d:"À volonté, de préférence en miettes. Environ 25 à 80 g par sujet et par jour.",
-   f:{mais:55,soja:35,poisson:5,huile:1.5,phosphate:1.5,coquille:1,premix:0.5,sel:0.25,methionine:0.15,lysine:0.1}},
-  {id:"croissance",t:"Croissance (3 à 5 semaines)",a:[3,5],c:{pb:[19.5,21.5],ca:[0.85,1],em:[3000,3150]},d:"À volonté. Environ 110 à 160 g par sujet et par jour.",
-   f:{mais:61.2,soja:30,poisson:3,huile:2.5,phosphate:1.5,coquille:0.9,premix:0.5,sel:0.25,methionine:0.15}},
-  {id:"finition",t:"Finition (à partir de 5 semaines)",a:[5,999],c:{pb:[17.5,19.5],ca:[0.8,0.95],em:[3050,3200]},d:"À volonté jusqu'à la vente. Environ 160 à 185 g par sujet et par jour.",
-   f:{mais:65.2,soja:25,son:2,huile:3,phosphate:1.5,coquille:1,premix:0.5,sel:0.25,methionine:0.15,poisson:1.4}}],
+  {id:"demarrage",t:"Démarrage (0 à 3 semaines)",a:[0,3],g:50,c:{pb:[21.5,23.5],ca:[0.9,1.05],em:[2900,3050],lys:[1.28,1.45],met:[0.5,0.6]},d:"À volonté, de préférence en miettes. Environ 25 à 80 g par sujet et par jour.",
+   f:{mais:46.95,soja:33,sorgho:10,poisson:5,huile:1.75,phosphate:1.5,coquille:0.8,premix:0.5,sel:0.25,methionine:0.15,lysine:0.1}},
+  {id:"croissance",t:"Croissance (3 à 5 semaines)",a:[3,5],g:135,c:{pb:[19.5,21.5],ca:[0.85,0.95],em:[3000,3150],lys:[1.1,1.3],met:[0.46,0.55]},d:"À volonté. Environ 110 à 160 g par sujet et par jour.",
+   f:{mais:41.15,soja:22.5,sorgho:20,arachide:6,poisson:4,huile:3.1,phosphate:1.5,coquille:0.7,premix:0.5,sel:0.25,lysine:0.15,methionine:0.15}},
+  {id:"finition",t:"Finition (à partir de 5 semaines)",a:[5,999],g:175,c:{pb:[17.5,19.5],ca:[0.8,0.92],em:[3050,3200],lys:[0.95,1.15],met:[0.42,0.5]},d:"À volonté jusqu'à la vente. Environ 160 à 185 g par sujet et par jour.",
+   f:{mais:45.8,sorgho:20,soja:19.5,arachide:6,huile:3.3,poisson:2,phosphate:1.5,coquille:0.85,premix:0.5,sel:0.25,lysine:0.15,methionine:0.15}}],
  local:[
-  {id:"demarrage",t:"Démarrage poussins et pintadeaux (0 à 6 semaines)",a:[0,6],c:{pb:[22,25],ca:[0.9,1.2],em:[2750,2950]},d:"À volonté. Les pintadeaux ont besoin de beaucoup de protéines les premières semaines.",
-   f:{mais:52.4,soja:34,poisson:8,son:2,phosphate:1.5,coquille:0.8,premix:0.5,sel:0.25,methionine:0.3,lysine:0.25}},
-  {id:"croissance",t:"Croissance volailles locales (après 6 semaines)",a:[6,999],c:{pb:[15,18],ca:[0.8,1.2],em:[2550,2800]},d:"Environ 50 à 90 g par sujet et par jour, en complément du parcours.",
-   f:{mais:55,son:20,soja:15,coton:5,poisson:2,coquille:1.5,phosphate:1,premix:0.25,sel:0.25}}],
+  {id:"demarrage",t:"Démarrage poussins et pintadeaux (0 à 6 semaines)",a:[0,6],g:25,c:{pb:[22,24],ca:[0.9,1.1],em:[2750,2950],lys:[1.2,1.4],met:[0.5,0.62]},d:"À volonté. Les pintadeaux ont besoin de beaucoup de protéines les premières semaines.",
+   f:{mais:39.95,soja:30.5,sorgho:16.5,poisson:6,son:4,phosphate:1.5,coquille:0.65,premix:0.5,sel:0.25,methionine:0.15}},
+  {id:"croissance",t:"Croissance volailles locales (après 6 semaines)",a:[6,999],g:70,c:{pb:[15,17],ca:[0.9,1.1],em:[2550,2800],lys:[0.72,0.9],met:[0.32,0.42]},d:"Environ 50 à 90 g par sujet et par jour, en complément du parcours.",
+   f:{mais:40.25,sorgho:17.5,son:15,sonriz:8,arachide:6,coton:5,poisson:5,phosphate:1.2,coquille:1.1,premix:0.5,sel:0.25,lysine:0.15,methionine:0.05}}],
  porc:[
-  {id:"demarrage",t:"Porcelets (10 à 25 kg)",a:[0,10],c:{pb:[18,21],ca:[0.7,1.1]},d:"Environ 0,5 à 1 kg par porcelet et par jour, en 3 repas.",
-   f:{mais:60.5,soja:25,poisson:6,son:5,phosphate:1.5,coquille:0.8,premix:0.5,sel:0.3,lysine:0.4}},
-  {id:"croissance",t:"Croissance (25 à 60 kg)",a:[10,18],c:{pb:[15.5,17.5],ca:[0.6,0.9]},d:"Environ 1,5 à 2,3 kg par porc et par jour, en 2 repas.",
-   f:{mais:60,son:18.3,soja:17,poisson:1,phosphate:1.5,coquille:1,premix:0.5,sel:0.4,lysine:0.3}},
-  {id:"finition",t:"Finition (60 kg et plus)",a:[18,999],c:{pb:[13,15],ca:[0.55,0.9]},d:"Environ 2,3 à 3 kg par porc et par jour, en 2 repas.",
-   f:{mais:62.2,son:22,soja:12,phosphate:1.5,coquille:1.2,premix:0.5,sel:0.4,lysine:0.2}}],
+  {id:"demarrage",t:"Porcelets (10 à 25 kg)",a:[0,10],g:750,c:{pb:[18.5,21],ca:[0.8,1],lys:[1.2,1.4]},d:"Environ 0,5 à 1 kg par porcelet et par jour, en 3 repas.",
+   f:{mais:44.1,sorgho:20,soja:16.5,arachide:6,son:5,poisson:5,phosphate:1.5,coquille:0.7,premix:0.5,lysine:0.4,sel:0.3}},
+  {id:"croissance",t:"Croissance (25 à 60 kg)",a:[10,18],g:1900,c:{pb:[15.5,17.5],ca:[0.65,0.85],lys:[0.88,1]},d:"Environ 1,5 à 2,3 kg par porc et par jour, en 2 repas.",
+   f:{mais:35.15,sorgho:18,son:11,sonriz:10,dreche:10,poisson:5,arachide:4,coton:4,phosphate:1.5,premix:0.5,lysine:0.35,sel:0.3,coquille:0.2}},
+  {id:"finition",t:"Finition (60 kg et plus)",a:[18,999],g:2650,c:{pb:[13,15],ca:[0.6,0.8],lys:[0.7,0.85]},d:"Environ 2,3 à 3 kg par porc et par jour, en 2 repas.",
+   f:{mais:36.15,sorgho:18.5,son:13,sonriz:12,dreche:12,coton:5,phosphate:1.5,coquille:0.7,premix:0.5,lysine:0.35,sel:0.3}}],
  petitsrum:[
-  {id:"concentre",t:"Concentré d'embouche",a:[0,999],c:{pb:[15,18],ca:[0.6,1.2]},d:"300 à 500 g de concentré par tête et par jour, en 2 repas, avec du fourrage à volonté (fanes d'arachide ou de niébé, paille), une pierre à lécher et de l'eau propre.",
-   f:{son:35,mais:30,coton:25,melasse:5,phosphate:2,sel:1.5,coquille:1,premix:0.5}}],
+  {id:"jeune",t:"Agneaux et chevreaux sevrés (3 à 6 mois)",a:[0,26],g:250,c:{pb:[16.5,19],ca:[0.8,1.2]},d:"200 à 300 g de concentré par tête et par jour, avec du bon fourrage à volonté, une pierre à lécher et de l'eau propre.",
+   f:{son:30,mais:28,coton:25,fanes:8,melasse:5,phosphate:1.5,coquille:1,sel:1,premix:0.5}},
+  {id:"concentre",t:"Embouche (6 mois et plus)",a:[26,999],g:400,c:{pb:[15,17],ca:[0.6,1.1]},d:"300 à 500 g de concentré par tête et par jour, en 2 repas, avec du fourrage à volonté (fanes d'arachide ou de niébé, paille), une pierre à lécher et de l'eau propre.",
+   f:{son:30,mais:30,graincoton:15,coton:12,fanes:5,melasse:5,coquille:1.5,sel:1,premix:0.5}}],
  chevrelait:[
-  {id:"concentre",t:"Concentré chèvres laitières",a:[0,999],c:{pb:[16,20],ca:[0.6,1.2]},d:"300 à 500 g par jour, plus environ 300 g par litre de lait au-delà de 1 litre, avec du fourrage de qualité à volonté.",
-   f:{son:40,mais:25,coton:20,soja:8,melasse:3,phosphate:2,sel:1.5,premix:0.5}}],
+  {id:"concentre",t:"Concentré chèvres laitières",a:[0,999],g:600,c:{pb:[16.5,19.5],ca:[0.8,1.2]},d:"300 à 500 g par jour, plus environ 300 g par litre de lait au-delà de 1 litre, avec du fourrage de qualité à volonté.",
+   f:{son:30,mais:28.5,coton:20,graincoton:12,melasse:5,phosphate:1.5,sel:1.5,coquille:1,premix:0.5}}],
  bovin:[
-  {id:"concentre",t:"Concentré d'embouche bovine",a:[0,999],c:{pb:[15,19],ca:[0.6,1.2]},d:"3 à 4 kg par tête et par jour, avec de la paille ou du foin à volonté, une pierre à lécher et 30 à 50 litres d'eau par jour.",
-   f:{son:30,coton:30,mais:25,melasse:10,coquille:2,sel:2,premix:1}}],
+  {id:"jeune",t:"Veaux et génisses sevrés (6 à 12 mois)",a:[0,52],g:1500,c:{pb:[16,18.5],ca:[0.7,1.1]},d:"1 à 2 kg par tête et par jour, avec du foin ou de la paille à volonté, une pierre à lécher et de l'eau propre.",
+   f:{son:30,mais:30,coton:22,graincoton:8,melasse:6,coquille:1.5,sel:1.5,premix:1}},
+  {id:"concentre",t:"Embouche (12 mois et plus)",a:[52,999],g:3500,c:{pb:[14,16.5],ca:[0.6,1.1]},d:"3 à 4 kg par tête et par jour, avec de la paille ou du foin à volonté, une pierre à lécher et 30 à 50 litres d'eau par jour.",
+   f:{mais:31,son:30,graincoton:15,coton:12,melasse:8,coquille:1.5,sel:1.5,premix:1}}],
  poisson:[
-  {id:"alevins",t:"Alevins (moins de 20 g)",a:[0,6],c:{pb:[40,45],ca:[1,2]},d:"Aliment fin (farine ou miettes de 0,5 à 1 mm), 4 à 6 repas par jour. Environ 8 à 10 % du poids des poissons par jour.",
-   f:{poisson:45,soja:35,mais:8,son:7,huile:3,premix:1,phosphate:1}},
-  {id:"croissance",t:"Croissance (20 à 150 g)",a:[6,16],c:{pb:[32,36],ca:[1,2]},d:"Granulés de 2 à 3 mm, 3 repas par jour. Environ 3 à 5 % du poids des poissons par jour. Arrêter de nourrir si les poissons ne mangent plus.",
-   f:{soja:37,poisson:18,mais:18,coton:12,son:11.5,huile:2,phosphate:1,premix:0.5}},
-  {id:"finition",t:"Grossissement (150 g et plus)",a:[16,999],c:{pb:[28,32],ca:[1,2]},d:"Granulés de 3 à 4 mm (flottants de préférence), 2 repas par jour. Environ 2 à 3 % du poids des poissons par jour. Réduire la ration par temps froid ou si l'eau est trouble.",
-   f:{soja:32,mais:24,coton:18,son:14.5,poisson:8,huile:2,phosphate:1,premix:0.5}}],
+  {id:"alevins",t:"Alevins (moins de 20 g)",a:[0,6],g:1,c:{pb:[40,45],ca:[1,3],lys:[2.2,3],met:[0.8,1.2]},d:"Aliment fin (farine ou miettes de 0,5 à 1 mm), 4 à 6 repas par jour. Environ 8 à 10 % du poids des poissons par jour. Pour le silure, viser 2 à 4 points de protéines en plus.",
+   f:{poisson:45,soja:13,sorgho:9,arachide:8,son:6,coton:6,mais:5,huile:3,sang:3,phosphate:1,premix:1}},
+  {id:"croissance",t:"Croissance (20 à 150 g)",a:[6,16],g:3.5,c:{pb:[32,36],ca:[0.9,2],lys:[1.75,2.2],met:[0.6,0.9]},d:"Granulés de 2 à 3 mm, 3 repas par jour. Environ 3 à 5 % du poids des poissons par jour. Arrêter de nourrir si les poissons ne mangent plus.",
+   f:{poisson:20,coton:15,soja:12,arachide:12,sonriz:10,dreche:10,mais:9.95,son:7,huile:2,phosphate:1.5,premix:0.5,lysine:0.05}},
+  {id:"finition",t:"Grossissement (150 g et plus)",a:[16,999],g:8,c:{pb:[28,32],ca:[0.8,2],lys:[1.5,1.9],met:[0.48,0.75]},d:"Granulés de 3 à 4 mm (flottants de préférence), 2 repas par jour. Environ 2 à 3 % du poids des poissons par jour. Réduire la ration par temps froid ou si l'eau est trouble.",
+   f:{son:15,coton:15,soja:12,arachide:12,poisson:10,sonriz:10,dreche:10,mais:9.8,sorgho:2,huile:2,phosphate:1.5,premix:0.5,lysine:0.2}}],
  vachelait:[
-  {id:"concentre",t:"Concentré vaches laitières",a:[0,999],c:{pb:[17,21],ca:[0.6,1.2]},d:"1 à 2 kg par jour pour l'entretien, plus 1 kg pour 2 litres de lait, avec du fourrage de qualité à volonté.",
-   f:{son:35,coton:25,mais:25,soja:7,melasse:4,phosphate:2,sel:1.5,premix:0.5}}]
+  {id:"concentre",t:"Concentré vaches laitières",a:[0,999],g:4000,c:{pb:[17.5,20],ca:[0.8,1.2]},d:"1 à 2 kg par jour pour l'entretien, plus 1 kg pour 2 litres de lait, avec du fourrage de qualité à volonté.",
+   f:{son:28,mais:25,coton:25,graincoton:12,melasse:5,phosphate:1.5,sel:1.5,coquille:1,premix:1}}]
 };
 const ENG={npk15:{n:"NPK 15-15-15",prix:20000},npk14:{n:"NPK 14-23-14",prix:20000},uree:{n:"Urée 46 %",prix:18000},compost:{n:"Compost ou fumier",prix:15000}};
 const CULT={
@@ -332,27 +356,47 @@ const CULT={
  manguier:{n:"Manguier",arbre:true,parHa:100,ages:[[1,150,10],[2,300,10],[3,500,15],[5,800,20],[99,1500,30]],d:"Épandre en couronne sous le bord du feuillage. Arroser les jeunes arbres en saison sèche."}
 };
 let prixIng={},prixEng={},mesFormules=[];
-const pIng=k=>Number(prixIng[k]??ING[k].prix)||0,pEng=k=>Number(prixEng[k]??ENG[k].prix)||0;
+const pIng=k=>Number(prixIng[k]??(ING[k]||{}).prix)||0,pEng=k=>Number(prixEng[k]??ENG[k].prix)||0;
+const ingN=k=>ING[k]?ING[k].n:k;
 function formAt(key,w){const L=FORM[key]||[];return L.find(x=>w>=x.a[0]&&w<x.a[1])||L[L.length-1]}
+const FAKE_ESP={pondeuse:"Poules pondeuses",chair:"Poulets de chair",local:"Poulets locaux",porc:"Porcs"};
+/* ration repère en g par animal et par jour, pour une espèce, un âge (semaines) et une formule */
+function rationG(key,w,fo){
+  if(FAKE_ESP[key]&&w!=null){try{const g=stdFeed({espece:FAKE_ESP[key]},w);if(g>0)return g}catch(e){}}
+  return (fo&&fo.g)||((formAt(key,w==null?0:w)||{}).g)||0}
 function formulaForLot(l,s){const key=spKey(l);if(!FORM[key])return null;const fo=formAt(key,s.ageW);
   const daily=s.gpj7!=null&&s.gpj7>0?s.alive*s.gpj7/1000:s.alive*stdFeed(l,s.ageW)/1000;
   return {key,titre:fo.t,fo,f:fo.f,daily,week:Math.ceil(daily*7/5)*5}}
-function nutri(f){let pb=0,em=0,ca=0,t=0;for(const[k,v]of Object.entries(f)){const i=ING[k];if(!i)continue;t+=v;pb+=v*i.pb/100;em+=v*i.em/100;ca+=v*i.ca/100}return {pb,em,ca,t}}
+function nutri(f){let pb=0,em=0,ca=0,lys=0,met=0,t=0;for(const[k,v]of Object.entries(f)){const i=ING[k];t+=v;if(!i)continue;pb+=v*i.pb/100;em+=v*i.em/100;ca+=v*i.ca/100;lys+=v*(i.lys||0)/100;met+=v*(i.met||0)/100}return {pb,em,ca,lys,met,t}}
 const pFab=()=>Math.max(0,Number(prixIng._fab??14)||0); // fabrication + sacs vides, F par kg (SAPRA : 500 F/sac de 50 kg + 200 F le sac)
 const pTrans=()=>Math.max(0,Number(prixIng._trans??20)||0); // transport, F par kg (SAPRA : 10 000 F pour 500 kg)
 function formCost(f){let c=0;for(const[k,v]of Object.entries(f))c+=v/100*pIng(k);return Object.keys(f).length?c+pFab()+pTrans():c}
 
 /* état de l'onglet */
 let fMode="animal",fKey="pondeuse",fId="ponte",fCur={},fQty=100,fLot="",fCult="mais",fSurf=1,fUnit="ha",fArbres=100,fAgeArbre=6;
+let fNb=0,fAge=null,fAgeU="sem",fDays=0;
+const DUR={7:"1 semaine",14:"2 semaines",30:"1 mois",90:"3 mois"};
 let prixTimer=null;
 function savePrix(){if(!db||!canWrite)return;clearTimeout(prixTimer);prixTimer=setTimeout(async()=>{try{await db.doc("reglages/prix").set({ing:prixIng,eng:prixEng,maj:today()})}catch(e){}},900)}
 function fOptions(){const sel=$("f-phase");sel.innerHTML="";const g1=document.createElement("optgroup");g1.label="Formules conseillées";
   (FORM[fKey]||[]).forEach(x=>{const o=el("option",null,x.t);o.value=x.id;g1.append(o)});sel.append(g1);
   const mine=mesFormules.filter(m=>m.sp===fKey);if(mine.length){const g2=document.createElement("optgroup");g2.label="Mes formules";mine.forEach(m=>{const o=el("option",null,m.nom);o.value="m:"+m.id;g2.append(o)});sel.append(g2)}
   if(![...sel.options].some(o=>o.value===fId))fId=(FORM[fKey]||[{}])[0].id;sel.value=fId}
-function fBase(){if(fId.startsWith("m:")){const m=mesFormules.find(x=>"m:"+x.id===fId);return m?{t:m.nom,c:(formAt(m.sp,0)||{}).c||{},d:"Formule enregistrée par "+(names[m.by]||"vous")+".",f:m.f,mine:m}:null}
+function fBase(){if(fId.startsWith("m:")){const m=mesFormules.find(x=>"m:"+x.id===fId);if(!m)return null;const ref=formAt(m.sp,fAgeW()??0)||{};return {t:m.nom,c:ref.c||{},g:ref.g,d:"Formule enregistrée par "+(names[m.by]||"vous")+".",f:m.f,mine:m}}
   return (FORM[fKey]||[]).find(x=>x.id===fId)}
 function fLoad(){const b=fBase();fCur=b?{...b.f}:{};renderFormTable()}
+/* âge saisi, converti en semaines */
+function fAgeW(){if(fAge==null||!(fAge>=0))return null;return fAgeU==="mois"?fAge*52/12:fAge}
+/* besoin journalier en kg pour le lot choisi ou pour le nombre d'animaux saisi */
+function fNeed(){
+  const l=lots.find(x=>x.id===fLot);
+  if(l){const s=stats(l),r=formulaForLot(l,s);if(r)return {daily:r.daily,nb:s.alive,g:s.alive>0?r.daily*1000/s.alive:0,lot:l,ageW:s.ageW}}
+  if(!(fNb>0))return null;const w=fAgeW();const b=fBase();const g=rationG(fKey,w,b);if(!g)return null;
+  return {daily:fNb*g/1000,nb:fNb,g,ageW:w}}
+const fmtG=g=>g>=1000?fmt(g/1000,1)+" kg":fmt(g,g<10?1:0)+" g";
+function roundQty(x){return x>=20?Math.ceil(x/5)*5:Math.max(0.5,Math.ceil(x*2)/2)}
+function applyDays(){const nd=fNeed();if(!fDays||!nd)return;$("f-qty").value=roundQty(nd.daily*fDays)}
+function renderDays(){document.querySelectorAll("[data-days]").forEach(b=>b.setAttribute("aria-pressed",String(Number(b.dataset.days)===fDays)))}
 function renderFormules(){
   if(!$("v-formules"))return;
   $("f-animal").setAttribute("aria-pressed",fMode==="animal");$("f-plante").setAttribute("aria-pressed",fMode==="plante");
@@ -360,57 +404,81 @@ function renderFormules(){
   const ls=$("f-lot");const keep=fLot;ls.innerHTML="";const o0=el("option",null,"Aucun (choisir l'espèce)");o0.value="";ls.append(o0);
   lots.filter(l=>l.actif!==false&&FORM[spKey(l)]).forEach(l=>{const o=notr(el("option",null,l.nom));o.value=l.id;ls.append(o)});ls.value=lots.some(l=>l.id===keep)?keep:"";fLot=ls.value;
   const ss=$("f-sp");if(!ss.options.length)Object.entries(SPN).forEach(([k,n])=>{const o=el("option",null,n);o.value=k;ss.append(o)});ss.value=fKey;ss.disabled=!!fLot;
+  ["f-age","f-ageu","f-nb"].forEach(id=>{if($(id))$(id).disabled=!!fLot});
   fOptions();
   if($("f-fab")&&document.activeElement!==$("f-fab"))$("f-fab").value=pFab();
   if($("f-trans")&&document.activeElement!==$("f-trans"))$("f-trans").value=pTrans();
   const cs=$("f-cult");if(!cs.options.length)Object.entries(CULT).forEach(([k,c])=>{const o=el("option",null,c.n);o.value=k;cs.append(o)});cs.value=fCult;
+  renderDays();
   if(!Object.keys(fCur).length)fLoad();else renderFormTable();
   renderPlan();
 }
 function fromLot(){const l=lots.find(x=>x.id===fLot);if(!l)return;const s=stats(l);const r=formulaForLot(l,s);if(!r)return;
-  fKey=r.key;fId=r.fo.id;fQty=Math.max(5,r.week);$("f-qty").value=fQty;fOptions();fLoad()}
+  fKey=r.key;fId=r.fo.id;fNb=s.alive;fAge=s.ageW;fAgeU="sem";
+  $("f-nb").value=fNb;$("f-age").value=fAge;$("f-ageu").value="sem";
+  fDays=fDays||7;fOptions();fLoad();applyDays();renderDays();renderFormTotals()}
+/* choisit la formule conseillée qui correspond à l'âge saisi */
+function pickByAge(){const w=fAgeW();if(w==null||fId.startsWith("m:"))return;const fo=formAt(fKey,w);if(fo&&fo.id!==fId){fId=fo.id;fOptions();fLoad()}}
+function renderIngList(){
+  const box=$("f-inglist");if(!box)return;box.innerHTML="";const L=ingLim(fKey);
+  $("f-ingtitle").textContent="Ingrédients utilisables : "+(SPN[fKey]||"");
+  const ul=el("ul","inglist");Object.keys(L).forEach(k=>{const i=ING[k];if(!i)return;const li=el("li");const tx=el("div","ix");tx.append(el("b",null,i.n));
+    const st=[i.pb?`Protéines ${fmt(i.pb,1)} %`:null,`Maximum ${fmt(L[k],L[k]<1?1:0)} %`,`${fmt(pIng(k))} F/kg`].filter(Boolean);const sp=el("span","st");st.forEach((x,j)=>{if(j)sp.append(" · ");sp.append(el("span",null,x))});tx.append(sp);if(i.note)tx.append(el("small",null,i.note));li.append(tx);
+    if(k in fCur)li.append(el("span","pill s-ok",fmt(fCur[k],2)+" %"));else{const bt=el("button","btn small ghost","Ajouter");bt.type="button";bt.onclick=()=>{fCur[k]=0;renderFormTable()};li.append(bt)}ul.append(li)});
+  box.append(ul);
+  box.append(el("p","note","Le maximum est la part la plus élevée conseillée dans le mélange pour cette espèce. Les ingrédients absents de la liste ne conviennent pas à cette espèce."))}
 function renderFormTable(){
-  const tb=$("f-body");tb.innerHTML="";const b=fBase()||{c:{},d:""};
-  Object.entries(fCur).forEach(([k,v])=>{const tr=el("tr");tr.append(el("td",null,ING[k]?ING[k].n:k));
-    const tdp=el("td","n"),ip=el("input");ip.type="number";ip.step="0.05";ip.min="0";ip.value=v;ip.setAttribute("aria-label","Pourcentage "+ING[k].n);
+  const tb=$("f-body");tb.innerHTML="";const b=fBase()||{c:{},d:""};const L=ingLim(fKey);
+  Object.entries(fCur).forEach(([k,v])=>{const tr=el("tr");tr.append(el("td",null,ingN(k)));
+    const tdp=el("td","n"),ip=el("input");ip.type="number";ip.step="0.05";ip.min="0";ip.value=v;ip.setAttribute("aria-label","Pourcentage "+ingN(k));
     ip.oninput=()=>{fCur[k]=N(ip.value)||0;renderFormTotals()};tdp.append(ip);tr.append(tdp);
     tr.append(el("td","n kg"));
-    const tdx=el("td","n"),ix=el("input");ix.type="number";ix.min="0";ix.value=pIng(k);ix.setAttribute("aria-label","Prix par kg "+ING[k].n);
+    const tdx=el("td","n"),ix=el("input");ix.type="number";ix.min="0";ix.value=pIng(k);ix.setAttribute("aria-label","Prix par kg "+ingN(k));
     ix.oninput=()=>{prixIng[k]=N(ix.value)||0;renderFormTotals();savePrix()};tdx.append(ix);tr.append(tdx);
     tr.append(el("td","n cost"));
-    const tdd=el("td"),bd=el("button","btn small ghost","×");bd.type="button";bd.setAttribute("aria-label","Retirer "+ING[k].n);bd.onclick=()=>{delete fCur[k];renderFormTable()};tdd.append(bd);tr.append(tdd);
+    const tdd=el("td"),bd=el("button","btn small ghost","×");bd.type="button";bd.setAttribute("aria-label","Retirer "+ingN(k));bd.onclick=()=>{delete fCur[k];renderFormTable()};tdd.append(bd);tr.append(tdd);
     tr.dataset.k=k;tb.append(tr)});
   const add=$("f-add");add.innerHTML="";const oo=el("option",null,"Ajouter un ingrédient…");oo.value="";add.append(oo);
-  Object.entries(ING).filter(([k])=>!(k in fCur)).forEach(([k,i])=>{const o=el("option",null,i.n);o.value=k;add.append(o)});
+  Object.keys(L).filter(k=>ING[k]&&!(k in fCur)).forEach(k=>{const o=el("option",null,ING[k].n);o.value=k;add.append(o)});
   $("f-dist").textContent=b.d||"";$("f-del").hidden=!b.mine||!canWrite;
   renderFormTotals();
 }
 function renderFormTotals(){
-  const q=Math.max(0,N($("f-qty").value)||0);fQty=q;
-  document.querySelectorAll("#f-body tr").forEach(tr=>{const k=tr.dataset.k,v=fCur[k]||0;tr.querySelector(".kg").textContent=fmt(v*q/100,v*q/100<10?2:1);tr.querySelector(".cost").textContent=fmt(v/100*q*pIng(k))});
+  const q=Math.max(0,N($("f-qty").value)||0);fQty=q;const L=ingLim(fKey);
+  document.querySelectorAll("#f-body tr").forEach(tr=>{const k=tr.dataset.k,v=fCur[k]||0;tr.querySelector(".kg").textContent=fmt(v*q/100,v*q/100<10?2:1);tr.querySelector(".cost").textContent=fmt(v/100*q*pIng(k));
+    const over=!(k in L)||v>L[k]+1e-9;tr.querySelector("td").style.color=over?"var(--bad)":""});
   const n=nutri(fCur),cost=formCost(fCur),b=fBase()||{c:{}};
   const tot=$("f-total");tot.innerHTML="";if(Object.keys(fCur).length&&pFab()){const fr=el("tr");fr.append(el("td",null,"Fabrication et sacs"),el("td","n","—"),el("td","n","—"),el("td","n",fmt(pFab())),el("td","n",fmt(pFab()*q)),el("td"));fr.style.fontWeight="400";tot.append(fr)}if(Object.keys(fCur).length&&pTrans()){const fr=el("tr");fr.append(el("td",null,"Transport"),el("td","n","—"),el("td","n","—"),el("td","n",fmt(pTrans())),el("td","n",fmt(pTrans()*q)),el("td"));fr.style.fontWeight="400";tot.append(fr)}const tr=el("tr");tr.append(el("td",null,"Total"));const tp=el("td","n",fmt(n.t,1)+" %");if(Math.abs(n.t-100)>0.05)tp.style.color="var(--bad)";tr.append(tp,el("td","n",fmt(q*n.t/100,1)),el("td","n",fmt(cost)+" F/kg"),el("td","n",fmt(cost*q)+" F"),el("td"));tot.append(tr);
   $("f-warn").hidden=Math.abs(n.t-100)<=0.05;$("f-warn").textContent=`Le total fait ${fmt(n.t,1)} % : ajustez les pourcentages pour arriver à 100 %.`;
+  const W=$("f-warn2");if(W){W.innerHTML="";Object.entries(fCur).forEach(([k,v])=>{if(!(k in L))W.append(el("li",null,`${ingN(k)} : ne convient pas à cette espèce.`));else if(v>L[k]+1e-9)W.append(el("li",null,`${ingN(k)} : ${fmt(v,2)} %, au-dessus du maximum conseillé de ${fmt(L[k],L[k]<1?1:0)} %.`))});W.hidden=!W.children.length}
   const K=$("f-kpis");K.innerHTML="";const C=b.c||{};
   const chk=(v,r)=>!r?null:v<r[0]?"down":v>r[1]?"down":"up";
   const sub=(r,u,d)=>r?`objectif ${fmt(r[0],d)} à ${fmt(r[1],d)}${u}`:"";
   K.append(kpi("Protéines (PB)",fmt(n.pb,1)+" %",sub(C.pb," %",1),chk(n.pb,C.pb)));
-  K.append(kpi("Calcium",fmt(n.ca,2)+" %",sub(C.ca," %",1),chk(n.ca,C.ca)));
+  K.append(kpi("Calcium",fmt(n.ca,2)+" %",sub(C.ca," %",2),chk(n.ca,C.ca)));
   if(C.em)K.append(kpi("Énergie",fmt(n.em)+" kcal/kg",sub(C.em,"",0),chk(n.em,C.em)));
+  if(C.lys)K.append(kpi("Lysine",fmt(n.lys,2)+" %",sub(C.lys," %",2),chk(n.lys,C.lys)));
+  if(C.met)K.append(kpi("Méthionine",fmt(n.met,2)+" %",sub(C.met," %",2),chk(n.met,C.met)));
   K.append(kpi("Coût du mélange",fmt(cost)+" F/kg",fmt(cost*q)+" F pour "+fmt(q)+" kg"));
-  const l=lots.find(x=>x.id===fLot);const box=$("f-lotinfo");box.innerHTML="";
-  if(l){const s=stats(l),r=formulaForLot(l,s);box.append(el("p","note",`${l.nom} : ${fmt(s.alive)} sujets, âge ≈ ${s.ageW} semaines. Besoin ≈ ${fmt(r.daily,1)} kg par jour, soit ${fmt(r.daily*7)} kg par semaine et ${fmt(r.daily*30)} kg par mois.`));
-    if(Number(l.prixAliment)){const gain=(Number(l.prixAliment)-cost);K.append(kpi("Comparé à l'aliment acheté",(gain>=0?"− ":"+ ")+fmt(Math.abs(gain))+" F/kg",gain>=0?`économie ≈ ${fmt(gain*r.daily*30)} F par mois`:"plus cher que votre aliment actuel",gain>=0?"up":"down"))}}
+  const box=$("f-lotinfo");box.innerHTML="";const nd=fNeed();const need=$("f-need");
+  if(nd){const segs=[`Ration ≈ ${fmtG(nd.g)} par animal et par jour`,`${fmt(nd.daily,nd.daily<10?1:0)} kg par jour`,`${fmt(nd.daily*7,nd.daily*7<10?1:0)} kg par semaine`,`${fmt(nd.daily*30)} kg par mois`];
+    need.textContent=(nd.lot?nd.lot.nom+" : "+fmt(nd.nb)+" sujets, âge ≈ "+fmt(Math.floor(nd.ageW))+" semaines · ":"")+segs.join(" · ");need.className="note";
+    if(fDays){const dq=roundQty(nd.daily*fDays);K.append(kpi("Pour "+DUR[fDays],fmt(dq)+" kg",fmt(cost*dq)+" F"))}
+    if(nd.lot&&Number(nd.lot.prixAliment)){const gain=(Number(nd.lot.prixAliment)-cost);K.append(kpi("Comparé à l'aliment acheté",(gain>=0?"− ":"+ ")+fmt(Math.abs(gain))+" F/kg",gain>=0?`économie ≈ ${fmt(gain*nd.daily*30)} F par mois`:"plus cher que votre aliment actuel",gain>=0?"up":"down"))}}
+  else{need.textContent=fDays?"Indiquez le nombre d'animaux pour calculer la quantité.":"Indiquez le nombre d'animaux pour connaître le besoin par jour, par semaine et par mois.";need.className=fDays?"msg err":"note"}
+  renderIngList();
 }
 $("f-animal").onclick=()=>{fMode="animal";renderFormules()};$("f-plante").onclick=()=>{fMode="plante";renderFormules()};
-$("f-lot").onchange=()=>{fLot=$("f-lot").value;$("f-sp").disabled=!!fLot;if(fLot)fromLot();else renderFormTotals()};
-$("f-sp").onchange=()=>{fKey=$("f-sp").value;fId=(FORM[fKey]||[{}])[0].id;fOptions();fLoad()};
-$("f-phase").onchange=()=>{fId=$("f-phase").value;fLoad()};
-$("f-qty").oninput=renderFormTotals;
+$("f-lot").onchange=()=>{fLot=$("f-lot").value;const dis=!!fLot;["f-sp","f-age","f-ageu","f-nb"].forEach(id=>$(id).disabled=dis);if(fLot)fromLot();else renderFormTotals()};
+$("f-sp").onchange=()=>{fKey=$("f-sp").value;fId=(FORM[fKey]||[{}])[0].id;fOptions();pickByAge();fLoad();applyDays();renderFormTotals()};
+$("f-phase").onchange=()=>{fId=$("f-phase").value;fLoad();applyDays();renderFormTotals()};
+$("f-age").oninput=()=>{const v=$("f-age").value;fAge=v===""?null:Math.max(0,N(v)||0);pickByAge();applyDays();renderFormTotals()};
+$("f-ageu").onchange=()=>{fAgeU=$("f-ageu").value;pickByAge();applyDays();renderFormTotals()};
+$("f-nb").oninput=()=>{fNb=Math.max(0,N($("f-nb").value)||0);applyDays();renderFormTotals()};
+$("f-qty").oninput=()=>{fDays=0;renderDays();renderFormTotals()};
 if($("f-fab"))$("f-fab").oninput=()=>{prixIng._fab=Math.max(0,N($("f-fab").value)||0);renderFormTotals();savePrix()};
 if($("f-trans"))$("f-trans").oninput=()=>{prixIng._trans=Math.max(0,N($("f-trans").value)||0);renderFormTotals();savePrix()};
-document.querySelectorAll("[data-weeks]").forEach(b=>b.onclick=()=>{const l=lots.find(x=>x.id===fLot);if(!l){$("f-qty").value=100;renderFormTotals();return}
-  const r=formulaForLot(l,stats(l));$("f-qty").value=Math.ceil(r.daily*7*Number(b.dataset.weeks)/5)*5;renderFormTotals()});
+document.querySelectorAll("[data-days]").forEach(b=>b.onclick=()=>{const d=Number(b.dataset.days);fDays=fDays===d?0:d;renderDays();applyDays();renderFormTotals();if(fDays&&!fNeed()&&!fLot)$("f-nb").focus()});
 $("f-add").onchange=()=>{const k=$("f-add").value;if(k){fCur[k]=0;renderFormTable()}};
 $("f-reset").onclick=fLoad;
 $("f-save").onclick=async()=>{const nom=$("f-nom").value.trim();if(!nom){$("f-msg").textContent="Donnez un nom à votre formule.";$("f-msg").className="msg err";return}
@@ -520,11 +588,11 @@ async function pdfCal(l){const s=stats(l);const P=pdfNew("Calendrier sanitaire :
   await pdfSave(P,`B2A-${slug(l.nom)}-calendrier-${today()}.pdf`)}
 async function pdfFormule(){const b=fBase()||{t:"",c:{},d:""};const n=nutri(fCur),cost=formCost(fCur),q=fQty||100;const l=lots.find(x=>x.id===fLot);
   const P=pdfNew("Formule d'aliment : "+(SPN[fKey]||""),b.t+(l?"  ·  pour le lot "+l.nom:""));
-  pdfH(P,`Mélange pour ${fmt(q)} kg`);
+  pdfH(P,`Mélange pour ${fmt(q)} kg`);{const nd=fNeed();if(nd)pdfP(P,`Pour ${fmt(nd.nb)} animaux : ration ≈ ${fmtG(nd.g)} par animal et par jour, soit ${fmt(nd.daily,nd.daily<10?1:0)} kg par jour, ${fmt(nd.daily*7,nd.daily*7<10?1:0)} kg par semaine et ${fmt(nd.daily*30)} kg par mois.`+(fDays?` Cette quantité couvre environ ${DUR[fDays]}.`:""))}
   pdfT(P,["Ingrédient","%","Quantité (kg)","Prix (F/kg)","Coût (F)"],Object.entries(fCur).map(([k,v])=>[ING[k].n,fmt(v,2),fmt(v*q/100,2),fmt(pIng(k)),fmt(v/100*q*pIng(k))]).concat([["Fabrication et sacs","","",fmt(pFab()),fmt(pFab()*q)],["Transport","","",fmt(pTrans()),fmt(pTrans()*q)],["Total",fmt(n.t,1),fmt(q*n.t/100,1),fmt(cost),fmt(cost*q)]]),
     {columnStyles:{1:{halign:"right"},2:{halign:"right"},3:{halign:"right"},4:{halign:"right"}},didParseCell:d=>{if(d.section==="body"&&d.row.index===Object.keys(fCur).length+2)d.cell.styles.fontStyle="bold"}});
   pdfH(P,"Valeurs nutritives estimées");const C=b.c||{};const rg=(r,dd,u)=>r?`${fmt(r[0],dd)} à ${fmt(r[1],dd)}${u}`:"-";
-  const rows=[["Protéines brutes",fmt(n.pb,1)+" %",rg(C.pb,1," %")],["Calcium",fmt(n.ca,2)+" %",rg(C.ca,1," %")]];if(C.em)rows.push(["Énergie métabolisable",fmt(n.em)+" kcal/kg",rg(C.em,0," kcal/kg")]);
+  const rows=[["Protéines brutes",fmt(n.pb,1)+" %",rg(C.pb,1," %")],["Calcium",fmt(n.ca,2)+" %",rg(C.ca,1," %")]];if(C.em)rows.push(["Énergie métabolisable",fmt(n.em)+" kcal/kg",rg(C.em,0," kcal/kg")]);if(C.lys)rows.push(["Lysine",fmt(n.lys,2)+" %",rg(C.lys,2," %")]);if(C.met)rows.push(["Méthionine",fmt(n.met,2)+" %",rg(C.met,2," %")]);
   rows.push(["Coût du mélange",fmt(cost)+" F/kg",""]);pdfT(P,["Valeur","Formule","Objectif"],rows);
   pdfH(P,"Distribution");pdfP(P,b.d||"");
   pdfP(P,"Préparation : bien mélanger d'abord les petits ingrédients (prémix, sel, acides aminés, phosphate) avec un peu de maïs, puis ajouter ce pré-mélange au reste. Stocker au sec, à l'abri des rongeurs, et utiliser en moins d'un mois.");

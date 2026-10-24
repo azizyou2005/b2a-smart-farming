@@ -153,3 +153,68 @@ const D=window.B2A_DICT=window.B2A_DICT||{};const L=["en","it","es"];
 L.forEach((l,i)=>{D[l]=D[l]||{};for(const k in T)if(D[l][k]==null)D[l][k]=T[k][i];
   const X=window.B2A_DICT_EXTRA||{};for(const k in X)if(X[k])D[l][k]=X[k][l]});
 })();
+/* Formules : âge, durée, ingrédients par espèce */
+(function(){const D=window.B2A_DICT=window.B2A_DICT||{};const add=(l,o)=>{D[l]=Object.assign(D[l]||{},o)};
+const T={
+"Âge des animaux":["Age of the animals","Età degli animali","Edad de los animales"],
+"Unité de l'âge":["Age unit","Unità dell'età","Unidad de la edad"],
+"semaines":["weeks","settimane","semanas"],"mois":["months","mesi","meses"],
+"Choisit la formule qui correspond à l'âge.":["Picks the formula that matches the age.","Sceglie la formula adatta all'età.","Elige la fórmula que corresponde a la edad."],
+"Nombre d'animaux":["Number of animals","Numero di animali","Número de animales"],
+"Pour les poissons : nombre de poissons.":["For fish: number of fish.","Per i pesci: numero di pesci.","Para los peces: número de peces."],
+"Ingrédients utilisables":["Usable ingredients","Ingredienti utilizzabili","Ingredientes utilizables"],
+"Moutons et chèvres (croissance et embouche)":["Sheep and goats (growing and fattening)","Pecore e capre (crescita e ingrasso)","Ovejas y cabras (crecimiento y engorde)"],
+"Bovins (croissance et embouche)":["Cattle (growing and fattening)","Bovini (crescita e ingrasso)","Bovinos (crecimiento y engorde)"],
+"Lysine":["Lysine","Lisina","Lisina"],"Méthionine":["Methionine","Metionina","Metionina"],
+"Protéines {0} %":["Protein {0} %","Proteine {0} %","Proteínas {0} %"],"Maximum {0} %":["Maximum {0} %","Massimo {0} %","Máximo {0} %"],"{0} F/kg":["{0} F/kg","{0} F/kg","{0} F/kg"],
+"Sorgho blanc de préférence (le sorgho rouge contient des tanins).":["White sorghum preferably (red sorghum contains tannins).","Preferibilmente sorgo bianco (il sorgo rosso contiene tannini).","Preferiblemente sorgo blanco (el sorgo rojo contiene taninos)."],
+"Son fin, sans balles de riz, et frais (il rancit vite).":["Fine bran, without rice hulls, and fresh (it goes rancid quickly).","Crusca fine, senza lolla di riso, e fresca (irrancidisce in fretta).","Salvado fino, sin cascarilla de arroz, y fresco (se enrancia rápido)."],
+"Bien sécher au soleil pour éviter les moisissures.":["Dry well in the sun to avoid mould.","Asciugare bene al sole per evitare le muffe.","Secar bien al sol para evitar el moho."],
+"Toujours griller ou cuire : le soja cru freine la croissance.":["Always roast or cook: raw soybeans slow growth.","Sempre tostare o cuocere: la soia cruda rallenta la crescita.","Siempre tostar o cocer: la soja cruda frena el crecimiento."],
+"Seulement sec et sans moisissure (risque d'aflatoxines).":["Only dry and mould-free (aflatoxin risk).","Solo secco e senza muffe (rischio di aflatossine).","Solo seco y sin moho (riesgo de aflatoxinas)."],
+"Contient du gossypol : respecter le taux maximum.":["Contains gossypol: keep to the maximum rate.","Contiene gossipolo: rispettare la dose massima.","Contiene gosipol: respetar la tasa máxima."],
+"Réservée aux ruminants.":["For ruminants only.","Solo per ruminanti.","Solo para rumiantes."],
+"Broyées. Réservées aux ruminants.":["Ground. For ruminants only.","Macinate. Solo per ruminanti.","Molidas. Solo para rumiantes."],
+"Au-delà du maximum, goût de poisson dans les œufs et la viande.":["Above the maximum, eggs and meat taste of fish.","Oltre il massimo, uova e carne sanno di pesce.","Por encima del máximo, huevos y carne saben a pescado."],
+"Peu appétente : petites quantités seulement.":["Not very palatable: small amounts only.","Poco appetibile: solo piccole quantità.","Poco apetecible: solo pequeñas cantidades."],
+"Prendre le prémix adapté à l'espèce (volailles, porcs, poissons ou ruminants).":["Use the premix made for the species (poultry, pigs, fish or ruminants).","Usare il premix adatto alla specie (pollame, suini, pesci o ruminanti).","Usar el premix adecuado a la especie (aves, cerdos, peces o rumiantes)."],
+"Le maximum est la part la plus élevée conseillée dans le mélange pour cette espèce. Les ingrédients absents de la liste ne conviennent pas à cette espèce.":["The maximum is the highest share advised in the mix for this species. Ingredients not on the list are not suitable for this species.","Il massimo è la quota più alta consigliata nella miscela per questa specie. Gli ingredienti assenti dall'elenco non sono adatti a questa specie.","El máximo es la proporción más alta aconsejada en la mezcla para esta especie. Los ingredientes que no están en la lista no son adecuados para esta especie."],
+"Ration ≈ {0} g par animal et par jour":["Ration ≈ {0} g per animal per day","Razione ≈ {0} g per animale al giorno","Ración ≈ {0} g por animal y día"],
+"Ration ≈ {0} kg par animal et par jour":["Ration ≈ {0} kg per animal per day","Razione ≈ {0} kg per animale al giorno","Ración ≈ {0} kg por animal y día"],
+"{0} kg par jour":["{0} kg per day","{0} kg al giorno","{0} kg por día"],
+"{0} kg par semaine":["{0} kg per week","{0} kg a settimana","{0} kg por semana"],
+"{0} kg par mois":["{0} kg per month","{0} kg al mese","{0} kg por mes"],
+"Pour {0} semaine":["For {0} week","Per {0} settimana","Para {0} semana"],
+"Pour {0} semaines":["For {0} weeks","Per {0} settimane","Para {0} semanas"],
+"Pour {0} mois":["For {0} {0:month|months}","Per {0} {0:mese|mesi}","Para {0} {0:mes|meses}"],
+"Agneaux et chevreaux sevrés ({0} à {1} mois)":["Weaned lambs and kids ({0} to {1} months)","Agnelli e capretti svezzati (da {0} a {1} mesi)","Corderos y cabritos destetados ({0} a {1} meses)"],
+"Veaux et génisses sevrés ({0} à {1} mois)":["Weaned calves and heifers ({0} to {1} months)","Vitelli e manze svezzati (da {0} a {1} mesi)","Terneros y novillas destetados ({0} a {1} meses)"],
+"Embouche ({0} mois et plus)":["Fattening ({0} months and over)","Ingrasso ({0} mesi e oltre)","Engorde ({0} meses y más)"],
+"{0} à {1} g de concentré par tête et par jour, avec du bon fourrage à volonté, une pierre à lécher et de l'eau propre.":["{0} to {1} g of concentrate per head per day, with good forage ad lib, a lick stone and clean water.","Da {0} a {1} g di concentrato per capo al giorno, con buon foraggio a volontà, una pietra da leccare e acqua pulita.","{0} a {1} g de concentrado por cabeza y día, con buen forraje a voluntad, una piedra de sal y agua limpia."],
+"{0} à {1} kg par tête et par jour, avec du foin ou de la paille à volonté, une pierre à lécher et de l'eau propre.":["{0} to {1} kg per head per day, with hay or straw ad lib, a lick stone and clean water.","Da {0} a {1} kg per capo al giorno, con fieno o paglia a volontà, una pietra da leccare e acqua pulita.","{0} a {1} kg por cabeza y día, con heno o paja a voluntad, una piedra de sal y agua limpia."],
+"Pour le silure, viser {0} à {1} points de protéines en plus.":["For catfish, aim for {0} to {1} points more protein.","Per il pesce gatto, puntare a {0}-{1} punti di proteine in più.","Para el siluro, apuntar a {0} a {1} puntos más de proteína."],
+"ne convient pas à cette espèce.":["not suitable for this species.","non adatto a questa specie.","no es adecuado para esta especie."],
+"{0} %, au-dessus du maximum conseillé de {1} %.":["{0} %, above the advised maximum of {1} %.","{0} %, sopra il massimo consigliato di {1} %.","{0} %, por encima del máximo aconsejado de {1} %."],
+"Indiquez le nombre d'animaux pour calculer la quantité.":["Enter the number of animals to calculate the quantity.","Indica il numero di animali per calcolare la quantità.","Indique el número de animales para calcular la cantidad."],
+"Indiquez le nombre d'animaux pour connaître le besoin par jour, par semaine et par mois.":["Enter the number of animals to see the need per day, week and month.","Indica il numero di animali per conoscere il fabbisogno al giorno, alla settimana e al mese.","Indique el número de animales para conocer la necesidad por día, semana y mes."],
+"Pour {0} animaux":["For {0} animals","Per {0} animali","Para {0} animales"],
+"ration ≈ {0} g par animal et par jour, soit {1} kg par jour, {2} kg par semaine et {3} kg par mois.":["ration ≈ {0} g per animal per day, i.e. {1} kg per day, {2} kg per week and {3} kg per month.","razione ≈ {0} g per animale al giorno, cioè {1} kg al giorno, {2} kg a settimana e {3} kg al mese.","ración ≈ {0} g por animal y día, es decir {1} kg por día, {2} kg por semana y {3} kg por mes."],
+"ration ≈ {0} kg par animal et par jour, soit {1} kg par jour, {2} kg par semaine et {3} kg par mois.":["ration ≈ {0} kg per animal per day, i.e. {1} kg per day, {2} kg per week and {3} kg per month.","razione ≈ {0} kg per animale al giorno, cioè {1} kg al giorno, {2} kg a settimana e {3} kg al mese.","ración ≈ {0} kg por animal y día, es decir {1} kg por día, {2} kg por semana y {3} kg por mes."],
+"Cette quantité couvre environ {0} semaine.":["This quantity covers about {0} week.","Questa quantità copre circa {0} settimana.","Esta cantidad cubre aproximadamente {0} semana."],
+"Cette quantité couvre environ {0} semaines.":["This quantity covers about {0} weeks.","Questa quantità copre circa {0} settimane.","Esta cantidad cubre aproximadamente {0} semanas."],
+"Cette quantité couvre environ {0} mois.":["This quantity covers about {0} {0:month|months}.","Questa quantità copre circa {0} {0:mese|mesi}.","Esta cantidad cubre aproximadamente {0} {0:mes|meses}."]
+};
+const NI={
+"Sorgho grain":["Sorghum grain","Sorgo in granella","Sorgo en grano"],
+"Petit mil":["Pearl millet","Miglio perlato","Mijo perla"],
+"Son de riz fin":["Fine rice bran","Crusca di riso fine","Salvado de arroz fino"],
+"Drêche de dolo séchée":["Dried dolo brewer's grains","Trebbie di dolo essiccate","Bagazo de dolo seco"],
+"Soja grain grillé":["Roasted soybeans","Soia in granella tostata","Soja en grano tostada"],
+"Tourteau d'arachide":["Groundnut cake","Panello di arachide","Torta de cacahuete"],
+"Graine de coton":["Cottonseed","Seme di cotone","Semilla de algodón"],
+"Fanes d'arachide ou de niébé":["Groundnut or cowpea haulms","Fusti di arachide o fagiolo dall'occhio","Rastrojo de cacahuete o caupí"],
+"Farine de sang":["Blood meal","Farina di sangue","Harina de sangre"]
+};
+const PRE=[["Pourcentage ",["Percentage ","Percentuale ","Porcentaje "]],["Prix par kg ",["Price per kg ","Prezzo al kg ","Precio por kg "]],["Retirer ",["Remove ","Rimuovi ","Quitar "]]];
+Object.entries(NI).forEach(([k,v])=>{T[k]=v;PRE.forEach(([p,q])=>{T[p+k]=v.map((x,i)=>q[i]+x)})});
+const L=["en","it","es"];Object.entries(T).forEach(([k,v])=>L.forEach((l,i)=>{const o={};o[k]=v[i];add(l,o)}));})();
