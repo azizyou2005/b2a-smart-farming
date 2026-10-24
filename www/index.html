@@ -446,6 +446,32 @@ h1,h2,h3,p,li,small,b,.note,.msg,.kpi small,.alerts li{overflow-wrap:break-word;
 .hist .t b{white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
 .hist small{overflow-wrap:anywhere}
 button{max-width:100%}
+/* ===== couvoir ===== */
+nav.tabs{grid-template-columns:repeat(7,minmax(0,1fr))}
+nav.tabs button{font-size:10px}
+@media (max-width:360px){nav.tabs button{font-size:9.5px}nav.tabs button svg{width:21px;height:21px}}
+.cvtiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:700px){.cvtiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.tile.bad b{color:var(--bad)}.tile.warn b{color:var(--warn)}.tile.ok b{color:var(--ok)}
+.lot .cvprog,.lot .cvsp{grid-column:1/-1}
+.cvprog{display:grid;gap:4px;position:relative;margin-top:6px}
+.cvprog small{color:var(--muted);font-size:13px}
+.cvmarks{position:absolute;left:0;right:0;top:0;height:10px;pointer-events:none}
+.cvmarks span{position:absolute;top:-2px;width:2px;height:14px;background:var(--brand-gold);border-radius:1px;transform:translateX(-1px)}
+.cvsp{color:var(--muted);font-size:12.5px;font-family:var(--mono);overflow-wrap:anywhere}
+.priority.cvbad{border-left-color:var(--bad);background:var(--bad-bg)}
+.priority span{display:block}
+.cvtips{margin:0;padding-left:18px;display:grid;gap:4px}
+#cv-bdetail .btnrow .btn{flex:1 1 auto}
+.kpi b.pos,td.pos{color:var(--ok)}.kpi b.neg,td.neg{color:var(--bad)}
+.cvsale>*,.cvsale .kpis>*{min-width:0}
+.cvsale .grid3{grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))}
+.cvsale .field small{overflow-wrap:anywhere}
+.cvsale{display:grid;grid-template-columns:minmax(0,1fr);min-width:0;gap:12px;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg)}
+.cvsale h3{margin:0;font:700 17px var(--display)}
+.cvsale .kpi{background:var(--surface)}
+#cv-stab tr.tot td{font-weight:700;border-top:2px solid var(--line)}
+#cv-stab tbody tr{cursor:pointer}
 </style>
 <div class="band" role="banner">
   <div class="band-in">
@@ -465,6 +491,7 @@ button{max-width:100%}
     <button type="button" role="tab" id="tab-calendrier" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M12 13v5M9.5 15.5h5"/></svg>Soins</button>
     <button type="button" role="tab" id="tab-formules" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10l2 13H5L7 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/><path d="M9 13h6"/></svg>Formules</button>
     <button type="button" role="tab" id="tab-ventes" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Ventes</button>
+    <button type="button" role="tab" id="tab-couvoir" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M8 3v3M16 3v3"/><ellipse cx="12" cy="15" rx="2.6" ry="3.2"/></svg>Couvoir</button>
     <button type="button" role="tab" id="tab-diagnostic" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Photo IA</button>
   </nav>
 
@@ -698,6 +725,93 @@ button{max-width:100%}
     </details>
   </div>
 
+  <!-- COUVOIR -->
+  <div class="view" id="v-couvoir" hidden>
+    <div class="tiles cvtiles" id="cv-tiles"></div>
+    <section class="card" id="cv-todo-card">
+      <h2 class="sec">À faire au couvoir</h2>
+      <ul class="cal" id="cv-todo"></ul>
+    </section>
+
+    <section class="card" id="cv-sales-card">
+      <h2 class="sec">Vente des poussins</h2>
+      <div class="kpis" id="cv-skpis"></div>
+      <div class="tablewrap"><table class="data" id="cv-stab"></table></div>
+      <p class="note">Prévision = œufs mis × taux d'éclosion prévu, moins les pertes avant la vente. Coûts = œufs, électricité et autres frais saisis dans chaque couvée.</p>
+    </section>
+
+    <section class="card" id="cv-batches-card">
+      <div class="row between"><h2 class="sec">Couvées</h2><button class="btn small" id="cv-newbatch" type="button">+ Mettre des œufs</button></div>
+      <div class="chips" id="cv-bfilter"><button class="chip" type="button" data-f="encours" aria-pressed="true">En cours</button><button class="chip" type="button" data-f="terminee" aria-pressed="false">Terminées</button></div>
+      <div class="lots" id="cv-batches"></div>
+    </section>
+
+    <section class="card" id="cv-bform" hidden>
+      <div class="wiz-head"><button class="back" type="button" id="cv-bcancel">‹ Annuler</button><h2 class="sec" id="cv-btitle">Nouvelle couvée</h2></div>
+      <div class="grid2">
+        <div class="field"><label for="cv-bmach">Couveuse</label><select id="cv-bmach"></select></div>
+        <div class="field"><label for="cv-besp">Espèce</label><select id="cv-besp"></select></div>
+        <div class="field"><label for="cv-boeufs">Nombre d'œufs mis</label><input type="number" id="cv-boeufs" min="1" inputmode="numeric" placeholder="ex. 112"></div>
+        <div class="field"><label for="cv-bdate">Date de mise en incubation</label><input type="date" id="cv-bdate"></div>
+        <div class="field"><label for="cv-borig">Origine des œufs (facultatif)</label><input type="text" id="cv-borig" placeholder="ex. Mes pondeuses, achetés au marché"></div>
+        <div class="field"><label for="cv-bcout">Prix d'un œuf (FCFA, facultatif)</label><input type="number" id="cv-bcout" min="0" inputmode="decimal" placeholder="ex. 150"></div>
+      </div>
+      <div id="cv-bcheck"></div>
+      <span class="msg" id="cv-bmsg"></span>
+      <div class="wiz-foot"><button class="btn ghost" type="button" id="cv-bcancel2">Annuler</button><button class="btn" type="button" id="cv-bsave">Enregistrer la couvée</button></div>
+    </section>
+
+    <section class="card" id="cv-bdetail" hidden></section>
+
+    <section class="card" id="cv-machines-card">
+      <div class="row between"><h2 class="sec">Mes couveuses</h2><button class="btn small ghost" id="cv-newmach" type="button">+ Ajouter une couveuse</button></div>
+      <div class="lots" id="cv-machines"></div>
+    </section>
+
+    <section class="card" id="cv-mform" hidden>
+      <div class="wiz-head"><button class="back" type="button" id="cv-mcancel">‹ Annuler</button><h2 class="sec" id="cv-mtitle">Nouvelle couveuse</h2></div>
+      <div class="field"><label for="cv-mpreset">Modèle de départ</label><select id="cv-mpreset"></select><small>Remplit la capacité, les dimensions et la puissance. Corrigez ensuite avec les chiffres de votre appareil.</small></div>
+      <div class="grid2">
+        <div class="field"><label for="cv-mnom">Nom de la couveuse</label><input type="text" id="cv-mnom" placeholder="ex. Couveuse 1 – magasin"></div>
+        <div class="field"><label for="cv-mmode">Type</label><select id="cv-mmode"><option value="auto">Automatique (retournement et humidité)</option><option value="semi">Semi-automatique (retournement auto)</option><option value="manuelle">Manuelle</option></select></div>
+        <div class="field"><label for="cv-mcap">Capacité (œufs de poule)</label><input type="number" id="cv-mcap" min="1" inputmode="numeric"></div>
+        <div class="field"><label for="cv-mplat">Nombre de plateaux</label><input type="number" id="cv-mplat" min="1" inputmode="numeric"></div>
+      </div>
+      <span class="label">Dimensions extérieures (cm)</span>
+      <div class="grid3">
+        <div class="field"><label for="cv-mL">Longueur</label><input type="number" id="cv-mL" min="0" inputmode="decimal"></div>
+        <div class="field"><label for="cv-ml">Largeur</label><input type="number" id="cv-ml" min="0" inputmode="decimal"></div>
+        <div class="field"><label for="cv-mH">Hauteur</label><input type="number" id="cv-mH" min="0" inputmode="decimal"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label for="cv-mW">Puissance (W)</label><input type="number" id="cv-mW" min="0" inputmode="decimal"></div>
+        <div class="field"><label for="cv-menergie">Alimentation</label><select id="cv-menergie"><option value="secteur">Secteur (SONABEL)</option><option value="mixte">Secteur + batterie 12 V</option><option value="solaire">Solaire</option><option value="petrole">Pétrole / gaz</option></select></div>
+        <div class="field"><label for="cv-metat">État</label><select id="cv-metat"><option value="service">En service</option><option value="arret">À l'arrêt</option><option value="panne">En panne</option></select></div>
+        <div class="field"><label for="cv-mnote">Remarque (facultatif)</label><input type="text" id="cv-mnote" placeholder="ex. sonde d'humidité changée en octobre"></div>
+      </div>
+      <div id="cv-mcalc"></div>
+      <span class="msg" id="cv-mmsg"></span>
+      <div class="row between"><button class="btn small ghost danger" type="button" id="cv-mdel" hidden>Supprimer la couveuse</button></div>
+      <div class="wiz-foot"><button class="btn ghost" type="button" id="cv-mcancel2">Annuler</button><button class="btn" type="button" id="cv-msave">Enregistrer</button></div>
+    </section>
+
+    <details class="box card" id="cv-guide">
+      <summary>Guide des réglages par espèce</summary>
+      <p class="note">Valeurs de référence pour couveuse ventilée. Suivez d'abord la notice de votre appareil. J0 = jour de mise en incubation.</p>
+      <div class="tablewrap"><table class="data" id="cv-guidetab"></table></div>
+      <ul class="note cvtips">
+        <li>Œufs de moins de 7 jours, propres, stockés pointe en bas entre 15 et 18 °C.</li>
+        <li>Laissez les œufs 6 à 8 heures à température ambiante avant de les mettre.</li>
+        <li>Retournement 3 à 5 fois par jour jusqu'à l'arrêt, puis on n'ouvre plus la couveuse.</li>
+        <li>Retirez au mirage les œufs clairs et ceux dont l'embryon est mort.</li>
+        <li>Coupure de courant : gardez la couveuse fermée, une coupure de moins de 4 heures est généralement supportée.</li>
+      </ul>
+      <div class="grid2"><div class="field"><label for="cv-kwh">Prix de l'électricité (FCFA par kWh)</label><input type="number" id="cv-kwh" min="0" inputmode="decimal" placeholder="109"><small>Vide = 109 F/kWh, tarif SONABEL normal (au-delà de 200 kWh par mois, hors taxes).</small></div></div>
+      <div class="chips" id="cv-kwhp"><button class="chip" type="button" data-v="109">Monophasé · 109 F</button><button class="chip" type="button" data-v="114">Triphasé · 114 F</button><button class="chip" type="button" data-v="129">Monophasé + TVA 18 % · 129 F</button><button class="chip" type="button" data-v="135">Triphasé + TVA 18 % · 135 F</button></div>
+      <p class="note">Tarifs SONABEL par kWh, tranche au-delà de 200 kWh par mois. La facture ajoute la prime fixe et les taxes : prenez le prix avec TVA pour un coût plus proche de la réalité.</p>
+    </details>
+  </div>
+
   <!-- DIAGNOSTIC -->
   <div class="view" id="v-diagnostic" hidden>
     <section class="card">
@@ -750,6 +864,7 @@ button{max-width:100%}
 <script src="extra.js"></script>
 <script src="dict.js"></script>
 <script src="dict-extra.js"></script>
+<script src="couvoir.js"></script>
 <script src="plus.js"></script>
 <script src="i18n.js"></script>
 

@@ -11,7 +11,7 @@ let me=lsGet(LS_ME);if(!me){me="d"+newId();lsSet(LS_ME,me)}
 const CFG=window.B2A_FIREBASE||null;const farm=lsGet(LS_FARM)||"";
 const IA_URL=(window.B2A_IA_URL||"").replace(/\/+$/,"")||null;
 const clone=v=>v==null?v:JSON.parse(JSON.stringify(v));
-const COLS=["lots","saisies","soins","analyses","previsions","formules","factures","reglages","members","contacts","depenses"];
+const COLS=["lots","saisies","soins","analyses","previsions","formules","factures","reglages","members","contacts","depenses","couveuses","couvees"];
 
 /* ---------- données sur le téléphone ---------- */
 function makeLocal(){
