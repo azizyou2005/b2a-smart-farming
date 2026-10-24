@@ -235,6 +235,28 @@ $("g-go").onclick=()=>{
 renderGuide();
 
 /* fonctionnement sans internet */
-if("serviceWorker" in navigator&&!window.Capacitor&&(location.protocol==="https:"||location.hostname==="localhost"||location.hostname==="127.0.0.1"))
-  navigator.serviceWorker.register("sw.js").catch(()=>{});
+if("serviceWorker" in navigator&&!window.Capacitor&&(location.protocol==="https:"||location.hostname==="localhost"||location.hostname==="127.0.0.1")){
+  const hadCtrl=!!navigator.serviceWorker.controller;let reloaded=false;
+  // nouvelle version installée : on recharge une fois pour l'afficher tout de suite
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(hadCtrl&&!reloaded){reloaded=true;location.reload()}});
+  navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{
+    const chk=()=>{if(navigator.onLine)reg.update().catch(()=>{})};
+    document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")chk()});
+    setInterval(chk,30*60*1000);
+  }).catch(()=>{});
+}
+/* application Android (APK) : prévenir quand une nouvelle version est disponible */
+const APP_VERSION=26;
+if(window.Capacitor&&navigator.onLine){
+  fetch("https://azizyou2005.github.io/b2a-smart-farming/version.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{
+    if(!v||!(Number(v.v)>APP_VERSION)||document.getElementById("x-upd"))return;
+    const d=document.createElement("div");d.id="x-upd";d.setAttribute("role","status");
+    d.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:60;background:#1b2e4c;color:#fff;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgb(0 0 0/.3);font:600 14px/1.35 'Source Sans 3',sans-serif";
+    const t=document.createElement("span");t.style.flex="1";t.textContent="Une nouvelle version de l'application est disponible.";
+    const a=document.createElement("a");a.href="https://azizyou2005.github.io/b2a-smart-farming/b2a-smart-farming.apk";a.target="_blank";a.rel="noopener";
+    a.textContent="Mettre à jour";a.style.cssText="background:#72ac48;color:#fff;text-decoration:none;padding:8px 12px;border-radius:10px;font-weight:700;white-space:nowrap";
+    const x=document.createElement("button");x.textContent="✕";x.setAttribute("aria-label","Fermer");x.style.cssText="background:none;border:0;color:#fff;font-size:18px;cursor:pointer";x.onclick=()=>d.remove();
+    d.append(t,a,x);document.body.append(d);
+  }).catch(()=>{});
+}
 })();
