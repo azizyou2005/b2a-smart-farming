@@ -1,5 +1,5 @@
 /* B2A Smart Farming : fonctionnement hors ligne */
-const CACHE = "b2a-v19";  /* changer ce numéro à chaque nouvelle version */
+const CACHE = "b2a-v20";  /* changer ce numéro à chaque nouvelle version */
 const CORE = ["./", "index.html", "404.html", "config.js", "shim.js", "app.js", "dict.js", "i18n.js", "guide.js", "extra.js", "dict-extra.js", "couvoir.js", "plus.js", "libs/jspdf.umd.min.js", "libs/jspdf.plugin.autotable.min.js",
   "manifest.json", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png"];
 const CACHEABLE = [self.location.host, "fonts.googleapis.com", "fonts.gstatic.com", "www.gstatic.com"];

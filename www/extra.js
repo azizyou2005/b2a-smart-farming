@@ -37,6 +37,17 @@ sheet.innerHTML=`<div class="sheet-in">
       <button class="btn small ghost" id="x-apk" type="button">Télécharger l'application Android (APK)</button></div>
     <span class="msg" id="x-amsg" aria-live="polite"></span>
   </section>
+  <section class="card owner" id="x-owner">
+    <h3 class="sec">Propriétaire de l'application</h3>
+    <dl class="ownl">
+      <div><dt>Entreprise</dt><dd data-notr>B2A-HIGH-TECHNOLOGY-AUTOMATION</dd></div>
+      <div><dt>Propriétaire et gérant</dt><dd data-notr>Bayere Abdoul Aziz</dd></div>
+      <div><dt>Siège</dt><dd>Ouagadougou, Burkina Faso (RCCM 2024)</dd></div>
+      <div><dt>Contact</dt><dd data-notr>azizyou2005@yahoo.fr</dd></div>
+    </dl>
+    <p class="note">B2A Smart Farming est une application privée, propriété exclusive de B2A-HIGH-TECHNOLOGY-AUTOMATION et de Bayere Abdoul Aziz. Le code, les textes, les guides, le nom, le logo et le slogan B2A sont protégés. Toute copie, revente ou réutilisation sans autorisation écrite est interdite. L'utilisation gratuite de l'application publiée par B2A reste autorisée pour votre propre élevage.</p>
+    <p class="note">© 2026 B2A-HIGH-TECHNOLOGY-AUTOMATION · Bayere Abdoul Aziz. Tous droits réservés.</p>
+  </section>
   <p class="note" style="text-align:center">B2A Smart Farming · version gratuite · <a href="https://azizyou2005.github.io/b2a-smart-farming/confidentialite.html" target="_blank" rel="noopener">Confidentialité</a></p>
 </div>`;
 document.body.append(sheet);
