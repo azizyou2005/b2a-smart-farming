@@ -1,0 +1,1 @@
+!function(){var t=location.pathname.split("/"),n=location.hostname.endsWith("github.io")&&t[1]?"/"+t[1]+"/":"/";document.getElementById("back").href=n}();
