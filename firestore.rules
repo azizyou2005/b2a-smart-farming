@@ -8,16 +8,17 @@ service cloud.firestore {
       && get(/databases/$(database)/documents/inscriptions/$(request.auth.uid)).data.statut == 'approuve'; }
     function txt(v, n) { return v is string && v.size() <= n; }
 
-    // Demandes d'accès : une par téléphone (identifiant anonyme Firebase)
+    // Inscriptions : une par téléphone (identifiant anonyme Firebase). L'accès est accordé à l'inscription ;
+    // le propriétaire peut le retirer (statut 'bloque').
     match /inscriptions/{uid} {
       allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
       allow create: if request.auth != null && request.auth.uid == uid
-        && request.resource.data.statut == 'attente'
+        && request.resource.data.statut == 'approuve'
         && request.resource.data.keys().hasOnly(['prenom','nom','ville','pays','elevage','taille','statut','creeLe','vuLe','plateforme','langue','version','appareil'])
         && txt(request.resource.data.prenom, 60) && txt(request.resource.data.nom, 60)
         && txt(request.resource.data.ville, 60) && txt(request.resource.data.pays, 60)
         && txt(request.resource.data.elevage, 60) && txt(request.resource.data.taille, 60);
-      // l'utilisateur ne peut changer que sa date de dernière ouverture ; seul le propriétaire décide du statut
+      // l'utilisateur ne peut changer que sa date de dernière ouverture ; seul le propriétaire peut retirer ou rendre l'accès
       allow update: if isAdmin() || (request.auth != null && request.auth.uid == uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vuLe','version','plateforme']));
       allow delete: if isAdmin();

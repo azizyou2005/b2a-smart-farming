@@ -1,6 +1,6 @@
-/* B2A Smart Farming : accès sur autorisation du propriétaire (B2A-HIGH-TECHNOLOGY-AUTOMATION, Bayere Abdoul Aziz)
-   Chaque téléphone envoie une demande (inscriptions/<uid>) ; l'application reste bloquée jusqu'à l'accord
-   donné dans la page utilisateurs.html. Sans configuration Firebase, rien n'est bloqué. */
+/* B2A Smart Farming : inscription obligatoire, accès accordé automatiquement (B2A-HIGH-TECHNOLOGY-AUTOMATION, Bayere Abdoul Aziz)
+   Chaque téléphone s'inscrit une fois (inscriptions/<uid>) ; le propriétaire peut retirer l'accès dans utilisateurs.html.
+   Sans configuration Firebase, rien n'est bloqué. */
 (function(){
 const B=window.B2A;if(!B||!B.CFG)return;
 const LS_ACC="b2a-acces";
@@ -25,7 +25,7 @@ function show(){if(!ov.isConnected)document.body.append(ov);document.documentEle
 function hide(){ov.remove();document.documentElement.classList.remove("acces-on")}
 
 const ELEV=["Poules pondeuses","Poulets de chair","Volaille locale / pintades","Couvoir (poussins)","Porcs","Moutons / chèvres","Bovins","Poissons","Cultures","Autre"];
-function form(err){const c=head("Demande d'accès","Cette application est réservée aux personnes autorisées par B2A. Remplissez ce formulaire : votre demande est envoyée au propriétaire, et l'application s'ouvre dès qu'elle est acceptée.");
+function form(err){const c=head("Inscription","Remplissez ce formulaire pour ouvrir l'application. Vos informations sont envoyées à B2A, propriétaire de l'application, qui peut retirer l'accès en cas d'abus.");
   const g=el("div","grid2");const fld=(id,lb,type,ph,opts)=>{const f=el("div","field");const l=el("label",null,lb);l.htmlFor=id;let i;
     if(opts){i=el("select");i.append(new Option("Choisir…",""));opts.forEach(o=>i.append(new Option(o,o)))}else{i=el("input");i.type=type;if(ph)i.placeholder=ph}
     i.id=id;f.append(l,i);g.append(f);return i};
@@ -33,33 +33,33 @@ function form(err){const c=head("Demande d'accès","Cette application est réser
     py=fld("acc-pays","Pays","text","ex. Burkina Faso"),e=fld("acc-elev","Type d'élevage",null,null,ELEV),t=fld("acc-taille","Taille","text","ex. 500 pondeuses, 2 couveuses");
   py.value="Burkina Faso";[p,n,v,t].forEach(i=>{i.maxLength=60;i.autocomplete="off"});p.autocomplete="given-name";n.autocomplete="family-name";
   c.append(g);const m=el("p","msg"+(err?" err":""),err||"");m.setAttribute("aria-live","polite");c.append(m);
-  const b=el("button","btn","Envoyer ma demande");b.type="button";c.append(b);
-  c.append(el("p","note","Une connexion internet est nécessaire pour envoyer la demande. Ensuite, l'application marche sans internet."));
+  const b=el("button","btn","M'inscrire et ouvrir l'application");b.type="button";c.append(b);
+  c.append(el("p","note","Une connexion internet est nécessaire pour l'inscription. Ensuite, l'application marche sans internet."));
   b.onclick=async()=>{const d={prenom:p.value.trim(),nom:n.value.trim(),ville:v.value.trim(),pays:py.value.trim(),elevage:e.value,taille:t.value.trim()};
     if(!d.prenom||!d.nom){m.textContent="Indiquez votre prénom et votre nom.";m.className="msg err";return}
     if(!d.ville||!d.pays){m.textContent="Indiquez votre ville et votre pays.";m.className="msg err";return}
     if(!d.elevage){m.textContent="Choisissez votre type d'élevage.";m.className="msg err";return}
-    if(!navigator.onLine){m.textContent="Pas de connexion internet. Connectez-vous puis appuyez à nouveau sur « Envoyer ma demande ».";m.className="msg err";return}
+    if(!navigator.onLine){m.textContent="Pas de connexion internet. Connectez-vous puis appuyez à nouveau sur le bouton.";m.className="msg err";return}
     b.disabled=true;b.textContent="Envoi…";m.textContent="";
     try{const u=await B.ensureUser(B.CFG);
-      await firebase.firestore().doc("inscriptions/"+u.uid).set({...d,statut:"attente",creeLe:firebase.firestore.FieldValue.serverTimestamp(),vuLe:today(),
+      await firebase.firestore().doc("inscriptions/"+u.uid).set({...d,statut:"approuve",creeLe:firebase.firestore.FieldValue.serverTimestamp(),vuLe:today(),
         plateforme:plateforme(),langue:(window.B2A_LANG?window.B2A_LANG():"fr"),version:VERSION,appareil:B.me});
-      save({uid:u.uid,statut:"attente"});notify(d);wait()}
-    catch(err){console.warn(err);b.disabled=false;b.textContent="Envoyer ma demande";m.textContent="L'envoi a échoué. Vérifiez la connexion et réessayez.";m.className="msg err"}}}
+      save({uid:u.uid,statut:"approuve"});notify(d);hide();toast("Inscription réussie. Bienvenue dans B2A Smart Farming.");listen()}
+    catch(err){console.warn(err);b.disabled=false;b.textContent="M'inscrire et ouvrir l'application";m.textContent="L'inscription a échoué. Vérifiez la connexion et réessayez.";m.className="msg err"}}}
 
 /* e-mail au propriétaire (FormSubmit, sans compte) */
 function notify(d){const to=window.B2A_NOTIFY_EMAIL;if(!to)return;
   const admin=location.origin+location.pathname.replace(/[^/]*$/,"")+"utilisateurs.html";
   fetch("https://formsubmit.co/ajax/"+encodeURIComponent(to),{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},
-    body:JSON.stringify({_subject:"B2A Smart Farming : nouvelle demande d'accès de "+d.prenom+" "+d.nom,_template:"table",_captcha:"false",
+    body:JSON.stringify({_subject:"B2A Smart Farming : nouvel utilisateur, "+d.prenom+" "+d.nom,_template:"table",_captcha:"false",
       "Prénom":d.prenom,"Nom":d.nom,"Ville":d.ville,"Pays":d.pays,"Élevage":d.elevage,"Taille":d.taille||"—","Appareil":plateforme(),
-      "Valider la demande":admin.startsWith("http")?admin:"https://azizyou2005.github.io/b2a-smart-farming/utilisateurs.html"})}).catch(()=>{})}
+      "Gérer les utilisateurs":admin.startsWith("http")?admin:"https://azizyou2005.github.io/b2a-smart-farming/utilisateurs.html"})}).catch(()=>{})}
 
 let off=null;
 function wait(){const c=head("Demande envoyée","Votre demande est en attente de validation par B2A. Cet écran s'ouvrira tout seul dès qu'elle sera acceptée.");
   const s=el("div","acc-wait");s.append(el("span","spinner"),el("span",null,navigator.onLine?"En attente de la réponse…":"Pas de connexion : la réponse s'affichera dès que vous serez connecté."));c.append(s);
   listen()}
-function refused(st){const c=head(st==="bloque"?"Accès suspendu":"Demande refusée",st==="bloque"?"Votre accès à l'application a été suspendu par B2A.":"Votre demande d'accès n'a pas été acceptée.");
+function refused(st){const c=head("Accès retiré","Votre accès à l'application a été retiré par B2A.");
   c.append(el("p","note","Pour en parler, contactez B2A-HIGH-TECHNOLOGY-AUTOMATION :"));const a=el("p","acc-mail","azizyou2005@yahoo.fr");a.setAttribute("data-notr","");c.append(a)}
 
 async function listen(){if(off)return;try{const u=await B.ensureUser(B.CFG);

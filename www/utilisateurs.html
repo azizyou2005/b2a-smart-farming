@@ -75,7 +75,7 @@ td{padding:7px 8px;border-bottom:1px solid var(--line)}td.n{text-align:right;fon
 <header class="band"><div class="band-in"><img src="icons/icon-192.png" alt="Logo B2A"><div><b>B2A Smart Farming</b><small>Gestion des utilisateurs</small></div>
   <button class="btn small ghost out" id="u-out" type="button" hidden>Se déconnecter</button></div></header>
 <main class="wrap">
-  <div><h1>Utilisateurs de l'application</h1><p class="lead">Chaque personne doit être acceptée ici avant de pouvoir ouvrir l'application.</p></div>
+  <div><h1>Utilisateurs de l'application</h1><p class="lead">Chaque personne s'inscrit pour ouvrir l'application. Vous pouvez lui retirer l'accès à tout moment.</p></div>
 
   <section class="card" id="u-login">
     <h2>Connexion du propriétaire</h2>
@@ -90,9 +90,8 @@ td{padding:7px 8px;border-bottom:1px solid var(--line)}td.n{text-align:right;fon
     <div class="wrap" style="padding:0">
       <div class="kpis" id="u-kpis"></div>
       <div class="chips" id="u-filter">
-        <button class="chip" type="button" data-f="attente" aria-pressed="true">En attente</button>
-        <button class="chip" type="button" data-f="approuve" aria-pressed="false">Acceptés</button>
-        <button class="chip" type="button" data-f="refuse" aria-pressed="false">Refusés / suspendus</button>
+        <button class="chip" type="button" data-f="approuve" aria-pressed="true">Avec accès</button>
+        <button class="chip" type="button" data-f="refuse" aria-pressed="false">Accès retiré</button>
         <button class="chip" type="button" data-f="tous" aria-pressed="false">Tous</button>
       </div>
       <div class="field"><label for="u-q" style="color:#fff">Rechercher</label><input type="text" id="u-q" placeholder="Nom, ville, pays, élevage"></div>
