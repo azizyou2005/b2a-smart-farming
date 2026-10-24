@@ -117,9 +117,15 @@ const PROG={
   {c:"charb",j:28,n:"Charbon symptomatique",t:"vaccin",v:"Injection",every:365}]},
  porc:{mode:"arr",items:[
   {c:"verm1",j:7,n:"Déparasitage",t:"traitement",v:"Voie orale ou injection",every:60},
-  {c:"fer",j:14,n:"Contrôle santé et hygiène de la porcherie",t:"conduite",v:"Désinfection, pédiluve",every:30}]}
+  {c:"fer",j:14,n:"Contrôle santé et hygiène de la porcherie",t:"conduite",v:"Désinfection, pédiluve",every:30}]},
+ poisson:{mode:"arr",items:[
+  {c:"accl",j:0,n:"Acclimatation des alevins",t:"conduite",v:"Égaliser la température de l'eau pendant 15 à 20 minutes avant le lâcher"},
+  {c:"eau",j:7,n:"Contrôle de la qualité de l'eau",t:"conduite",v:"Couleur, odeur, pH 6,5 à 8,5, renouvellement partiel",every:14},
+  {c:"peche",j:30,n:"Pêche de contrôle et pesée",t:"conduite",v:"Peser 20 à 30 poissons et ajuster la ration",every:30},
+  {c:"tri",j:60,n:"Tri par taille",t:"conduite",v:"Séparer les gros et les petits (évite le cannibalisme du silure)",every:60},
+  {c:"sel",j:45,n:"Bain de sel si poissons stressés ou blessés",t:"traitement",v:"Bain à 3 % de sel pendant 5 minutes",every:90}]}
 };
-function progKey(l){const e=l.espece||"";return /pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade/i.test(e)?"local":/chèvre|mouton/i.test(e)?"petitsrum":/bovin|vache/i.test(e)?"bovin":/porc/i.test(e)?"porc":null}
+function progKey(l){const e=l.espece||"";return /poisson|tilapia|silure|clarias/i.test(e)?"poisson":/pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade/i.test(e)?"local":/chèvre|mouton/i.test(e)?"petitsrum":/bovin|vache/i.test(e)?"bovin":/porc/i.test(e)?"porc":null}
 const dAdd=(isoD,n)=>{const d=new Date(isoD+"T12:00");d.setDate(d.getDate()+Math.round(n));return iso(d)};
 function programme(l){
   const out=[];const key=progKey(l);if(key&&l.arrivee){const P=PROG[key];const age0=(Number(l.ageArrivee)||0)*7;
@@ -261,7 +267,7 @@ const ING={
  huile:{n:"Huile végétale",pb:0,em:8800,ca:0,prix:1000},
  melasse:{n:"Mélasse",pb:4,em:2000,ca:0.8,prix:150}
 };
-const SPN={pondeuse:"Poules pondeuses",chair:"Poulets de chair",local:"Poulets locaux et pintades",porc:"Porcs",petitsrum:"Moutons et chèvres (embouche)",chevrelait:"Chèvres laitières",bovin:"Bovins (embouche)",vachelait:"Vaches laitières"};
+const SPN={pondeuse:"Poules pondeuses",chair:"Poulets de chair",local:"Poulets locaux et pintades",porc:"Porcs",poisson:"Poissons (tilapia, silure)",petitsrum:"Moutons et chèvres (embouche)",chevrelait:"Chèvres laitières",bovin:"Bovins (embouche)",vachelait:"Vaches laitières"};
 const FORM={
  pondeuse:[
   {id:"demarrage",t:"Démarrage (0 à 6 semaines)",a:[0,6],c:{pb:[19,21],ca:[0.9,1.1],em:[2800,3000]},d:"À volonté. Environ 10 à 45 g par sujet et par jour selon l'âge. Eau propre en permanence.",
@@ -302,6 +308,13 @@ const FORM={
  bovin:[
   {id:"concentre",t:"Concentré d'embouche bovine",a:[0,999],c:{pb:[15,19],ca:[0.6,1.2]},d:"3 à 4 kg par tête et par jour, avec de la paille ou du foin à volonté, une pierre à lécher et 30 à 50 litres d'eau par jour.",
    f:{son:30,coton:30,mais:25,melasse:10,coquille:2,sel:2,premix:1}}],
+ poisson:[
+  {id:"alevins",t:"Alevins (moins de 20 g)",a:[0,6],c:{pb:[40,45],ca:[1,2]},d:"Aliment fin (farine ou miettes de 0,5 à 1 mm), 4 à 6 repas par jour. Environ 8 à 10 % du poids des poissons par jour.",
+   f:{poisson:45,soja:35,mais:8,son:7,huile:3,premix:1,phosphate:1}},
+  {id:"croissance",t:"Croissance (20 à 150 g)",a:[6,16],c:{pb:[32,36],ca:[1,2]},d:"Granulés de 2 à 3 mm, 3 repas par jour. Environ 3 à 5 % du poids des poissons par jour. Arrêter de nourrir si les poissons ne mangent plus.",
+   f:{soja:37,poisson:18,mais:18,coton:12,son:11.5,huile:2,phosphate:1,premix:0.5}},
+  {id:"finition",t:"Grossissement (150 g et plus)",a:[16,999],c:{pb:[28,32],ca:[1,2]},d:"Granulés de 3 à 4 mm (flottants de préférence), 2 repas par jour. Environ 2 à 3 % du poids des poissons par jour. Réduire la ration par temps froid ou si l'eau est trouble.",
+   f:{soja:32,mais:24,coton:18,son:14.5,poisson:8,huile:2,phosphate:1,premix:0.5}}],
  vachelait:[
   {id:"concentre",t:"Concentré vaches laitières",a:[0,999],c:{pb:[17,21],ca:[0.6,1.2]},d:"1 à 2 kg par jour pour l'entretien, plus 1 kg pour 2 litres de lait, avec du fourrage de qualité à volonté.",
    f:{son:35,coton:25,mais:25,soja:7,melasse:4,phosphate:2,sel:1.5,premix:0.5}}]
@@ -756,15 +769,16 @@ const SP={
  chevrelait:{prod:"lait",unit:"litres",lait:1.0,emb:104,mort:0.05,w:[[0,3],[52,30],[104,38]],sale:"Chèvres réformées",prodName:"lait"},
  bovin:{emb:17,mort:0.05,w:[[0,30],[26,150],[52,220],[104,330],[156,400],[208,450]],sale:"Bovins vendus"},
  vachelait:{prod:"lait",unit:"litres",lait:6,emb:104,mort:0.03,w:[[0,30],[104,330],[208,400]],sale:"Vaches réformées",prodName:"lait"},
- porc:{end:26,mort:0.2,w:[[0,1.5],[8,20],[16,55],[24,95],[28,110],[52,150]],sale:"Porcs vendus"}
+ porc:{end:26,mort:0.2,w:[[0,1.5],[8,20],[16,55],[24,95],[28,110],[52,150]],sale:"Porcs vendus"},
+ poisson:{end:28,mort:0.2,w:[[0,.002],[4,.01],[8,.04],[12,.09],[16,.16],[20,.25],[24,.36],[28,.48],[32,.6]],sale:"Poissons vendus"}
 };
-function spKey(l){const e=l.espece||"";return /pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade/i.test(e)?"local":/vache/i.test(e)?"vachelait":/chèvre.*lait/i.test(e)?"chevrelait":/chèvre|mouton/i.test(e)?"petitsrum":/bovin/i.test(e)?"bovin":/porc/i.test(e)?"porc":null}
+function spKey(l){const e=l.espece||"";return /poisson|tilapia|silure|clarias/i.test(e)?"poisson":/pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade/i.test(e)?"local":/vache/i.test(e)?"vachelait":/chèvre.*lait/i.test(e)?"chevrelait":/chèvre|mouton/i.test(e)?"petitsrum":/bovin/i.test(e)?"bovin":/porc/i.test(e)?"porc":null}
 function sp(l){return SP[spKey(l)]||{mort:0.1,w:null,sale:"Animaux vendus"}}
 function isPoultry(l){return /poule|poulet|pintade/i.test(l.espece||"")}
 function isBroiler(l){return /chair/i.test(l.espece||"")}
 function hasProd(l){return !!sp(l).prod}
 function isDairy(l){return sp(l).prod==="lait"}
-function big(l){return !isPoultry(l)}
+function big(l){return !isPoultry(l)&&spKey(l)!=="poisson"}
 function prodUnit(l){return sp(l).unit||""}
 function stdWeight(l,w){const W=sp(l).w;if(!W)return null;if(w<=W[0][0])return W[0][1];for(let i=1;i<W.length;i++){if(w<=W[i][0]){const [a,va]=W[i-1],[b,vb]=W[i];return va+(vb-va)*(w-a)/(b-a)}}return W[W.length-1][1]}
 function stdPonte(w){ // courbe type pondeuse brune (ISA Brown / Lohmann)
@@ -777,6 +791,7 @@ function stdFeed(l,w){ // g/sujet/jour
   if(k==="pondeuse"){const T=[10,17,23,28,34,39,44,49,53,57,61,64,67,70,73,76,80,85,92,98,103,107,110];const i=Math.max(0,Math.floor(w));return i<T.length?T[i]:115}
   if(isPoultry(l))return w<4?25:w<8?45:w<12?60:w<18?80:115;
   if(k==="petitsrum")return 300;if(k==="chevrelait")return 500;if(k==="bovin")return 3000;if(k==="vachelait")return 4000;
+  if(k==="poisson"){const bw=(stdWeight(l,w)||0)*1000;return Math.round(bw*(bw<20?0.08:bw<100?0.05:bw<300?0.03:0.02)*10)/10}
   if(k==="porc")return w<8?600:w<16?1600:w<24?2300:2800;
   return 0;}
 function ration(l,s,date){const d=date||today();const w=(Number(l.ageArrivee)||0)+(l.arrivee?Math.max(0,daysBetween(l.arrivee,d))/7:0);const g=stdFeed(l,w);if(!g||!s||!(s.alive>0))return null;return {g,kg:s.alive*g/1000,n:s.alive}}
