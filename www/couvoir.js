@@ -416,6 +416,13 @@ document.querySelectorAll("#cv-kwhp button").forEach(b=>b.onclick=()=>{$("cv-kwh
 let kwhT=null;$("cv-kwh").addEventListener("input",()=>{kwh=N($("cv-kwh").value);render();clearTimeout(kwhT);if(!db||!canWrite)return;kwhT=setTimeout(async()=>{try{await db.doc("reglages/couvoir").set({kwh})}catch(e){}},900)});
 
 window.renderCouvoir=render;
+/* l'onglet marche seul, même si le téléphone garde encore une ancienne copie de app.js */
+function openTab(){const v=$("v-couvoir");if(!v)return;
+  document.querySelectorAll('.wrap > .view[id^="v-"]').forEach(x=>{x.hidden=x!==v});
+  document.querySelectorAll('nav.tabs [role="tab"]').forEach(t=>t.setAttribute("aria-selected",t.id==="tab-couvoir"));
+  try{history.replaceState(null,"","#couvoir")}catch(e){}window.scrollTo(0,0);render()}
+{const t=$("tab-couvoir");if(t)t.addEventListener("click",()=>setTimeout(()=>{if($("v-couvoir").hidden)openTab()},0))}
+if(location.hash==="#couvoir")setTimeout(()=>{if($("v-couvoir").hidden)openTab()},50);
 render();
 
 (async()=>{
