@@ -6,7 +6,14 @@
    Remplacez null par la configuration de votre projet, par exemple :
    window.B2A_FIREBASE = { apiKey: "AIza...", authDomain: "xxx.firebaseapp.com", projectId: "xxx",
                            storageBucket: "xxx.appspot.com", messagingSenderId: "123", appId: "1:123:web:abc" }; */
-window.B2A_FIREBASE = null;
+window.B2A_FIREBASE = {
+  apiKey: "AIzaSyD6vKcdBn_SQ-z6SzxCu9A5igDw5hHvwRs",
+  authDomain: "b2a-smart-farming.firebaseapp.com",
+  projectId: "b2a-smart-farming",
+  storageBucket: "b2a-smart-farming.firebasestorage.app",
+  messagingSenderId: "9797420984",
+  appId: "1:9797420984:web:1843c4054c43a899c9714d"
+};
 
 /* 2. IA avec code d'accès (serveur Cloudflare B2A).
    Remplacez null par l'adresse de votre serveur, par exemple :
