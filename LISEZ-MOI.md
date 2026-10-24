@@ -63,6 +63,30 @@ Le premier lien avec la ferme demande internet, ensuite tout marche hors connexi
 
 ---
 
+## Étape 2 bis : accès sur autorisation et nombre d'utilisateurs
+
+Quand Firebase est configuré (étape 2), **chaque nouvelle personne doit être acceptée par B2A** avant de pouvoir ouvrir l'application.
+Elle remplit un formulaire (prénom, nom, ville, pays, type et taille d'élevage). Vous recevez un e-mail, vous acceptez ou refusez dans la page des utilisateurs, et l'application s'ouvre toute seule chez elle.
+Tant que Firebase n'est pas configuré, rien n'est bloqué.
+
+1. Firebase, menu **Build > Authentication > Sign-in method** : activez **Anonyme** (déjà fait à l'étape 2) **et E-mail/Mot de passe**.
+2. Onglet **Users > Ajouter un utilisateur** : e-mail `azizyou2005@yahoo.fr` et un mot de passe solide. C'est le seul compte qui peut accepter les utilisateurs (il est écrit dans `firestore.rules`).
+3. **Authentication > Settings > Domaines autorisés** : ajoutez `azizyou2005.github.io` (`localhost` y est déjà, il sert pour l'APK).
+4. **Firestore > Règles** : remplacez tout par le contenu du fichier `firestore.rules`, puis **Publier**.
+5. Vérifiez que `www/config.js` contient votre configuration Firebase (étape 2) et `window.B2A_NOTIFY_EMAIL = "azizyou2005@yahoo.fr";`.
+6. **E-mails** : à la première demande, FormSubmit envoie un e-mail « Activate form » à cette adresse. Cliquez une fois sur le bouton d'activation ; ensuite chaque demande arrive par e-mail (regardez aussi dans les spams).
+
+**Accepter les utilisateurs et voir leur nombre** : https://azizyou2005.github.io/b2a-smart-farming/utilisateurs.html
+Connectez-vous avec l'e-mail et le mot de passe du point 2. La page affiche le nombre d'utilisateurs acceptés, les demandes en attente, les personnes actives sur 7 et 30 jours, et la répartition par pays. Vous pouvez accepter, refuser, suspendre ou supprimer chaque personne.
+
+**À savoir**
+- Votre propre téléphone envoie aussi une demande : acceptez-la dans la page des utilisateurs.
+- Internet est nécessaire pour envoyer la demande et recevoir la réponse. Ensuite, l'application marche sans internet.
+- Une personne qui efface les données de l'application ou change de téléphone doit refaire une demande.
+- **Google Play** : l'équipe de Google qui teste l'application tombera sur l'écran d'attente. Dans Play Console (Contenu de l'application > Accès à l'application), expliquez que l'accès est accordé par B2A, et acceptez rapidement leur demande dans la page des utilisateurs.
+
+---
+
 ## Étape 3 (facultative) : l'IA avec code d'accès
 
 L'application reste gratuite pour tous. Les clients et partenaires B2A reçoivent en plus un **code d'accès** (ex. `B2A-K7QH-2MXP`) qui débloque, quand il y a internet :

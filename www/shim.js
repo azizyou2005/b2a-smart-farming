@@ -41,13 +41,23 @@ function makeLocal(){
 
 /* ---------- ferme partagée (Firebase, facultatif) ---------- */
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(new Error("load"));document.head.append(s)})}
-async function makeCloud(cfg,code){
-  const v="10.12.2",b=`https://www.gstatic.com/firebasejs/${v}/`;
+/* chargement unique du SDK Firebase (partagé avec l'accès et la ferme) */
+let fbP=null;
+function loadFirebase(cfg){if(!fbP)fbP=(async()=>{const v="10.12.2",b=`https://www.gstatic.com/firebasejs/${v}/`;
   await loadScript(b+"firebase-app-compat.js");await loadScript(b+"firebase-auth-compat.js");await loadScript(b+"firebase-firestore-compat.js");
   if(!firebase.apps.length)firebase.initializeApp(cfg);
   const fs=firebase.firestore();try{fs.settings({ignoreUndefinedProperties:true,merge:true})}catch(e){}
   try{await fs.enablePersistence({synchronizeTabs:true})}catch(e){}
-  firebase.auth().signInAnonymously().catch(()=>{});
+  return firebase})();fbP.catch(()=>{fbP=null});return fbP}
+/* utilisateur Firebase de ce téléphone : on attend la session enregistrée avant d'en créer une */
+let userP=null;
+function ensureUser(cfg){if(!userP)userP=(async()=>{const fb=await loadFirebase(cfg);const a=fb.auth();
+  const u=await new Promise(r=>{const off=a.onAuthStateChanged(x=>{off();r(x)})});
+  if(u)return u;return (await a.signInAnonymously()).user})();userP.catch(()=>{userP=null});return userP}
+async function makeCloud(cfg,code){
+  await loadFirebase(cfg);
+  const fs=firebase.firestore();
+  ensureUser(cfg).catch(()=>{});
   const base="farms/"+code;
   return {kind:"cloud",collection:n=>fs.collection(base+"/"+n),doc:p=>fs.doc(base+"/"+p)};
 }
@@ -107,7 +117,7 @@ const SAMPLE={
 };
 
 /* ---------- interface commune ---------- */
-window.B2A={me,farm,CFG,IA_URL,COLS,lsGet,lsSet,newId,getDb,makeLocal,makeCloud,members,
+window.B2A={me,farm,CFG,IA_URL,COLS,lsGet,lsSet,newId,getDb,makeLocal,makeCloud,loadFirebase,ensureUser,members,
   LS_NAME,LS_FARM,
   ia:()=>({code:iaCode,info:iaInfo}),
   iaVerify:async code=>{const d=await iaCall("/verifier",{code});iaCode=code;iaInfo={nom:d.nom,restant:d.restant};iaSave();return iaInfo},

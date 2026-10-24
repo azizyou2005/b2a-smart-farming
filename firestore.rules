@@ -1,11 +1,33 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Propriétaire de l'application (compte E-mail / mot de passe créé dans Firebase Authentication)
+    function isAdmin() { return request.auth != null && request.auth.token.email == 'azizyou2005@yahoo.fr'; }
+    // Un utilisateur ne peut utiliser la ferme partagée qu'après l'accord du propriétaire
+    function approved() { return request.auth != null
+      && get(/databases/$(database)/documents/inscriptions/$(request.auth.uid)).data.statut == 'approuve'; }
+    function txt(v, n) { return v is string && v.size() <= n; }
+
+    // Demandes d'accès : une par téléphone (identifiant anonyme Firebase)
+    match /inscriptions/{uid} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow create: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.statut == 'attente'
+        && request.resource.data.keys().hasOnly(['prenom','nom','ville','pays','elevage','taille','statut','creeLe','vuLe','plateforme','langue','version','appareil'])
+        && txt(request.resource.data.prenom, 60) && txt(request.resource.data.nom, 60)
+        && txt(request.resource.data.ville, 60) && txt(request.resource.data.pays, 60)
+        && txt(request.resource.data.elevage, 60) && txt(request.resource.data.taille, 60);
+      // l'utilisateur ne peut changer que sa date de dernière ouverture ; seul le propriétaire décide du statut
+      allow update: if isAdmin() || (request.auth != null && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vuLe','version','plateforme']));
+      allow delete: if isAdmin();
+    }
+
     // Chaque ferme est rangée sous farms/<code>/<collection>/<document>.
     // Il faut connaître le code exact de la ferme (10 caractères) pour y lire ou écrire.
     // Il n'existe aucune règle pour lister "farms" : personne ne peut voir la liste des fermes ni leurs codes.
     match /farms/{farm}/{col}/{doc} {
-      allow read, write: if request.auth != null
+      allow read, write: if approved()
         && farm.matches('^[A-Z0-9]{10}$')
         && col in ['lots', 'saisies', 'soins', 'analyses', 'previsions', 'formules', 'factures', 'reglages', 'members', 'contacts', 'depenses', 'couveuses', 'couvees'];
     }

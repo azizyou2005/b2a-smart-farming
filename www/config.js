@@ -12,3 +12,8 @@ window.B2A_FIREBASE = null;
    Remplacez null par l'adresse de votre serveur, par exemple :
    window.B2A_IA_URL = "https://b2a-ia.votre-nom.workers.dev"; */
 window.B2A_IA_URL = null;
+
+/* 3. Accès sur autorisation : quand Firebase est configuré (point 1), chaque nouvel utilisateur
+   doit être accepté dans la page utilisateurs.html. Un e-mail est envoyé à cette adresse pour
+   chaque nouvelle demande (la première fois, confirmez l'activation dans l'e-mail de FormSubmit). */
+window.B2A_NOTIFY_EMAIL = "azizyou2005@yahoo.fr";
