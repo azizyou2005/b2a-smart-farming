@@ -5,7 +5,9 @@ const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=nu
 const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 let db=null,lots=[];
 B.getDb().then(d=>{db=d;db.collection("lots").onSnapshot(s=>{lots=s.docs.map(x=>({id:x.id,...x.data()})).filter(l=>l.actif!==false);fillLots()},()=>{});
-  if(B.cloudFail)msg("La ferme partagée n'a pas pu se connecter (première ouverture sans internet ?). Les saisies restent sur ce téléphone en attendant.")});
+  if(B.cloudFail)msg("La ferme partagée n'a pas pu se connecter (première ouverture sans internet ?). Les saisies restent sur ce téléphone en attendant.");
+  if(B.team.statut==="attente")msg("Votre demande est en attente : le propriétaire de la ferme doit vous accepter. L'application s'ouvrira dès qu'il aura accepté.");
+  if(B.team.statut==="retire")msg("Le propriétaire vous a retiré de cette ferme. Vous pouvez quitter la ferme dans Réglages.")});
 addEventListener("b2a-full",()=>msg("La mémoire du téléphone est pleine : téléchargez une sauvegarde dans Réglages."));
 function msg(t){const m=$("dbmsg");if(!m)return;m.textContent=t;m.className="msg err";m.hidden=false}
 
@@ -66,29 +68,81 @@ function renderSet(){
   $("x-nom").value=B.lsGet(B.LS_NAME)||"";
   const st=$("x-sst"),box=$("x-sync");box.innerHTML="";
   if(!B.CFG){st.textContent="Vos données sont enregistrées sur ce téléphone. Le partage entre téléphones n'est pas encore activé pour cette installation.";return}
+  const T=B.team;
   if(B.farm){
     st.textContent=db&&db.kind==="cloud"?"Ce téléphone partage les données de la ferme ci-dessous. Hors connexion, les saisies sont gardées et envoyées au retour du réseau.":"Ferme enregistrée, connexion en attente.";
+    if(T.statut==="attente")st.textContent="Votre demande est en attente : le propriétaire de la ferme doit vous accepter.";
+    if(T.statut==="retire")st.textContent="Le propriétaire vous a retiré de cette ferme.";
     const code=el("div","farmcode",B.farm);code.setAttribute("data-notr","");box.append(code);
-    const r=el("div","row");const cp=el("button","btn small","Copier le code");cp.type="button";cp.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(B.farm).then(()=>cp.textContent="Copié",()=>{})};
-    const wa=el("a","btn small ghost","Envoyer par WhatsApp");wa.href="https://wa.me/?text="+encodeURIComponent(`B2A Smart Farming : Réglages > Rejoindre une ferme > ${B.farm}`);wa.target="_blank";wa.rel="noopener";
+    const r=el("div","row");
+    if(T.statut!=="retire"){
+      const cp=el("button","btn small","Copier le code");cp.type="button";cp.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(B.farm).then(()=>cp.textContent="Copié",()=>{})};
+      const wa=el("a","btn small ghost","Envoyer par WhatsApp");wa.href="https://wa.me/?text="+encodeURIComponent(`B2A Smart Farming\nhttps://azizyou2005.github.io/b2a-smart-farming/\nRéglages > Rejoindre une ferme > ${B.farm}`);wa.target="_blank";wa.rel="noopener";
+      r.append(cp,wa)}
     const q=el("button","btn small ghost","Quitter la ferme");q.type="button";q.onclick=()=>{if(q.dataset.c!=="1"){q.dataset.c="1";q.textContent="Confirmer : quitter";return}B.lsSet(B.LS_FARM,null);location.reload()};
-    r.append(cp,wa,q);box.append(r);
-    const ms=Object.entries(B.members);if(ms.length){box.append(el("span","label","Membres"));const ul=el("ul","members");ms.forEach(([id,n])=>{const li=el("li",null,(n||"Sans nom")+(id===B.me?" (vous)":""));li.setAttribute("data-notr","");ul.append(li)});box.append(ul)}
+    r.append(q);box.append(r);
+    if(T.role==="proprietaire")renderOwner(box);
+    else{
+      if(T.role==="libre"&&T.uid&&db&&db.kind==="cloud"){
+        box.append(el("p","note","Cette ferme n'a pas encore de propriétaire. Le propriétaire peut accepter ou retirer les employés."));
+        const cl=el("button","btn small","Devenir propriétaire de cette ferme");cl.type="button";
+        cl.onclick=async()=>{if(cl.dataset.c!=="1"){cl.dataset.c="1";cl.textContent="Confirmer : je suis le propriétaire";return}
+          cl.disabled=true;try{const fs=firebase.firestore();
+            await fs.doc("farms/"+B.farm).set({owner:T.uid,approbation:false,creeLe:firebase.firestore.FieldValue.serverTimestamp()});
+            await fs.doc("farms/"+B.farm+"/members/"+T.uid).set({name:B.lsGet(B.LS_NAME)||"",dev:B.me,role:"proprietaire",statut:"actif",vu:today()},{merge:true});
+            location.reload()}catch(e){cl.disabled=false;cl.textContent="Devenir propriétaire de cette ferme";st.textContent="Échec. Vérifiez la connexion."}};
+        box.append(cl)}
+      const ms=Object.entries(B.members);if(ms.length&&T.statut!=="retire"){box.append(el("span","label","Membres"));const ul=el("ul","members");ms.forEach(([id,n])=>{const li=el("li",null,(n||"Sans nom")+(id===B.me?" (vous)":""));li.setAttribute("data-notr","");ul.append(li)});box.append(ul)}
+    }
   }else{
     st.textContent="Vos données sont sur ce téléphone. Créez une ferme pour les partager avec votre équipe, ou rejoignez une ferme avec son code.";
     const c=el("button","btn small","Créer une ferme et y envoyer mes données");c.type="button";
-    c.onclick=async()=>{const sm=$("x-bmsg");if(!navigator.onLine){st.textContent="Il faut internet pour créer la ferme la première fois.";return}
+    c.onclick=async()=>{if(!navigator.onLine){st.textContent="Il faut internet pour créer la ferme la première fois.";return}
       c.disabled=true;c.textContent="Création…";const local=B.makeLocal();
       const code=Array.from({length:10},()=>"ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random()*32)]).join("");
-      try{const cloud=await B.makeCloud(B.CFG,code);for(const n of B.COLS){const sn=await local.collection(n).get();for(const d of sn.docs)await cloud.doc(n+"/"+d.id).set(d.data())}
+      try{const cloud=await B.makeCloud(B.CFG,code);const u=await B.ensureUser(B.CFG);const fs=firebase.firestore();
+        /* le téléphone qui crée la ferme en devient le propriétaire */
+        /* si les nouvelles règles Firebase ne sont pas encore publiées, la ferme est créée sans propriétaire (comme avant) */
+        try{await fs.doc("farms/"+code).set({owner:u.uid,approbation:false,creeLe:firebase.firestore.FieldValue.serverTimestamp()});
+          await fs.doc("farms/"+code+"/members/"+u.uid).set({name:B.lsGet(B.LS_NAME)||"",dev:B.me,role:"proprietaire",statut:"actif",vu:today(),creeLe:firebase.firestore.FieldValue.serverTimestamp()})}catch(e){}
+        for(const n of B.COLS){if(n==="members")continue;const sn=await local.collection(n).get();for(const d of sn.docs)await cloud.doc(n+"/"+d.id).set(d.data())}
         B.lsSet(B.LS_FARM,code);location.reload()}catch(e){c.disabled=false;c.textContent="Créer une ferme et y envoyer mes données";st.textContent="La création a échoué. Vérifiez la connexion."}};
     box.append(c);
     const j=el("div","row");const inp=el("input");inp.type="text";inp.placeholder="Code de la ferme";inp.style.maxWidth="200px";inp.style.textTransform="uppercase";inp.setAttribute("aria-label","Code de la ferme");
-    const jb=el("button","btn small ghost","Rejoindre");jb.type="button";jb.onclick=()=>{const v=inp.value.trim().toUpperCase().replace(/[^A-Z0-9]/g,"");if(v.length<6){st.textContent="Code invalide.";return}B.lsSet(B.LS_FARM,v);location.reload()};
+    const jb=el("button","btn small ghost","Rejoindre");jb.type="button";jb.onclick=()=>{const v=inp.value.trim().toUpperCase().replace(/[^A-Z0-9]/g,"");if(v.length!==10){st.textContent="Code invalide.";return}B.lsSet(B.LS_FARM,v);location.reload()};
     j.append(inp,jb);box.append(el("span","label","Rejoindre une ferme"),j);
   }
 }
-$("x-nsave").onclick=async()=>{const n=$("x-nom").value.trim();B.lsSet(B.LS_NAME,n||null);$("x-nmsg").textContent="Enregistré.";if(db&&n)try{await db.doc("members/"+B.me).set({name:n,vu:today()})}catch(e){}};
+/* gestion de l'équipe, réservée au propriétaire */
+const ST_TXT={actif:"Actif",attente:"En attente",retire:"Retiré"};
+function renderOwner(box){
+  const T=B.team,fs=firebase.firestore();
+  box.append(el("p","note good","Vous êtes le propriétaire de cette ferme. Vous voyez en direct ce que l'équipe enregistre."));
+  const lab=el("label","row");const cb=el("input");cb.type="checkbox";cb.checked=!!T.approbation;
+  cb.onchange=async()=>{cb.disabled=true;try{await fs.doc("farms/"+B.farm).update({approbation:cb.checked})}catch(e){cb.checked=!cb.checked}cb.disabled=false};
+  lab.append(cb,el("span",null,"J'accepte moi-même chaque nouveau membre"));box.append(lab);
+  const list=T.list.filter(m=>m.statut);
+  box.append(el("span","label","Équipe"));
+  if(!list.length){box.append(el("p","note","Personne n'a encore rejoint la ferme. Envoyez le code à vos employés."));return}
+  const order={attente:0,actif:1,retire:2};list.sort((a,b)=>(order[a.statut]-order[b.statut])||((a.name||"").localeCompare(b.name||"")));
+  const ul=el("ul","members");ul.style.cssText="display:grid;gap:8px;list-style:none;padding:0";
+  list.forEach(m=>{const li=el("li");li.style.cssText="display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px";
+    const nm=el("strong",null,(m.name||"Sans nom")+(m.id===T.uid?" (vous)":""));nm.setAttribute("data-notr","");
+    li.append(nm,el("span","note",m.role==="proprietaire"?"Propriétaire":"Employé"),el("span","note",ST_TXT[m.statut]||""));
+    if(m.vu){const v=el("span","note",m.vu);v.setAttribute("data-notr","");li.append(el("span","note","Vu le"),v)}
+    const act=(t,s,ghost)=>{const b=el("button","btn small"+(ghost?" ghost":""),t);b.type="button";
+      b.onclick=async()=>{if(s==="retire"&&b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmer : retirer";return}
+        b.disabled=true;try{await fs.doc("farms/"+B.farm+"/members/"+m.id).update({statut:s})}catch(e){b.disabled=false}};li.append(b)};
+    if(m.id!==T.uid){
+      if(m.statut==="attente"){act("Accepter","actif");act("Refuser","retire",true)}
+      else if(m.statut==="actif")act("Retirer","retire",true);
+      else act("Réintégrer","actif",true)}
+    ul.append(li)});
+  box.append(ul);
+}
+addEventListener("b2a-team",()=>{if(!sheet.hidden)renderSet()});
+$("x-nsave").onclick=async()=>{const n=$("x-nom").value.trim();B.lsSet(B.LS_NAME,n||null);$("x-nmsg").textContent="Enregistré.";if(!db||!n)return;
+  try{if(db.kind==="cloud"&&B.team.uid)await db.doc("members/"+B.team.uid).update({name:n,vu:today()});else await db.doc("members/"+B.me).set({name:n,vu:today()})}catch(e){}};
 $("x-export").onclick=async()=>{
   if(!db)return;const out={app:"B2A Smart Farming",version:2,exporte:new Date().toISOString()};
   for(const n of B.COLS){const s=await db.collection(n).get();out[n]=s.docs.map(d=>({id:d.id,...d.data()}))}

@@ -61,16 +61,58 @@ async function makeCloud(cfg,code){
   const base="farms/"+code;
   return {kind:"cloud",collection:n=>fs.collection(base+"/"+n),doc:p=>fs.doc(base+"/"+p)};
 }
+const today=()=>new Date().toISOString().slice(0,10);
+const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),ms))]);
+
+/* ---------- équipe de la ferme : propriétaire et employés ----------
+   farms/<code>               : { owner: identifiant Firebase du propriétaire, approbation: true/false }
+   farms/<code>/members/<uid> : { name, dev, role: proprietaire|employe, statut: actif|attente|retire, vu }
+   Une ferme sans document "farms/<code>" (créée avant cette version) reste ouverte à tous ceux qui ont le code. */
+const TEAM={uid:null,owner:null,approbation:false,role:null,statut:null,list:[]};
+async function joinFarm(cfg,code){
+  const KEY="b2a-team-"+code;let saved=null;try{saved=JSON.parse(lsGet(KEY)||"null")}catch(e){}
+  const apply=t=>{Object.assign(TEAM,{uid:t.uid,owner:t.owner,approbation:!!t.approbation,role:t.role,statut:t.statut})};
+  const run=async()=>{
+    const u=await ensureUser(cfg);const fs=firebase.firestore();
+    const fRef=fs.doc("farms/"+code),mRef=fs.doc("farms/"+code+"/members/"+u.uid);
+    let f=null;try{const s=await withTimeout(fRef.get(),15000);f=s.exists?s.data():null}catch(e){if(saved)return}
+    const isOwn=!!(f&&f.owner===u.uid);
+    let m=null;try{const s=await withTimeout(mRef.get(),15000);m=s.exists?s.data():null}catch(e){if(saved)return}
+    const name=lsGet(LS_NAME)||"";
+    if(!m){
+      m={name,dev:me,role:isOwn?"proprietaire":"employe",statut:(!f||isOwn||!f.approbation)?"actif":"attente",vu:today(),
+        creeLe:firebase.firestore.FieldValue.serverTimestamp()};
+      /* il faut être inscrit dans l'équipe avant de lire les données de la ferme */
+      await withTimeout(mRef.set(m),15000).catch(()=>{});
+    }else{const up={vu:today(),dev:me};if(name&&name!==m.name)up.name=name;mRef.update(up).catch(()=>{})}
+    const t={uid:u.uid,owner:f?f.owner:null,approbation:!!(f&&f.approbation),role:isOwn?"proprietaire":(f?"employe":"libre"),statut:isOwn?"actif":m.statut};
+    const changed=saved&&(saved.statut!==t.statut||saved.role!==t.role);
+    apply(t);lsSet(KEY,JSON.stringify(t));
+    if(changed)location.reload();
+    /* quand le propriétaire accepte ou retire ce téléphone, l'application se recharge */
+    mRef.onSnapshot(s=>{if(!s.exists||s.metadata.fromCache||isOwn)return;const st=(s.data()||{}).statut;
+      if(st&&st!==TEAM.statut){TEAM.statut=st;lsSet(KEY,JSON.stringify({...t,statut:st}));location.reload()}},()=>{});
+    fRef.onSnapshot(s=>{if(s.metadata.fromCache)return;const d=s.exists?s.data():null;TEAM.owner=d?d.owner:null;TEAM.approbation=!!(d&&d.approbation);
+      window.dispatchEvent(new CustomEvent("b2a-team"))},()=>{});
+    window.dispatchEvent(new CustomEvent("b2a-team"));
+  };
+  /* déjà membre : on ouvre tout de suite (même sans internet) et on vérifie en arrière-plan */
+  if(saved){apply(saved);run().catch(()=>{});return}
+  await run();
+}
 let dbP=null;
 function getDb(){if(!dbP)dbP=(async()=>{
-  if(CFG&&farm){try{return await makeCloud(CFG,farm)}catch(e){B2A.cloudFail=true;return makeLocal()}}
+  if(CFG&&farm){try{const db=await makeCloud(CFG,farm);try{await joinFarm(CFG,farm)}catch(e){}return db}catch(e){B2A.cloudFail=true;return makeLocal()}}
   return makeLocal()})();return dbP}
 
 /* ---------- membres de l'équipe (noms) ---------- */
 const members={};
 getDb().then(db=>{
-  db.collection("members").onSnapshot(s=>{s.docs.forEach(d=>{members[d.id]=(d.data()||{}).name||""})},()=>{});
-  const n=lsGet(LS_NAME);if(n)db.doc("members/"+me).set({name:n,vu:new Date().toISOString().slice(0,10)}).catch(()=>{});
+  db.collection("members").onSnapshot(s=>{
+    TEAM.list=s.docs.map(d=>({id:d.id,...(d.data()||{})}));
+    TEAM.list.forEach(d=>{members[d.dev||d.id]=d.name||""});
+    window.dispatchEvent(new CustomEvent("b2a-team"))},()=>{});
+  const n=lsGet(LS_NAME);if(n&&db.kind==="local")db.doc("members/"+me).set({name:n,vu:today()}).catch(()=>{});
 });
 const USER={
   id:async()=>me,
@@ -117,7 +159,7 @@ const SAMPLE={
 };
 
 /* ---------- interface commune ---------- */
-window.B2A={me,farm,CFG,IA_URL,COLS,lsGet,lsSet,newId,getDb,makeLocal,makeCloud,loadFirebase,ensureUser,members,
+window.B2A={me,farm,CFG,IA_URL,COLS,lsGet,lsSet,newId,getDb,makeLocal,makeCloud,loadFirebase,ensureUser,members,team:TEAM,
   LS_NAME,LS_FARM,
   ia:()=>({code:iaCode,info:iaInfo}),
   iaVerify:async code=>{const d=await iaCall("/verifier",{code});iaCode=code;iaInfo={nom:d.nom,restant:d.restant};iaSave();return iaInfo},

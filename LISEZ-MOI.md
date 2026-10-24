@@ -87,6 +87,18 @@ Connectez-vous avec l'e-mail et le mot de passe du point 2. La page affiche le n
 
 ---
 
+## Étape 2 ter : équipe de la ferme (propriétaire et employés)
+
+Le téléphone qui **crée** la ferme en devient le **propriétaire**. Les employés installent l'application, s'inscrivent, puis **Réglages > Rejoindre une ferme** avec le code (bouton « Envoyer par WhatsApp »). Tout le monde voit les saisies des autres en temps réel ; hors connexion, les saisies sont gardées et envoyées au retour du réseau. Chaque saisie garde le nom de la personne qui l'a faite.
+
+Dans **Réglages > Partager avec l'équipe**, le propriétaire voit l'équipe et peut :
+- **Retirer** un employé (il ne voit plus rien et ne peut plus rien saisir), puis le **réintégrer** ;
+- cocher **« J'accepte moi-même chaque nouveau membre »** : les nouveaux arrivants restent en attente jusqu'à ce qu'il appuie sur **Accepter**. Conseillé : sans cette case, quelqu'un qui garde le code peut réinstaller l'application et revenir.
+
+Ferme créée avant cette version : ouvrez Réglages sur le téléphone du propriétaire et appuyez sur **« Devenir propriétaire de cette ferme »** (à faire en premier, avant les employés).
+
+**À faire une fois** : Firebase > Firestore > **Règles** : remplacez tout par le nouveau contenu de `firestore.rules`, puis **Publier**. Sans cela, l'application continue de marcher comme avant, mais sans propriétaire ni retrait d'employés.
+
 ## Étape 3 (facultative) : l'IA avec code d'accès
 
 L'application reste gratuite pour tous. Les clients et partenaires B2A reçoivent en plus un **code d'accès** (ex. `B2A-K7QH-2MXP`) qui débloque, quand il y a internet :

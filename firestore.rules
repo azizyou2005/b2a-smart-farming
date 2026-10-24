@@ -24,13 +24,57 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Chaque ferme est rangée sous farms/<code>/<collection>/<document>.
-    // Il faut connaître le code exact de la ferme (10 caractères) pour y lire ou écrire.
+    // ---------- Fermes partagées ----------
+    // farms/<code> : { owner: identifiant Firebase du téléphone propriétaire, approbation: true/false }
+    // farms/<code>/members/<uid> : { name, dev, role: 'proprietaire'|'employe', statut: 'actif'|'attente'|'retire', vu, creeLe }
+    // Une ferme sans document farms/<code> (créée avant le système de propriétaire) reste ouverte à qui connaît le code.
+    function validCode(farm) { return farm.matches('^[A-Z0-9]{10}$'); }
+    function hasOwner(farm) { return exists(/databases/$(database)/documents/farms/$(farm)); }
+    function farmData(farm) { return get(/databases/$(database)/documents/farms/$(farm)).data; }
+    function isOwner(farm) { return request.auth != null && hasOwner(farm) && farmData(farm).owner == request.auth.uid; }
+    function activeMember(farm) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/farms/$(farm)/members/$(request.auth.uid))
+        && get(/databases/$(database)/documents/farms/$(farm)/members/$(request.auth.uid)).data.statut == 'actif';
+    }
+    function canUse(farm) { return approved() && validCode(farm) && (!hasOwner(farm) || isOwner(farm) || activeMember(farm)); }
+
+    // Fiche de la ferme : lisible avec le code exact (jamais de liste), modifiable seulement par le propriétaire.
+    match /farms/{farm} {
+      allow get: if approved() && validCode(farm);
+      allow create: if approved() && validCode(farm)
+        && request.resource.data.owner == request.auth.uid
+        && request.resource.data.keys().hasOnly(['owner', 'approbation', 'creeLe'])
+        && request.resource.data.get('approbation', false) is bool;
+      allow update: if approved() && resource.data.owner == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['approbation'])
+        && request.resource.data.approbation is bool;
+    }
+
+    // Équipe : chacun s'inscrit lui-même ; seul le propriétaire accepte, retire ou réintègre.
+    match /farms/{farm}/members/{uid} {
+      allow read: if canUse(farm) || (approved() && validCode(farm) && request.auth.uid == uid);
+      allow create: if approved() && validCode(farm) && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'dev', 'role', 'statut', 'vu', 'creeLe'])
+        && txt(request.resource.data.get('name', ''), 60) && txt(request.resource.data.get('dev', ''), 40)
+        && (
+          (isOwner(farm) && request.resource.data.role == 'proprietaire' && request.resource.data.statut == 'actif')
+          || (!isOwner(farm) && request.resource.data.role == 'employe'
+              && (request.resource.data.statut == 'attente'
+                  || (request.resource.data.statut == 'actif' && (!hasOwner(farm) || farmData(farm).get('approbation', false) == false))))
+        );
+      allow update: if (approved() && isOwner(farm))
+        || (approved() && request.auth.uid == uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'vu', 'dev'])
+            && txt(request.resource.data.get('name', ''), 60));
+      allow delete: if approved() && isOwner(farm);
+    }
+
+    // Données de la ferme : farms/<code>/<collection>/<document>, pour le propriétaire et les membres actifs.
     // Il n'existe aucune règle pour lister "farms" : personne ne peut voir la liste des fermes ni leurs codes.
     match /farms/{farm}/{col}/{doc} {
-      allow read, write: if approved()
-        && farm.matches('^[A-Z0-9]{10}$')
-        && col in ['lots', 'saisies', 'soins', 'analyses', 'previsions', 'formules', 'factures', 'reglages', 'members', 'contacts', 'depenses', 'couveuses', 'couvees'];
+      allow read, write: if canUse(farm)
+        && col in ['lots', 'saisies', 'soins', 'analyses', 'previsions', 'formules', 'factures', 'reglages', 'contacts', 'depenses', 'couveuses', 'couvees'];
     }
   }
 }
