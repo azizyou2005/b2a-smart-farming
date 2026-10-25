@@ -9,7 +9,8 @@
    marche_commandes/<id>  { annonce, titre, vendeur, vendeurNom, vendeurTel, acheteur, acheteurNom, acheteurTel, acheteurVille, qte, unite, prix, total,
                             statut: demande|acceptee|refusee|vendue|annulee, taux, commission, creeLe, majLe, note }
    marche_boutiques/<uid> { nom, activite, ville, quartier, tel, horaires, desc, majLe }   (fiche publique de l'entreprise, seule visible par les acheteurs)
-   marche_vendeurs/<uid>  { statut: actif|suspendu, nom, tel, ville, taux, accepteLe }      (privé : vendeur et B2A)
+   marche_vendeurs/<uid>  { statut: actif|suspendu, nom, tel, ville, taux, accepteLe, cgu, cguLe }  (privé : vendeur et B2A)
+   marche_pieces/<uid>    { type: cnib|entreprise, titulaire, cnib, rccm, ifu, photo, statut: attente|validee|refusee, motif, envoyeLe }  (privé : vendeur et B2A)
    marche_paiements/<id>  { vendeur, montant, date, note }   (écrit par B2A)
    marche_config/global   { taux, telPaiement, nomPaiement }  (écrit par B2A) */
 (function(){
@@ -40,11 +41,11 @@ async function store(){if(S)return S;
     S={kind:"cloud",uid:u.uid,col:n=>fs.collection(n),doc:p=>fs.doc(p),ts:()=>firebase.firestore.FieldValue.serverTimestamp(),newId:n=>fs.collection(n).doc().id}}
   else{const db=await B.getDb();S={kind:"local",uid:B.me,col:n=>db.collection(n),doc:p=>db.doc(p),ts:()=>Date.now(),newId:()=>B.newId()}}
   return S}
-const put=(p,d)=>quick(S.doc(p).set(d));
+const put=(p,d,o)=>quick(o?S.doc(p).set(d,o):S.doc(p).set(d));
 const upd=(p,d)=>quick(S.doc(p).update(d));
 
 /* ---------- 2. état ---------- */
-let cfg={...DEF},me=null,boutiques={},openB=null,ficheOpen=false,annonces=[],mesAnnonces=[],recues=[],passees=[],paiements=[];
+let cfg={...DEF},me=null,piece=null,cguOpen=false,pieceOpen=false,boutiques={},openB=null,ficheOpen=false,annonces=[],mesAnnonces=[],recues=[],passees=[],paiements=[];
 let flashT=0,flash="",mode="acheter",cat="",q="",ville="",open=null,editA=null,formOpen=false,started=false;
 const subs=[];
 function listen(){if(started)return;started=true;
@@ -52,6 +53,7 @@ function listen(){if(started)return;started=true;
     const err=e=>console.warn("marché",e);
     subs.push(s.doc("marche_config/global").onSnapshot(d=>{cfg={...DEF,...(d.exists?d.data():{})};render()},err));
     subs.push(s.doc("marche_vendeurs/"+s.uid).onSnapshot(d=>{me=d.exists?d.data():null;render()},err));
+    subs.push(s.doc("marche_pieces/"+s.uid).onSnapshot(d=>{piece=d.exists?d.data():null;render()},err));
     subs.push(s.col("marche_boutiques").limit(1000).onSnapshot(x=>{boutiques={};x.docs.forEach(d=>boutiques[d.id]=d.data());render()},err));
     subs.push(s.col("marche_annonces").where("statut","==","actif").limit(500).onSnapshot(x=>{annonces=x.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));render()},err));
     subs.push(s.col("marche_annonces").where("vendeur","==",s.uid).onSnapshot(x=>{mesAnnonces=x.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));render()},err));
@@ -130,7 +132,7 @@ function detail(a){const own=S&&a.vendeur===S.uid;const c=el("div","card m-det")
 
 /* fiche publique de l'entreprise : nom, activité, lieu, horaires, présentation et contact. Rien d'autre. */
 function sellerBox(uid,sh,msg,link){const w=el("div","m-shop");const h=el("div","m-shop-h");const av=el("span","m-av",(sh.nom||"?").trim().slice(0,1).toUpperCase());
-  const t=el("div");t.append(el("span","label","Vendu par"),notr(el("b",null,sh.nom||"Vendeur")));if(sh.activite)t.append(notr(el("small",null,sh.activite)));h.append(av,t);w.append(h);
+  const t=el("div");t.append(el("span","label","Vendu par"),notr(el("b",null,sh.nom||"Vendeur")));if(sh.verifie)t.append(el("span","m-ok","✓ Vendeur vérifié"));if(sh.activite)t.append(notr(el("small",null,sh.activite)));h.append(av,t);w.append(h);
   const info=[["Lieu",[sh.quartier,sh.ville].filter(Boolean).join(", ")],["Horaires",sh.horaires],["Téléphone",sh.tel]].filter(x=>x[1]);
   if(info.length){const dl=el("dl","cu-info");info.forEach(([k,v])=>{dl.append(el("dt",null,k));dl.append(notr(el("dd",null,String(v))))});w.append(dl)}
   if(sh.desc)w.append(notr(el("p","note",sh.desc)));
@@ -147,6 +149,7 @@ function shopView(uid){const list=enVente().filter(a=>a.vendeur===uid);const sh=
 /* --- vendre --- */
 function renderSell(Bd){
   if(!isSeller()){Bd.append(becomeSeller());return}
+  if(!cguOk()){Bd.append(cguRenew());return}
   if(formOpen){Bd.append(annForm());return}
   if(ficheOpen){Bd.append(ficheForm());return}
   if(open){const a=mesAnnonces.find(x=>x.id===open);if(a){Bd.append(detail(a));return}open=null}
@@ -168,6 +171,8 @@ function renderSell(Bd){
     if(a.statut==="actif"){const x=el("button","btn small ghost","Retirer");x.type="button";x.onclick=()=>upd("marche_annonces/"+a.id,{statut:"retire",majLe:S.ts()});r.append(x)}
     else{const x=el("button","btn small ghost","Remettre en vente");x.type="button";x.onclick=()=>upd("marche_annonces/"+a.id,{statut:"actif",majLe:S.ts()});r.append(x)}
     w.append(r);G.append(w)});C2.append(G);
+  /* vérification de l'identité */
+  if(pieceOpen||!piece||piece.statut!=="validee")Bd.append(pieceStatus());
   /* fiche publique */
   const C3=el("section","card");Bd.append(C3);const h3=el("div","row between");h3.append(el("h2","sec","Ma fiche entreprise"));const fe=el("button","btn small ghost","Modifier");fe.type="button";fe.onclick=()=>{ficheOpen=true;render();window.scrollTo(0,0)};h3.append(fe);C3.append(h3);
   C3.append(el("p","note","Voici ce que voient les acheteurs : vos produits en vente et cette fiche."));
@@ -184,26 +189,84 @@ function ficheForm(){const b=boutiques[S.uid]||{nom:me.nom,tel:me.tel,ville:me.v
   sv.onclick=async()=>{const bad=x=>{m.textContent=x;m.className="msg err"};if(!n.value.trim())return bad("Indiquez le nom.");if(String(t.value).replace(/\D/g,"").length<8)return bad("Indiquez le téléphone.");if(!v.value.trim())return bad("Indiquez la ville.");
     sv.disabled=true;try{await saveShop({nom:n.value.trim(),activite:ac.value.trim(),tel:t.value.trim(),ville:v.value.trim(),quartier:qu.value.trim(),horaires:ho.value.trim(),desc:ds.value.trim()});ficheOpen=false;render()}
     catch(e){console.warn(e);sv.disabled=false;bad("Échec de l'enregistrement. Vérifiez la connexion.")}};return c}
-async function saveShop(d){const body={...d,majLe:S.ts()};await put("marche_boutiques/"+S.uid,body);if(S.kind==="local"){boutiques[S.uid]={...body}}
+async function saveShop(d){const body={...d,majLe:S.ts()};await put("marche_boutiques/"+S.uid,body,{merge:true});if(S.kind==="local"){boutiques[S.uid]={...(boutiques[S.uid]||{}),...body}}
   /* garder le nom et le contact à jour sur les annonces */
   for(const a of mesAnnonces){if(a.vendeurNom!==d.nom||a.vendeurTel!==d.tel)await upd("marche_annonces/"+a.id,{vendeurNom:d.nom,vendeurTel:d.tel,majLe:S.ts()})}}
+/* ---------- conditions d'utilisation et pièce d'identité ---------- */
+const CGU=()=>window.B2A_CGU||{VERSION:"0",TITRE:"Conditions d'utilisation",TEXTE:[]};
+const cguOk=()=>!!me&&me.cgu===CGU().VERSION;
+/* boîte de lecture des conditions ; onRead() est appelé quand la personne a tout lu (fin du texte atteinte) */
+function cguBox(onRead){const w=el("div","m-cgu");const h=el("b",null,CGU().TITRE);const box=el("div","m-cgu-txt");box.tabIndex=0;box.setAttribute("aria-label",CGU().TITRE);
+  CGU().TEXTE.forEach(([t,p])=>{box.append(el("h4",null,t),el("p",null,p.replace(/\{TAUX\}/g,fmt(Number(me&&me.taux!=null?me.taux:cfg.taux)||0,1))))});
+  box.append(el("p","m-cgu-end",`Version ${CGU().VERSION} · B2A-HIGH-TECHNOLOGY-AUTOMATION`));
+  const hint=el("small","m-cgu-hint","Faites défiler jusqu'à la fin pour pouvoir accepter.");let done=false;
+  const chk=()=>{if(!done&&box.scrollTop+box.clientHeight>=box.scrollHeight-24){done=true;hint.textContent="Vous avez lu les conditions jusqu'au bout.";hint.className="m-cgu-hint ok";onRead&&onRead()}};
+  box.addEventListener("scroll",chk);setTimeout(chk,300);w.append(h,box,hint);return w}
+function cguAccept(lbl,onChange){const lb=el("label","m-check");const ck=el("input");ck.type="checkbox";ck.disabled=true;lb.append(ck,document.createTextNode(" "+lbl));lb.classList.add("off");
+  ck.onchange=()=>onChange&&onChange(ck.checked);return {lb,ck,enable:()=>{ck.disabled=false;lb.classList.remove("off")}}}
+/* champs de la pièce : particulier (CNIB) ou entreprise (RCCM + IFU), avec photo du document */
+function pieceFields(c,p){p=p||{};const st={type:p.type||"cnib",photo:p.photo||""};
+  c.append(el("h3","sec","Pièce justificative"));c.append(el("p","note","Elle reste privée : seul B2A la voit, pour vérifier le vendeur. Une fois validée, votre boutique affiche « Vendeur vérifié »."));
+  const sg=el("div","seg");const b1=el("button",null,"Particulier (CNIB)"),b2=el("button",null,"Entreprise (RCCM / IFU)");[b1,b2].forEach(b=>b.type="button");sg.append(b1,b2);c.append(sg);
+  const g=el("div","grid2");c.append(g);const fld=(lab,val,ph,max)=>{const f=el("div","field");const l=el("label",null,lab);const i=el("input");i.type="text";i.id="m-p-"+Math.random().toString(36).slice(2,7);l.htmlFor=i.id;i.value=val||"";if(ph)i.placeholder=ph;i.maxLength=max||40;i.autocomplete="off";f.append(l,i);g.append(f);return [f,i]};
+  const [fT,tit]=fld("Nom du titulaire (comme sur la pièce)",p.titulaire,"ex. OUÉDRAOGO Moussa",80);
+  const [fC,cn]=fld("Numéro de la CNIB",p.cnib,"ex. B12345678");const [fR,rc]=fld("Numéro RCCM",p.rccm,"ex. BF-OUA-01-2024-B12-00123");const [fI,ifu]=fld("Numéro IFU",p.ifu,"ex. 00123456X");
+  const pw=el("div","m-photo");const pv=el("div","m-ph m-doc");const setPv=()=>{pv.innerHTML="";if(st.photo){const im=el("img");im.src=st.photo;im.alt="";pv.append(im)}else pv.append(el("span",null,"Photo"))};setPv();
+  const fi=el("input");fi.type="file";fi.accept="image/*";fi.id="m-p-photo"+Math.random().toString(36).slice(2,6);fi.hidden=true;const fl=el("label","btn small ghost","Photo de la pièce");fl.htmlFor=fi.id;
+  const lbl=el("small","note");const r=el("div");r.style.cssText="display:grid;gap:6px";r.append(fl,fi,lbl);pw.append(pv,r);c.append(pw);
+  fi.onchange=async()=>{const f=fi.files[0];if(!f)return;try{st.photo=await compress(f,1000,300000);setPv()}catch(e){}fi.value=""};
+  const sync=()=>{const ent=st.type==="entreprise";b1.setAttribute("aria-pressed",!ent);b2.setAttribute("aria-pressed",ent);fC.hidden=ent;fR.hidden=!ent;fI.hidden=!ent;
+    fT.querySelector("label").textContent=ent?"Nom de l'entreprise (comme sur le RCCM)":"Nom du titulaire (comme sur la pièce)";
+    lbl.textContent=ent?"Photo lisible de l'extrait RCCM ou de l'attestation IFU.":"Photo lisible du recto de la CNIB."};
+  b1.onclick=()=>{st.type="cnib";sync()};b2.onclick=()=>{st.type="entreprise";sync()};sync();
+  return {check:()=>{const ent=st.type==="entreprise";if(!tit.value.trim())return "Indiquez le nom du titulaire de la pièce.";
+      if(!ent&&!/^[A-Za-z0-9 -]{6,20}$/.test(cn.value.trim()))return "Indiquez le numéro de la CNIB.";
+      if(ent&&rc.value.trim().length<6)return "Indiquez le numéro RCCM.";if(ent&&!/^[A-Za-z0-9 -]{6,20}$/.test(ifu.value.trim()))return "Indiquez le numéro IFU.";
+      if(!st.photo)return "Ajoutez la photo de la pièce.";return ""},
+    data:()=>{const ent=st.type==="entreprise";return {type:st.type,titulaire:tit.value.trim(),cnib:ent?"":cn.value.trim().toUpperCase(),rccm:ent?rc.value.trim().toUpperCase():"",ifu:ent?ifu.value.trim().toUpperCase():"",photo:st.photo,statut:"attente",motif:"",envoyeLe:S.ts()}}}}
 function becomeSeller(){const c=el("section","card m-join");c.append(el("h2","sec","Vendez vos produits sur le Marché B2A"));
   const ul=el("ul","plain");["Publiez vos œufs, animaux, poussins, aliment, plants, récoltes… : visibles tout de suite par tous les utilisateurs de B2A Smart Farming.",
     "Les clients commandent dans l'application ou vous écrivent sur WhatsApp ; vous êtes payé directement (espèces, Orange Money, Moov Money).",
     "Vous ne payez rien pour publier : une petite commission seulement sur les ventes conclues (voir les conditions ci-dessous).","Vos lots se transforment en annonce en un geste (œufs, réformes, récoltes…)."].forEach(t=>ul.append(el("li",null,t)));c.append(ul);
+  c.append(el("h3","sec","Votre boutique"));
   const g=el("div","grid2");const fld=(id,lab,type,val,ph)=>{const f=el("div","field");const l=el("label",null,lab);l.htmlFor=id;const i=el("input");i.type=type;i.id=id;i.value=val||"";if(ph)i.placeholder=ph;i.maxLength=60;f.append(l,i);g.append(f);return i};
   const n=fld("m-j-nom","Nom de la boutique ou de la ferme","text",B.lsGet(B.LS_NAME)||"","ex. B2A Élevage Bayere");const t=fld("m-j-tel","Numéro WhatsApp","tel",B.lsGet("b2a-m-tel")||"","ex. 70 12 34 56");
   const v=fld("m-j-ville","Ville","text",B.lsGet("b2a-m-ville")||"","ex. Ouagadougou");const ac=fld("m-j-act","Activité","text","","ex. Élevage de poules pondeuses");c.append(g);
-  c.append(el("p","note","Les acheteurs verront seulement vos produits en vente et votre fiche entreprise (nom, activité, ville, contact). Vos lots, chiffres et ventes restent privés."));
-  const lb=el("label","m-check");const ck=el("input");ck.type="checkbox";lb.append(ck,document.createTextNode(` J'accepte de payer à B2A une commission de ${fmt(Number(cfg.taux)||0,1)} % sur chaque vente conclue grâce au Marché, et de ne publier que des produits honnêtes et en règle.`));c.append(lb);
+  c.append(el("p","note","Les acheteurs verront seulement vos produits en vente et votre fiche entreprise (nom, activité, ville, contact). Vos lots, chiffres, ventes et votre pièce d'identité restent privés."));
+  const P=pieceFields(c,null);
+  c.append(el("h3","sec","Conditions d'utilisation"));
+  const acc=cguAccept(`J'ai lu et j'accepte les conditions d'utilisation du Marché B2A (version ${CGU().VERSION}), dont la commission de ${fmt(Number(cfg.taux)||0,1)} % sur chaque vente conclue.`);
+  c.append(cguBox(acc.enable),acc.lb);
   const m=el("p","msg");const b=el("button","btn","Ouvrir ma boutique");b.type="button";c.append(b,m);
   b.onclick=async()=>{const bad=x=>{m.textContent=x;m.className="msg err"};if(!n.value.trim())return bad("Indiquez le nom de votre boutique.");if(String(t.value).replace(/\D/g,"").length<8)return bad("Indiquez votre numéro WhatsApp.");
-    if(!v.value.trim())return bad("Indiquez votre ville.");if(!ck.checked)return bad("Cochez l'acceptation des conditions.");
-    B.lsSet("b2a-m-tel",t.value.trim());B.lsSet("b2a-m-ville",v.value.trim());b.disabled=true;
-    try{await put("marche_vendeurs/"+S.uid,{statut:"actif",nom:n.value.trim(),tel:t.value.trim(),ville:v.value.trim(),taux:Number(cfg.taux)||0,accepteLe:S.ts()});
+    if(!v.value.trim())return bad("Indiquez votre ville.");const pe=P.check();if(pe)return bad(pe);
+    if(acc.ck.disabled)return bad("Lisez les conditions d'utilisation jusqu'au bout.");if(!acc.ck.checked)return bad("Cochez l'acceptation des conditions d'utilisation.");
+    B.lsSet("b2a-m-tel",t.value.trim());B.lsSet("b2a-m-ville",v.value.trim());b.disabled=true;b.textContent="Ouverture…";
+    try{await put("marche_vendeurs/"+S.uid,{statut:"actif",nom:n.value.trim(),tel:t.value.trim(),ville:v.value.trim(),taux:Number(cfg.taux)||0,accepteLe:S.ts(),cgu:CGU().VERSION,cguLe:S.ts()});
+      await put("marche_pieces/"+S.uid,P.data());
       await saveShop({nom:n.value.trim(),activite:ac.value.trim(),tel:t.value.trim(),ville:v.value.trim(),quartier:"",horaires:"",desc:""}).catch(()=>{});
-      if(S.kind==="local"){me={statut:"actif",nom:n.value.trim(),tel:t.value.trim(),ville:v.value.trim(),taux:Number(cfg.taux)||0};render()}}
-    catch(e){console.warn(e);b.disabled=false;bad("L'ouverture a échoué. Vérifiez la connexion.")}};
+      if(S.kind==="local"){me={statut:"actif",nom:n.value.trim(),tel:t.value.trim(),ville:v.value.trim(),taux:Number(cfg.taux)||0,cgu:CGU().VERSION};render()}}
+    catch(e){console.warn(e);b.disabled=false;b.textContent="Ouvrir ma boutique";bad("L'ouverture a échoué. Vérifiez la connexion.")}};
+  return c}
+/* nouvelle version des conditions à accepter */
+function cguRenew(){const c=el("section","card m-join");c.append(el("h2","sec","Nouvelles conditions d'utilisation"));
+  c.append(el("p","note","B2A a mis à jour les conditions du Marché. Lisez-les et acceptez-les pour continuer à vendre."));
+  const acc=cguAccept(`J'ai lu et j'accepte les conditions d'utilisation du Marché B2A (version ${CGU().VERSION}).`);c.append(cguBox(acc.enable),acc.lb);
+  const m=el("p","msg");const b=el("button","btn","Accepter et continuer");b.type="button";c.append(b,m);
+  b.onclick=async()=>{if(!acc.ck.checked){m.textContent=acc.ck.disabled?"Lisez les conditions jusqu'au bout.":"Cochez l'acceptation.";m.className="msg err";return}
+    b.disabled=true;try{await upd("marche_vendeurs/"+S.uid,{cgu:CGU().VERSION,cguLe:S.ts()});if(S.kind==="local"){me={...me,cgu:CGU().VERSION};render()}}catch(e){b.disabled=false}};return c}
+/* statut de la pièce dans l'espace vendeur */
+function pieceStatus(){const c=el("section","card");
+  if(pieceOpen||!piece){c.append(el("h2","sec",piece?"Envoyer une nouvelle pièce":"Pièce justificative à envoyer"));
+    if(piece&&piece.statut==="refusee"&&piece.motif)c.append(el("p","msg err","Motif du refus : "+piece.motif));
+    const P=pieceFields(c,piece&&piece.statut==="refusee"?{...piece,photo:""}:piece);const m=el("p","msg");const b=el("button","btn","Envoyer la pièce");b.type="button";c.append(b,m);
+    if(piece){const x=el("button","btn ghost","Annuler");x.type="button";x.onclick=()=>{pieceOpen=false;render()};c.append(x)}
+    b.onclick=async()=>{const pe=P.check();if(pe){m.textContent=pe;m.className="msg err";return}b.disabled=true;
+      try{await put("marche_pieces/"+S.uid,P.data());if(S.kind==="local")piece=P.data();pieceOpen=false;render()}catch(e){b.disabled=false;m.textContent="Échec de l'envoi. Vérifiez la connexion.";m.className="msg err"}};return c}
+  const st=piece.statut;const lab={attente:["Pièce en cours de vérification par B2A","warn"],validee:["✓ Vendeur vérifié : votre pièce a été validée","ok"],refusee:["Pièce refusée : envoyez une nouvelle pièce","bad"]}[st]||["Pièce envoyée","warn"];
+  const top=el("div","row between");top.append(el("h2","sec","Vérification"),el("span","pill s-"+lab[1],st==="validee"?"Vérifié":st==="refusee"?"Refusée":"En attente"));c.append(top);
+  c.append(el("p","note",lab[0]+(piece.type==="entreprise"?" (RCCM / IFU).":" (CNIB).")));if(st==="refusee"&&piece.motif)c.append(el("p","msg err","Motif : "+piece.motif));
+  if(st!=="validee"){const b=el("button","btn small ghost",st==="refusee"?"Envoyer une nouvelle pièce":"Remplacer la pièce");b.type="button";b.onclick=()=>{pieceOpen=true;render()};c.append(b)}
   return c}
 /* proposer une annonce à partir d'un lot */
 function fromLot(l){const C=window.B2A_CULT;
@@ -242,9 +305,9 @@ function annForm(){const a=editA||{};const c=el("section","card");const bk=el("b
     try{const id=editA?editA.id:S.newId("marche_annonces");await (editA?upd("marche_annonces/"+id,d):put("marche_annonces/"+id,d));formOpen=false;editA=null;render()}
     catch(e){console.warn(e);sv.disabled=false;bad("L'annonce n'a pas pu être enregistrée. Vérifiez la connexion.")}};
   return c}
-function compress(file){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>{const M=800,r=Math.min(1,M/Math.max(im.width,im.height));const cv=document.createElement("canvas");
+function compress(file,MX,LIM){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>{const M=MX||800,r=Math.min(1,M/Math.max(im.width,im.height));const cv=document.createElement("canvas");
   cv.width=Math.round(im.width*r);cv.height=Math.round(im.height*r);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);let q=0.72,u=cv.toDataURL("image/jpeg",q);
-  while(u.length>350000&&q>0.35){q-=0.1;u=cv.toDataURL("image/jpeg",q)}URL.revokeObjectURL(im.src);res(u)};im.onerror=rej;im.src=URL.createObjectURL(file)})}
+  while(u.length>(LIM||350000)&&q>0.35){q-=0.1;u=cv.toDataURL("image/jpeg",q)}URL.revokeObjectURL(im.src);res(u)};im.onerror=rej;im.src=URL.createObjectURL(file)})}
 
 /* --- commandes --- */
 function orderCard(c,side){const w=el("div","m-order");const st=ST[c.statut]||ST.demande;
@@ -274,10 +337,13 @@ function renderSetM(){const sh=$("x-set");if(!sh)return;let sec=$("m-set");
   if(!sec){sec=el("section","card");sec.id="m-set";const at=sh.querySelector("#x-acct")||sh.querySelector(".sheet-head");const host=sh.querySelector(".sheet-in");
     const after=[...host.children].find(x=>x.tagName==="SECTION");host.insertBefore(sec,after||null)}
   sec.innerHTML="";const C=compte();sec.append(el("h3","sec","Marché B2A : ma commission"));
+  if(piece&&piece.statut==="validee")sec.append(el("p","msg good","✓ Vendeur vérifié"));
   sec.append(el("p","note",`Commission B2A : ${fmt(taux(),1)} % sur chaque vente conclue (déclarée « Vendu » dans le Marché).`));
   const K=el("div","kpis");K.append(A.kpi("Commission totale",fmt(C.com)+" F",C.nb+" vente(s)"),A.kpi("Déjà payé",fmt(C.paye)+" F"),A.kpi("Reste à payer",fmt(C.reste)+" F",null,C.reste>0?"down":null));sec.append(K);
   if(C.reste>0){sec.append(el("p","note",cfg.telPaiement?`Payez par Orange Money ou Moov Money au ${cfg.telPaiement} (${cfg.nomPaiement||"B2A"}), puis envoyez la preuve par WhatsApp : B2A enregistre le paiement.`:"B2A vous indiquera le numéro de paiement (Orange Money ou Moov Money)."));
-    if(cfg.telPaiement){const w=el("a","btn small ghost","Envoyer la preuve par WhatsApp");w.href="https://wa.me/"+tel226(cfg.telPaiement)+"?text="+encodeURIComponent(`Bonjour B2A, je paie ma commission du Marché : ${fmt(C.reste)} F. Vendeur : ${me.nom||""} (${me.tel||""}).`);w.target="_blank";w.rel="noopener";sec.append(w)}}}
+    if(cfg.telPaiement){const w=el("a","btn small ghost","Envoyer la preuve par WhatsApp");w.href="https://wa.me/"+tel226(cfg.telPaiement)+"?text="+encodeURIComponent(`Bonjour B2A, je paie ma commission du Marché : ${fmt(C.reste)} F. Vendeur : ${me.nom||""} (${me.tel||""}).`);w.target="_blank";w.rel="noopener";sec.append(w)}}
+  addCguLink(sec)}
+function addCguLink(sec){const d=el("details","box");d.append(el("summary",null,"Lire les conditions d'utilisation du Marché"));d.append(cguBox());sec.append(d)}
 document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest(".gearbtn"))setTimeout(()=>{listen();renderSetM()},60)});
 
 /* ---------- 5. onglet ---------- */
@@ -309,6 +375,10 @@ a.btn{text-decoration:none}.m-flash{background:var(--surface);padding:12px 14px;
 .m-shop{display:grid;gap:10px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}.m-shop-h{display:flex;gap:12px;align-items:center}
 .m-av{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--navy,#1b2e4c);color:var(--brand-green,#7bc043);font:800 18px var(--display);flex:none}
 .m-shop-h b{display:block;font:700 17px var(--display)}.m-priv{margin:0}
+.m-ok{display:inline-block;margin-top:3px;font:700 12px var(--body);color:#1e7b34;background:#e3f4e6;padding:2px 8px;border-radius:999px}
+.m-cgu{display:grid;gap:6px}.m-cgu-txt{max-height:300px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);font-size:14px;line-height:1.5}
+.m-cgu-txt h4{margin:12px 0 4px;font:700 14px var(--display);color:var(--heading)}.m-cgu-txt h4:first-child{margin-top:0}.m-cgu-txt p{margin:0}.m-cgu-end{margin-top:12px!important;color:var(--muted);font-size:12px}
+.m-cgu-hint{color:var(--muted)}.m-cgu-hint.ok{color:#1e7b34}.m-check.off{opacity:.55}.m-doc{aspect-ratio:3/2}
 .m-hist{display:grid;gap:10px;margin-top:10px}
 .m-note{color:var(--muted);font-style:italic}
 .m-photo{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center}.m-photo .m-ph{border-radius:12px}

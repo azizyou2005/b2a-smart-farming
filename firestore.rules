@@ -92,11 +92,11 @@ service cloud.firestore {
     match /marche_vendeurs/{uid} {
       allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
       allow create: if approved() && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['statut','nom','tel','ville','taux','accepteLe'])
+        && request.resource.data.keys().hasOnly(['statut','nom','tel','ville','taux','accepteLe','cgu','cguLe'])
         && request.resource.data.statut == 'actif' && request.resource.data.taux == tauxB2A()
         && txt(request.resource.data.nom, 60) && txt(request.resource.data.tel, 30) && txt(request.resource.data.ville, 60);
       allow update: if isAdmin() || (approved() && request.auth.uid == uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nom','tel','ville'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nom','tel','ville','cgu','cguLe'])
         && txt(request.resource.data.nom, 60) && txt(request.resource.data.tel, 30) && txt(request.resource.data.ville, 60));
       allow delete: if isAdmin();
     }
@@ -104,12 +104,26 @@ service cloud.firestore {
     // Les données de gestion (lots, saisies, ventes, commissions…) restent dans farms/<code> ou marche_vendeurs, jamais lisibles par les acheteurs.
     match /marche_boutiques/{uid} {
       allow read: if approved() || isAdmin();
+      // le badge « verifie » est posé seulement par B2A (isAdmin) après contrôle de la pièce
+      allow write: if isAdmin();
       allow create, update: if approved() && request.auth.uid == uid && seller()
-        && request.resource.data.keys().hasOnly(['nom','activite','ville','quartier','tel','horaires','desc','majLe'])
+        && request.resource.data.keys().hasOnly(['nom','activite','ville','quartier','tel','horaires','desc','majLe','verifie'])
+        && request.resource.data.get('verifie', false) == (resource == null ? false : resource.data.get('verifie', false))
         && txt(request.resource.data.nom, 60) && txt(request.resource.data.get('activite',''), 60) && txt(request.resource.data.ville, 60)
         && txt(request.resource.data.get('quartier',''), 60) && txt(request.resource.data.tel, 30) && txt(request.resource.data.get('horaires',''), 60)
         && txt(request.resource.data.get('desc',''), 400);
       allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+    }
+    // Pièce justificative (CNIB, ou RCCM + IFU) : privée, lisible seulement par le vendeur et B2A ; seul B2A la valide ou la refuse.
+    match /marche_pieces/{uid} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow write: if isAdmin();
+      allow create, update: if approved() && request.auth.uid == uid
+        && (resource == null || resource.data.statut != 'validee')
+        && request.resource.data.keys().hasOnly(['type','titulaire','cnib','rccm','ifu','photo','statut','motif','envoyeLe'])
+        && request.resource.data.statut == 'attente' && request.resource.data.type in ['cnib','entreprise']
+        && txt(request.resource.data.titulaire, 80) && txt(request.resource.data.cnib, 20) && txt(request.resource.data.rccm, 40) && txt(request.resource.data.ifu, 20)
+        && txt(request.resource.data.photo, 400000);
     }
     match /marche_annonces/{id} {
       allow read: if approved() || isAdmin();
