@@ -111,6 +111,7 @@ service cloud.firestore {
       allow create, update: if approved() && request.auth.uid == uid && seller()
         && request.resource.data.keys().hasOnly(['nom','activite','ville','quartier','tel','horaires','desc','majLe','verifie'])
         && request.resource.data.get('verifie', false) == (resource == null ? false : resource.data.get('verifie', false))
+        && request.resource.data.get('tel', '') == ''   // pas de téléphone public : il est donné au client après acceptation
         && txt(request.resource.data.nom, 60) && txt(request.resource.data.get('activite',''), 60) && txt(request.resource.data.ville, 60)
         && txt(request.resource.data.get('quartier',''), 60) && txt(request.resource.data.tel, 30) && txt(request.resource.data.get('horaires',''), 60)
         && txt(request.resource.data.get('desc',''), 400);
@@ -130,12 +131,14 @@ service cloud.firestore {
     match /marche_annonces/{id} {
       allow read: if approved() || isAdmin();
       allow create: if approved() && seller() && request.resource.data.vendeur == request.auth.uid
+        && request.resource.data.get('vendeurTel', '') == ''
         && request.resource.data.statut in ['actif','epuise','retire']
         && txt(request.resource.data.titre, 80) && txt(request.resource.data.get('desc',''), 600)
         && request.resource.data.prix is number && request.resource.data.prix > 0
         && (request.resource.data.get('photo','') == '' || txt(request.resource.data.photo, 400000));
       allow update: if isAdmin() || (approved() && seller() && resource.data.vendeur == request.auth.uid
         && request.resource.data.vendeur == request.auth.uid
+        && request.resource.data.get('vendeurTel', '') == ''
         && request.resource.data.statut in ['actif','epuise','retire']
         && (request.resource.data.get('photo','') == '' || txt(request.resource.data.photo, 400000)));
       // Stock réservé par l'acheteur : la quantité baisse seulement du nombre commandé dans une NOUVELLE commande
@@ -170,10 +173,13 @@ service cloud.firestore {
       allow read: if isAdmin() || (request.auth != null && (resource.data.acheteur == request.auth.uid || resource.data.vendeur == request.auth.uid));
       allow create: if approved() && request.resource.data.acheteur == request.auth.uid && request.resource.data.statut == 'demande'
         && request.resource.data.total is number
-        && !request.resource.data.keys().hasAny(['acheteurNom','acheteurTel','note','commission','accepteLe','commAnnulee']);
+        && !request.resource.data.keys().hasAny(['acheteurNom','acheteurTel','note','commission','accepteLe','commAnnulee'])
+        && request.resource.data.get('vendeurTel', '') == '';
       allow update: if isAdmin()
         || (request.auth != null && resource.data.vendeur == request.auth.uid
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut','taux','commission','venduLe','accepteLe','majLe'])
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut','taux','commission','venduLe','accepteLe','vendeurTel','majLe'])
+            // le téléphone du vendeur n'est donné au client qu'à l'acceptation
+            && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['vendeurTel']) || request.resource.data.statut == 'acceptee')
             && request.resource.data.statut in ['acceptee','refusee','vendue','annulee']
             // acceptation : seulement depuis une demande, avec la commission au taux du vendeur
             && (request.resource.data.statut != 'acceptee' || resource.data.statut == 'acceptee'

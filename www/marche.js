@@ -5,8 +5,8 @@
    B2A-HIGH-TECHNOLOGY-AUTOMATION · Bayere Abdoul Aziz
 
    Données (Firestore, hors des fermes, visibles par tous les inscrits) :
-   marche_annonces/<id>   { vendeur, vendeurNom, vendeurTel, ville, cat, titre, desc, prix, unite, qte, photo, statut: actif|epuise|retire, creeLe, majLe }
-   marche_commandes/<id>  { annonce, titre, vendeur, vendeurNom, vendeurTel, acheteur, acheteurVille, qte, unite, prix, total, devise, reserve, accepteLe,
+   marche_annonces/<id>   { vendeur, vendeurNom, ville, cat, titre, desc, prix, unite, qte, photo, statut: actif|epuise|retire, creeLe, majLe }
+   marche_commandes/<id>  { annonce, titre, vendeur, vendeurNom, vendeurTel (posé à l'acceptation), acheteur, acheteurVille, qte, unite, prix, total, devise, reserve, accepteLe,
    marche_contacts/<id>   { acheteur, vendeur, nom, tel, ville, note }  (coordonnées de l'acheteur : le vendeur ne les voit qu'après avoir accepté)
                             statut: demande|acceptee|refusee|vendue|annulee, taux, commission, creeLe, majLe, note }
    marche_boutiques/<uid> { nom, activite, ville, quartier, tel, horaires, desc, majLe }   (fiche publique de l'entreprise, seule visible par les acheteurs)
@@ -152,7 +152,7 @@ function render(){try{const sh=$("x-set");if(sh&&!sh.hidden)renderSetM()}catch(e
 
 /* --- acheter : les acheteurs voient seulement les produits en vente et la fiche publique du vendeur --- */
 const enVente=()=>annonces.filter(a=>a.statut==="actif"&&!(a.qte!=null&&Number(a.qte)<=0));
-const shop=a=>boutiques[a.vendeur]||{nom:a.vendeurNom,tel:a.vendeurTel,ville:a.ville};
+const shop=a=>boutiques[a.vendeur]||{nom:a.vendeurNom,ville:a.ville};
 function renderBuy(Bd){
   if(openB){Bd.append(shopView(openB));return}
   if(open){const a=annonces.find(x=>x.id===open)||mesAnnonces.find(x=>x.id===open)||Object.values(sellerAnn).flat().find(x=>x.id===open);if(a){Bd.append(detail(a));return}open=null}
@@ -182,7 +182,7 @@ function detail(a){needShop(a.vendeur);const own=S&&a.vendeur===S.uid;const c=el
   const dl=el("dl","cu-info");info.forEach(([k,v])=>{dl.append(el("dt",null,k));dl.append(notr(el("dd",null,String(v))))});c.append(dl);
   if(a.desc)c.append(notr(el("p",null,a.desc)));
   if(own){c.append(el("p","note","C'est votre annonce. Modifiez-la dans « Vendre »."));return c}
-  const sh=shop(a);const ph=tel226(sh.tel||a.vendeurTel);
+  const sh=shop(a);
   c.append(sellerBox(a.vendeur,sh,`Bonjour, je suis intéressé(e) par « ${a.titre} » vu sur le Marché B2A Smart Farming.`,true));
   /* commande */
   c.append(el("h3","sec","Commander"));const g=el("div","grid2");const fld=(lab,inp)=>{const f=el("div","field");const l=el("label",null,lab);inp.id="m-o-"+Math.random().toString(36).slice(2,7);l.htmlFor=inp.id;f.append(l,inp);g.append(f);return inp};
@@ -198,22 +198,22 @@ function detail(a){needShop(a.vendeur);const own=S&&a.vendeur===S.uid;const c=el
     if(!(n>0))return bad("Indiquez la quantité.");if(a.qte!=null&&n>a.qte)return bad(`Il n'en reste que ${fmt(a.qte)}.`);
     if(!nm.value.trim())return bad("Indiquez votre nom.");if(String(tl.value).replace(/\D/g,"").length<8)return bad("Indiquez votre numéro de téléphone.");
     B.lsSet("b2a-m-tel",tl.value.trim());B.lsSet("b2a-m-ville",vl.value.trim());B.lsSet("b2a-m-nom",nm.value.trim());
-    const d={annonce:a.id,titre:a.titre||"",vendeur:a.vendeur,vendeurNom:sh.nom||a.vendeurNom||"",vendeurTel:sh.tel||a.vendeurTel||"",acheteur:S.uid,acheteurVille:vl.value.trim(),
+    const d={annonce:a.id,titre:a.titre||"",vendeur:a.vendeur,vendeurNom:sh.nom||a.vendeurNom||"",acheteur:S.uid,acheteurVille:vl.value.trim(),
       qte:n,unite:a.unite||"",prix:Number(a.prix)||0,total:Math.round(n*(Number(a.prix)||0)*100)/100,devise:a.devise||"XOF",statut:"demande",creeLe:S.ts(),majLe:S.ts()};
     const ct={nom:nm.value.trim(),tel:tl.value.trim(),ville:vl.value.trim(),note:nt.value.trim()};
     go.disabled=true;go.textContent="Envoi de la commande…";m.textContent="";try{const res=await placeOrder(a,d,ct);flashT=Date.now()+15000;flash=(res==="lent"?"Réseau lent : la commande part dès que la connexion le permet. ":"")+`Commande envoyée à ${a.vendeurNom||"au vendeur"} : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (${money(d.total,d.devise)}). Le vendeur va accepter la commande puis vous contacter.`;open=null;mode="mes";render();window.scrollTo(0,0)}
     catch(e){console.warn(e);go.disabled=false;go.textContent="Envoyer la commande";bad(errTxt(e))}};
   return c}
 
-/* fiche publique de l'entreprise : nom, activité, lieu, horaires, présentation et contact. Rien d'autre. */
-function sellerBox(uid,sh,msg,link){const w=el("div","m-shop");const h=el("div","m-shop-h");const av=el("span","m-av",(sh.nom||"?").trim().slice(0,1).toUpperCase());
+/* fiche publique de l'entreprise : nom, activité, lieu, horaires, présentation. Le téléphone du vendeur n'est donné
+   au client qu'après acceptation de sa commande (la vente passe par l'application, la commission B2A est assurée). */
+function sellerBox(uid,sh,msg,link,own){const w=el("div","m-shop");const h=el("div","m-shop-h");const av=el("span","m-av",(sh.nom||"?").trim().slice(0,1).toUpperCase());
   const t=el("div");t.append(el("span","label","Vendu par"),notr(el("b",null,sh.nom||"Vendeur")));if(sh.verifie)t.append(el("span","m-ok","✓ Vendeur vérifié"));if(sh.activite)t.append(notr(el("small",null,sh.activite)));h.append(av,t);w.append(h);
-  const info=[["Lieu",[sh.quartier,sh.ville].filter(Boolean).join(", ")],["Horaires",sh.horaires],["Téléphone",sh.tel]].filter(x=>x[1]);
+  const info=[["Lieu",[sh.quartier,sh.ville].filter(Boolean).join(", ")],["Horaires",sh.horaires]].filter(x=>x[1]);
   if(info.length){const dl=el("dl","cu-info");info.forEach(([k,v])=>{dl.append(el("dt",null,k));dl.append(notr(el("dd",null,String(v))))});w.append(dl)}
   if(sh.desc)w.append(notr(el("p","note",sh.desc)));
-  const r=el("div","row");const ph=tel226(sh.tel);
-  if(ph){const wa=el("a","btn small","WhatsApp");wa.href="https://wa.me/"+ph+"?text="+encodeURIComponent(msg||"Bonjour, je vous contacte depuis le Marché B2A Smart Farming.");wa.target="_blank";wa.rel="noopener";
-    const tl=el("a","btn small ghost","Appeler");tl.href="tel:+"+ph;r.append(wa,tl)}
+  w.append(el("small","m-lock",own?"🔒 Votre téléphone reste privé : le client le reçoit quand vous acceptez sa commande.":"📞 Le contact du vendeur vous est donné dès qu'il accepte votre commande."));
+  const r=el("div","row");
   if(link){const b=el("button","btn small ghost","Voir tous ses produits");b.type="button";b.onclick=()=>{openB=uid;open=null;render();window.scrollTo(0,0)};r.append(b)}
   w.append(r);return w}
 function shopView(uid){needShop(uid);needSellerAnn(uid);const list=(sellerAnn[uid]&&sellerAnn[uid].length?sellerAnn[uid]:enVente().filter(a=>a.vendeur===uid));const sh=boutiques[uid]||(list[0]?shop(list[0]):{nom:"Vendeur"});
@@ -225,6 +225,7 @@ function shopView(uid){needShop(uid);needSellerAnn(uid);const list=(sellerAnn[ui
 function renderSell(Bd){
   if(!isSeller()){Bd.append(becomeSeller());return}
   if(!cguOk()){Bd.append(cguRenew());return}
+  cleanPublicTel();
   if(formOpen){Bd.append(annForm());return}
   if(ficheOpen){Bd.append(ficheForm());return}
   if(open){const a=mesAnnonces.find(x=>x.id===open);if(a){Bd.append(detail(a));return}open=null}
@@ -253,22 +254,28 @@ function renderSell(Bd){
   /* fiche publique */
   const C3=el("section","card");Bd.append(C3);const h3=el("div","row between");h3.append(el("h2","sec","Ma fiche entreprise"));const fe=el("button","btn small ghost","Modifier");fe.type="button";fe.onclick=()=>{ficheOpen=true;render();window.scrollTo(0,0)};h3.append(fe);C3.append(h3);
   C3.append(el("p","note","Voici ce que voient les acheteurs : vos produits en vente et cette fiche."));
-  C3.append(sellerBox(S.uid,boutiques[S.uid]||{nom:me.nom,tel:me.tel,ville:me.ville},null,false));
+  C3.append(sellerBox(S.uid,boutiques[S.uid]||{nom:me.nom,ville:me.ville},null,false,true));
   const pv=el("p","msg good m-priv","Vos lots, saisies, effectifs, aliment, ventes, factures, dépenses et commissions restent privés : aucun acheteur ne peut les voir.");C3.append(pv);
 }
-function ficheForm(){const b=boutiques[S.uid]||{nom:me.nom,tel:me.tel,ville:me.ville};const c=el("section","card");const bk=el("button","back","‹ Annuler");bk.type="button";bk.onclick=()=>{ficheOpen=false;render()};c.append(bk);
-  c.append(el("h2","sec","Ma fiche entreprise"),el("p","note","Informations publiques, visibles par les acheteurs. N'y mettez rien de confidentiel."));
+function ficheForm(){const b={...(boutiques[S.uid]||{nom:me.nom,ville:me.ville}),tel:me.tel};const c=el("section","card");const bk=el("button","back","‹ Annuler");bk.type="button";bk.onclick=()=>{ficheOpen=false;render()};c.append(bk);
+  c.append(el("h2","sec","Ma fiche entreprise"),el("p","note","Informations publiques, visibles par les acheteurs (sauf le téléphone). N'y mettez ni numéro de téléphone ni autre contact : ils sont donnés au client après acceptation de sa commande."));
   const g=el("div","grid2");const fld=(lab,val,ph,max,type)=>{const f=el("div","field");const l=el("label",null,lab);const i=el("input");i.type=type||"text";i.id="m-f-"+Math.random().toString(36).slice(2,7);l.htmlFor=i.id;i.value=val||"";if(ph)i.placeholder=ph;i.maxLength=max||60;f.append(l,i);g.append(f);return i};
-  const n=fld("Nom de l'entreprise",b.nom,"ex. B2A Élevage Bayere"),ac=fld("Activité",b.activite,"ex. Élevage de poules pondeuses"),t=fld("Téléphone / WhatsApp",b.tel,"ex. 70 12 34 56",30,"tel"),
+  const n=fld("Nom de l'entreprise",b.nom,"ex. B2A Élevage Bayere"),ac=fld("Activité",b.activite,"ex. Élevage de poules pondeuses"),t=fld("Téléphone / WhatsApp (privé : donné au client après acceptation)",b.tel,"ex. 70 12 34 56",30,"tel"),
     v=fld("Ville",b.ville,"ex. Ouagadougou"),qu=fld("Quartier ou village (facultatif)",b.quartier,"ex. Kouli"),ho=fld("Horaires (facultatif)",b.horaires,"ex. Lundi–samedi, 7 h–18 h");
   const fd2=el("div","field");const ld=el("label",null,"Présentation (facultatif)");const ds=el("textarea");ds.id="m-f-desc";ld.htmlFor=ds.id;ds.rows=3;ds.maxLength=400;ds.value=b.desc||"";ds.placeholder="ex. Œufs frais chaque jour, livraison à Ouagadougou";fd2.append(ld,ds);g.append(fd2);c.append(g);
   const m=el("p","msg");const sv=el("button","btn","Enregistrer ma fiche");sv.type="button";c.append(sv,m);
   sv.onclick=async()=>{const bad=x=>{m.textContent=x;m.className="msg err"};if(!n.value.trim())return bad("Indiquez le nom.");if(String(t.value).replace(/\D/g,"").length<8)return bad("Indiquez le téléphone.");if(!v.value.trim())return bad("Indiquez la ville.");
     sv.disabled=true;try{await saveShop({nom:n.value.trim(),activite:ac.value.trim(),tel:t.value.trim(),ville:v.value.trim(),quartier:qu.value.trim(),horaires:ho.value.trim(),desc:ds.value.trim()});ficheOpen=false;render()}
     catch(e){console.warn(e);sv.disabled=false;bad("Échec de l'enregistrement. Vérifiez la connexion.")}};return c}
-async function saveShop(d){const body={...d,majLe:S.ts()};await put("marche_boutiques/"+S.uid,body,{merge:true});if(S.kind==="local"){boutiques[S.uid]={...(boutiques[S.uid]||{}),...body}}
-  /* garder le nom et le contact à jour sur les annonces */
-  for(const a of mesAnnonces){if(a.vendeurNom!==d.nom||a.vendeurTel!==d.tel)await upd("marche_annonces/"+a.id,{vendeurNom:d.nom,vendeurTel:d.tel,majLe:S.ts()})}}
+async function saveShop(d){const tel=d.tel;d={...d};delete d.tel;
+  /* le téléphone reste privé (fiche vendeur) ; la fiche publique n'en contient pas */
+  if(tel&&me&&tel!==me.tel){await upd("marche_vendeurs/"+S.uid,{tel});if(S.kind==="local")me={...me,tel}}
+  const body={...d,tel:"",majLe:S.ts()};await put("marche_boutiques/"+S.uid,body,{merge:true});if(S.kind==="local"){boutiques[S.uid]={...(boutiques[S.uid]||{}),...body}}
+  /* garder le nom à jour sur les annonces (et retirer les anciens numéros publics) */
+  for(const a of mesAnnonces){if(a.vendeurNom!==d.nom||a.vendeurTel)await upd("marche_annonces/"+a.id,{vendeurNom:d.nom,vendeurTel:"",majLe:S.ts()})}}
+/* ancienne version : téléphone public sur la fiche ou les annonces → on l'enlève une fois */
+let cleaned=false;function cleanPublicTel(){if(cleaned||!S||!isSeller())return;const b=boutiques[S.uid];if(!b)return;cleaned=true;
+  if(b.tel||mesAnnonces.some(a=>a.vendeurTel))saveShop({nom:b.nom||me.nom,activite:b.activite||"",ville:b.ville||me.ville||"",quartier:b.quartier||"",horaires:b.horaires||"",desc:b.desc||""}).catch(()=>{cleaned=false})}
 /* ---------- conditions d'utilisation et pièce d'identité ---------- */
 const CGU=()=>window.B2A_CGU||{VERSION:"0",TITRE:"Conditions d'utilisation",TEXTE:[]};
 const cguOk=()=>!!me&&me.cgu===CGU().VERSION;
@@ -303,13 +310,13 @@ function pieceFields(c,p){p=p||{};const st={type:p.type||"cnib",photo:p.photo||"
     data:()=>{const ent=st.type==="entreprise";return {type:st.type,titulaire:tit.value.trim(),cnib:ent?"":cn.value.trim().toUpperCase(),rccm:ent?rc.value.trim().toUpperCase():"",ifu:ent?ifu.value.trim().toUpperCase():"",photo:st.photo,statut:"attente",motif:"",envoyeLe:S.ts()}}}}
 function becomeSeller(){const c=el("section","card m-join");c.append(el("h2","sec","Vendez vos produits sur le Marché B2A"));
   const ul=el("ul","plain");["Publiez vos œufs, animaux, poussins, aliment, plants, récoltes… : visibles tout de suite par tous les utilisateurs de B2A Smart Farming.",
-    "Les clients commandent dans l'application ou vous écrivent sur WhatsApp ; vous êtes payé directement (espèces, Orange Money, Moov Money).",
+    "Les clients commandent dans l'application ; quand vous acceptez, vous recevez leur contact et ils reçoivent le vôtre. Vous êtes payé directement (espèces, Orange Money, Moov Money).",
     "Vous ne payez rien pour publier : une petite commission seulement sur les ventes conclues (voir les conditions ci-dessous).","Vos lots se transforment en annonce en un geste (œufs, réformes, récoltes…)."].forEach(t=>ul.append(el("li",null,t)));c.append(ul);
   c.append(el("h3","sec","Votre boutique"));
   const g=el("div","grid2");const fld=(id,lab,type,val,ph)=>{const f=el("div","field");const l=el("label",null,lab);l.htmlFor=id;const i=el("input");i.type=type;i.id=id;i.value=val||"";if(ph)i.placeholder=ph;i.maxLength=60;f.append(l,i);g.append(f);return i};
-  const n=fld("m-j-nom","Nom de la boutique ou de la ferme","text",B.lsGet(B.LS_NAME)||"","ex. B2A Élevage Bayere");const t=fld("m-j-tel","Numéro WhatsApp","tel",B.lsGet("b2a-m-tel")||"","ex. 70 12 34 56");
+  const n=fld("m-j-nom","Nom de la boutique ou de la ferme","text",B.lsGet(B.LS_NAME)||"","ex. B2A Élevage Bayere");const t=fld("m-j-tel","Numéro WhatsApp (privé)","tel",B.lsGet("b2a-m-tel")||"","ex. 70 12 34 56");
   const v=fld("m-j-ville","Ville","text",B.lsGet("b2a-m-ville")||"","ex. Ouagadougou");const ac=fld("m-j-act","Activité","text","","ex. Élevage de poules pondeuses");c.append(g);
-  c.append(el("p","note","Les acheteurs verront seulement vos produits en vente et votre fiche entreprise (nom, activité, ville, contact). Vos lots, chiffres, ventes et votre pièce d'identité restent privés."));
+  c.append(el("p","note","Les acheteurs verront seulement vos produits en vente et votre fiche entreprise (nom, activité, ville). Votre numéro est donné au client quand vous acceptez sa commande. Vos lots, chiffres, ventes et votre pièce d'identité restent privés."));
   const P=pieceFields(c,null);
   c.append(el("h3","sec","Conditions d'utilisation"));
   const acc=cguAccept(`J'ai lu et j'accepte les conditions d'utilisation du Marché B2A (version ${CGU().VERSION}), dont la commission de ${fmt(Number(cfg.taux)||0,1)} % sur chaque vente conclue.`);
@@ -321,7 +328,7 @@ function becomeSeller(){const c=el("section","card m-join");c.append(el("h2","se
     B.lsSet("b2a-m-tel",t.value.trim());B.lsSet("b2a-m-ville",v.value.trim());b.disabled=true;b.textContent="Ouverture…";
     try{await put("marche_vendeurs/"+S.uid,{statut:"actif",nom:n.value.trim(),tel:t.value.trim(),ville:v.value.trim(),taux:Number(cfg.taux)||0,accepteLe:S.ts(),cgu:CGU().VERSION,cguLe:S.ts()});
       await put("marche_pieces/"+S.uid,P.data());
-      await saveShop({nom:n.value.trim(),activite:ac.value.trim(),tel:t.value.trim(),ville:v.value.trim(),quartier:"",horaires:"",desc:""}).catch(()=>{});
+      await saveShop({nom:n.value.trim(),activite:ac.value.trim(),ville:v.value.trim(),quartier:"",horaires:"",desc:""}).catch(()=>{});
       if(S.kind==="local"){me={statut:"actif",nom:n.value.trim(),tel:t.value.trim(),ville:v.value.trim(),taux:Number(cfg.taux)||0,cgu:CGU().VERSION};render()}}
     catch(e){console.warn(e);b.disabled=false;b.textContent="Ouvrir ma boutique";bad("L'ouverture a échoué. Vérifiez la connexion.")}};
   return c}
@@ -377,7 +384,7 @@ function annForm(){const a=editA||{};const c=el("section","card");const bk=el("b
   const m=el("p","msg");const sv=el("button","btn",editA?"Enregistrer":"Publier l'annonce");sv.type="button";c.append(sv,m);
   sv.onclick=async()=>{const bad=x=>{m.textContent=x;m.className="msg err"};const p=N(pr.value),q2=N(qt.value);
     if(!ti.value.trim())return bad("Indiquez un titre.");if(!(p>0))return bad("Indiquez le prix.");if(q2!=null&&q2<0)return bad("Quantité invalide.");
-    B.lsSet("b2a-m-devise",dv.value);const bq=boutiques[S.uid]||me;const d={devise:dv.value,vendeur:S.uid,vendeurNom:bq.nom||me.nom||"",vendeurTel:bq.tel||me.tel||"",ville:vi.value.trim(),cat:ct.value,titre:ti.value.trim(),desc:ds.value.trim(),prix:p,unite:un.value,qte:q2,photo,
+    B.lsSet("b2a-m-devise",dv.value);const bq=boutiques[S.uid]||me;const d={devise:dv.value,vendeur:S.uid,vendeurNom:bq.nom||me.nom||"",vendeurTel:"",ville:vi.value.trim(),cat:ct.value,titre:ti.value.trim(),desc:ds.value.trim(),prix:p,unite:un.value,qte:q2,photo,
       statut:q2===0?"epuise":(editA?editA.statut==="retire"?"retire":"actif":"actif"),majLe:S.ts()};
     if(!editA)d.creeLe=S.ts();sv.disabled=true;
     try{const id=editA?editA.id:S.newId("marche_annonces");await (editA?upd("marche_annonces/"+id,d):put("marche_annonces/"+id,d));formOpen=false;editA=null;render()}
@@ -402,13 +409,14 @@ function orderCard(c,side){const w=el("div","m-order");const st=ST[c.statut]||ST
     else{if(!c.acheteurNom)needContact(c);const k=c.acheteurNom?{nom:c.acheteurNom,tel:c.acheteurTel,ville:c.acheteurVille,note:c.note}:contacts[c.id];
       if(k){w.append(notr(el("small",null,[k.nom,k.tel,k.ville||c.acheteurVille].filter(Boolean).join(" · ")+" · "+fd(c.creeLe))));if(k.note)w.append(notr(el("small","m-note","« "+k.note+" »")));ph=tel226(k.tel)}
       else w.append(el("small",null,k===false?"Coordonnées du client indisponibles.":"Chargement des coordonnées du client…"))}}
-  else{w.append(notr(el("small",null,[c.vendeurNom,c.vendeurTel].filter(Boolean).join(" · ")+" · "+fd(c.creeLe))));ph=tel226(c.vendeurTel)}
+  else{const ok=c.statut==="acceptee"||c.statut==="vendue";w.append(notr(el("small",null,[c.vendeurNom,ok?c.vendeurTel:null].filter(Boolean).join(" · ")+" · "+fd(c.creeLe))));
+    if(ok)ph=tel226(c.vendeurTel);else if(c.statut==="demande")w.append(el("small","m-lock","📞 Le contact du vendeur s'affiche ici dès qu'il accepte votre commande."))}
   if(ph){const wa=el("a","btn small ghost","WhatsApp");wa.href="https://wa.me/"+ph;wa.target="_blank";wa.rel="noopener";const tl=el("a","btn small ghost","Appeler");tl.href="tel:+"+ph;r.append(wa,tl)}
   const act=(t,cls,fn,confirmTxt)=>{const b=el("button","btn small "+cls,t);b.type="button";b.onclick=async()=>{if(confirmTxt&&b.dataset.c!=="1"){b.dataset.c="1";b.textContent=confirmTxt;return}b.disabled=true;try{await fn()}catch(e){console.warn(e);b.disabled=false;b.textContent=t}};r.append(b)};
   if(side==="vendeur"){
     if(c.statut==="demande"){
       act("Accepter la commande","",async()=>{const t=taux();const com=Math.round((Number(c.total)||0)*t)/100;
-        await upd("marche_commandes/"+c.id,{statut:"acceptee",taux:t,commission:com,accepteLe:S.ts(),majLe:S.ts()})},"Confirmer : j'accepte cette commande");
+        await upd("marche_commandes/"+c.id,{statut:"acceptee",taux:t,commission:com,accepteLe:S.ts(),vendeurTel:(me&&me.tel)||"",majLe:S.ts()})},"Confirmer : j'accepte cette commande");
       act("Refuser","ghost",()=>releaseOrder(c,"refusee"));
       w.append(el("small","note","Accepter confirme la vente et vous donne les coordonnées du client (commission B2A : voir Réglages)."))}
     if(c.statut==="acceptee"){
