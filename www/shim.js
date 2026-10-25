@@ -46,8 +46,9 @@ let fbP=null;
 function loadFirebase(cfg){if(!fbP)fbP=(async()=>{const v="10.12.2",b=`https://www.gstatic.com/firebasejs/${v}/`;
   await loadScript(b+"firebase-app-compat.js");await loadScript(b+"firebase-auth-compat.js");await loadScript(b+"firebase-firestore-compat.js");
   if(!firebase.apps.length)firebase.initializeApp(cfg);
-  const fs=firebase.firestore();try{fs.settings({ignoreUndefinedProperties:true,merge:true})}catch(e){}
-  try{await fs.enablePersistence({synchronizeTabs:true})}catch(e){}
+  /* cache illimité : les fiches déjà téléchargées restent sur le téléphone (la synchronisation ne relit que ce qui a changé) */
+  const fs=firebase.firestore();try{fs.settings({ignoreUndefinedProperties:true,merge:true,cacheSizeBytes:firebase.firestore.CACHE_SIZE_UNLIMITED})}catch(e){}
+  try{await fs.enablePersistence({synchronizeTabs:true});window.__b2aPersist=true}catch(e){window.__b2aPersist=false}
   return firebase})();fbP.catch(()=>{fbP=null});return fbP}
 /* utilisateur Firebase de ce téléphone : on attend la session enregistrée avant d'en créer une */
 let userP=null;
@@ -58,15 +59,72 @@ async function makeCloud(cfg,code){
   await loadFirebase(cfg);
   const fs=firebase.firestore();
   ensureUser(cfg).catch(()=>{});
-  const base="farms/"+code;
+  const base="farms/"+code;const FV=firebase.firestore.FieldValue,TS=firebase.firestore.Timestamp;
   /* Firestore applique l'écriture tout de suite sur le téléphone, mais sa promesse attend la réponse du serveur.
      Sans réseau (ou réseau faible), les boutons « Enregistrer » restaient bloqués et on ne pouvait plus corriger.
      On rend la main après 1,5 s au plus : l'envoi se fait tout seul au retour du réseau. Une erreur rapide (droits) reste signalée. */
   const quick=pr=>{pr.catch(()=>{});return Promise.race([pr,new Promise(r=>setTimeout(()=>r("local"),1500))])};
-  const W=["set","update","delete"];
-  const wrapDoc=ref=>new Proxy(ref,{get(t,k){const v=t[k];if(W.includes(k))return (...a)=>quick(v.apply(t,a));return typeof v==="function"?v.bind(t):v}});
-  const wrapCol=col=>new Proxy(col,{get(t,k){if(k==="doc")return (...a)=>wrapDoc(t.doc(...a));const v=t[k];return typeof v==="function"?v.bind(t):v}});
-  return {kind:"cloud",collection:n=>wrapCol(fs.collection(base+"/"+n)),doc:p=>wrapDoc(fs.doc(base+"/"+p))};
+
+  /* ---------- synchronisation économe ----------
+     Avant : à chaque ouverture, l'application relisait toutes les fiches de la ferme (jusqu'à 1 000 saisies, 2 000 dépenses…),
+     ce qui épuisait vite le quota gratuit de Firebase. Maintenant :
+     - chaque écriture porte une date de modification « _m » (heure du serveur) ;
+     - à l'ouverture, les fiches viennent du cache du téléphone, et seul ce qui a changé depuis la dernière fois est lu ;
+     - une suppression devient « _del » (pour que les autres téléphones l'apprennent sans tout relire) ;
+     - une relecture complète a lieu tous les 3 jours (et sur demande dans Réglages) pour rattraper les anciennes versions. */
+  const NOSYNC=new Set(["members"]);const syncs={};
+  const msOf=v=>v&&v.toMillis?v.toMillis():0;
+  function sync(n){if(syncs[n])return syncs[n];
+    const col=fs.collection(base+"/"+n),map=new Map(),subs=new Set(),K="b2a-sync-"+code+"-"+n;
+    let st={};try{st=JSON.parse(lsGet(K)||"{}")}catch(e){}
+    let ready=false,err=null,maxT=st.t||0;
+    /* repère = heure serveur la plus récente reçue (jamais l'horloge du téléphone, qui peut être fausse) */
+    const save=()=>{st.t=maxT;st.n=map.size;lsSet(K,JSON.stringify(st))};
+    const emit=()=>{ready=true;subs.forEach(f=>{try{f.next()}catch(e){console.error(e)}})};
+    const apply=snap=>{snap.docChanges().forEach(ch=>{if(ch.type==="removed"){map.delete(ch.doc.id);return}const d=ch.doc.data({serverTimestamps:"estimate"});map.set(ch.doc.id,d);
+      if(!ch.doc.metadata.hasPendingWrites){const m=msOf(d._m);if(m>maxT)maxT=m}})};
+    const fail=e=>{err=e;subs.forEach(f=>{try{f.error&&f.error(e)}catch(x){}})};
+    const fullDue=!window.__b2aPersist||!st.t&&!st.full||Date.now()-(st.full||0)>3*864e5;
+    const S={map,subs,get ready(){return ready},get err(){return err},
+      local(id,d,mode){const cur=map.get(id);if(mode==="del")map.delete(id);else map.set(id,mode==="merge"&&cur?Object.assign({},cur,d):d);emit()}};
+    (async()=>{
+      if(!fullDue){let c=null;try{c=await col.get({source:"cache"})}catch(e){}
+        if(c&&(c.size||!st.n)){c.docs.forEach(d=>map.set(d.id,d.data({serverTimestamps:"estimate"})));emit();
+          const since=TS.fromMillis(Math.max(0,(st.t||0)-120000));
+          col.where("_m",">",since).onSnapshot(s2=>{apply(s2);save();emit()},fail);return}}
+      /* relecture complète */
+      col.onSnapshot(s2=>{apply(s2);st.full=Date.now();save();emit()},fail)})();
+    return syncs[n]=S}
+  const alive=d=>d&&!d._del;
+  const mkSnap=list=>({docs:list.map(([id,d])=>({id,exists:true,data:()=>d})),size:list.length,empty:!list.length,metadata:{fromCache:false}});
+  /* requête sur une collection synchronisée : tri et limite appliqués sur le téléphone */
+  function q(n,ord,lim,real){return {
+    orderBy:(f,d)=>q(n,[f,d||"asc"],lim,real.orderBy(f,d)),limit:k=>q(n,ord,k,real.limit(k)),
+    where:(...a)=>real.where(...a),
+    get:async(o)=>{const s2=await real.get(o);const docs=s2.docs.filter(d=>alive(d.data()));return {docs,size:docs.length,empty:!docs.length}},
+    onSnapshot(a,b){const next=typeof a==="function"?a:a&&a.next,error=typeof b==="function"?b:a&&a.error;
+      if(NOSYNC.has(n))return real.onSnapshot(next,error);
+      const S=sync(n);const sub={next:()=>{let L=[...S.map.entries()].filter(([,d])=>alive(d));
+        if(ord){const [f,dir]=ord;const v=x=>{const y=x[1][f];return y&&y.toMillis?y.toMillis():y};L.sort((x,y)=>(v(x)>v(y)?1:v(x)<v(y)?-1:0)*(dir==="desc"?-1:1))}
+        if(lim)L=L.slice(0,lim);next(mkSnap(L))},error};
+      S.subs.add(sub);if(S.ready)setTimeout(sub.next,0);return()=>S.subs.delete(sub)}}}
+  /* écritures : date de modification ajoutée, suppression « douce », mise à jour immédiate de l'écran */
+  function wrapDoc(ref,n){const id=ref.id;const S=()=>n&&!NOSYNC.has(n)&&syncs[n];
+    return new Proxy(ref,{get(t,k){
+      if(k==="set")return (d,o)=>{const body={...d,_m:FV.serverTimestamp(),_del:false};
+        const s2=S();if(s2)s2.local(id,{...d,_m:TS.now(),_del:false},o&&o.merge?"merge":"set");return quick(o?t.set(body,o):t.set(body))};
+      if(k==="update")return d=>{const s2=S();if(s2)s2.local(id,{...d,_m:TS.now()},"merge");return quick(t.update({...d,_m:FV.serverTimestamp()}))};
+      if(k==="delete")return ()=>{if(NOSYNC.has(n))return quick(t.delete());const s2=S();if(s2)s2.local(id,null,"del");
+        return quick(t.set({_del:true,_m:FV.serverTimestamp()},{merge:true}))};
+      if(k==="get")return async o=>{const d=await t.get(o);const x=d.exists?d.data():null;return {id,exists:!!x&&alive(x),data:()=>x,ref:t}};
+      if(k==="onSnapshot")return (a,b)=>{const next=typeof a==="function"?a:a&&a.next,error=typeof b==="function"?b:a&&a.error;
+        return t.onSnapshot(d=>{const x=d.exists?d.data():null;next({id,exists:!!x&&alive(x),data:()=>x,metadata:d.metadata})},error)};
+      const v=t[k];return typeof v==="function"?v.bind(t):v}})}
+  const wrapCol=(col,n)=>{const Q=q(n,null,null,col);return new Proxy(col,{get(t,k){
+      if(k==="doc")return (...a)=>wrapDoc(t.doc(...a),n);
+      if(k in Q)return Q[k];const v=t[k];return typeof v==="function"?v.bind(t):v}})};
+  return {kind:"cloud",collection:n=>wrapCol(fs.collection(base+"/"+n),n),doc:p=>{const i=p.indexOf("/");return wrapDoc(fs.doc(base+"/"+p),p.slice(0,i))},
+    resync:()=>{Object.keys(localStorage).filter(k=>k.startsWith("b2a-sync-"+code+"-")).forEach(k=>lsSet(k,null))}};
 }
 const today=()=>new Date().toISOString().slice(0,10);
 const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),ms))]);

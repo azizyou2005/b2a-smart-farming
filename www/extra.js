@@ -102,6 +102,9 @@ function renderSet(){
       r.append(cp,wa)}
     const q=el("button","btn small ghost","Quitter la ferme");q.type="button";q.onclick=()=>{if(q.dataset.c!=="1"){q.dataset.c="1";q.textContent="Confirmer : quitter";return}B.lsSet(B.LS_FARM,null);location.reload()};
     r.append(q);box.append(r);
+    if(db&&db.resync){const rs=el("button","btn small ghost","Resynchroniser les données");rs.type="button";rs.title="Relire toutes les fiches de la ferme depuis Internet";
+      rs.onclick=()=>{if(!navigator.onLine){st.textContent="Il faut internet pour resynchroniser.";return}db.resync();location.reload()};
+      box.append(rs,el("p","note","L'application ne télécharge que ce qui a changé. Si une fiche semble manquer, touchez « Resynchroniser les données »."))}
     if(T.role==="proprietaire")renderOwner(box);
     else{
       if(T.role==="libre"&&T.uid&&db&&db.kind==="cloud"){
