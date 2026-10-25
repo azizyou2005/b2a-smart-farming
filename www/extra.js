@@ -18,7 +18,7 @@ gear.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="
 if(band)band.append(gear);
 const sheet=el("div","sheet");sheet.id="x-set";sheet.hidden=true;sheet.setAttribute("role","dialog");sheet.setAttribute("aria-modal","true");sheet.setAttribute("aria-labelledby","x-set-t");
 sheet.innerHTML=`<div class="sheet-in">
-  <div class="row between"><h2 class="sec" id="x-set-t">Réglages</h2><button class="btn small ghost" type="button" id="x-close">Fermer</button></div>
+  <div class="row between sheet-head"><button class="back" type="button" id="x-back">‹ Retour</button><h2 class="sec" id="x-set-t">Réglages</h2><button class="btn small" type="button" id="x-close">Fermer</button></div>
   <section class="card">
     <h3 class="sec">Votre nom</h3>
     <p class="note">Il s'affiche à côté de vos saisies pour que l'équipe sache qui a fait quoi.</p>
@@ -61,7 +61,8 @@ function openSet(){lastFocus=document.activeElement;renderSet();sheet.hidden=fal
 function hideSet(){sheet.hidden=true;document.body.style.overflow="";if(lastFocus&&lastFocus.focus)lastFocus.focus()}
 function closeSet(){if(sheet.hidden)return;if(setHist){setHist=false;history.back()}else hideSet()}
 addEventListener("popstate",()=>{if(!sheet.hidden){setHist=false;hideSet()}});
-gear.onclick=openSet;$("x-close").onclick=closeSet;
+gear.onclick=openSet;$("x-close").onclick=closeSet;$("x-back").onclick=closeSet;
+{const f=document.createElement("button");f.type="button";f.className="btn ghost";f.textContent="Fermer les réglages";f.style.width="100%";f.onclick=closeSet;sheet.querySelector(".sheet-in").append(f)}
 sheet.addEventListener("click",e=>{if(e.target===sheet)closeSet()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!sheet.hidden)closeSet()});
 function renderSet(){
