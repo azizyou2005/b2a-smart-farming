@@ -32,6 +32,17 @@ const CN=k=>(CATS.find(c=>c[0]===k)||CATS[CATS.length-1])[1];
 const UNITS=["plateau de 30","unité","tête","kg","sac de 50 kg","sac de 100 kg","tine","litre","botte","lot"];
 const ST={demande:["Nouvelle demande","warn"],acceptee:["Acceptée","ok"],refusee:["Refusée","bad"],vendue:["Vendue","ok"],annulee:["Annulée","bad"]};
 const DEF={taux:5,telPaiement:"",nomPaiement:"B2A-HIGH-TECHNOLOGY-AUTOMATION"};
+/* monnaies : symbole, décimales, et valeur indicative en FCFA (pour les équivalences ; B2A peut ajuster les taux sur sa page de gestion) */
+const CUR={XOF:["Franc CFA (UEMOA)","F",0,1],XAF:["Franc CFA (CEMAC)","FCFA",0,1],EUR:["Euro","€",2,655.957],USD:["Dollar américain","$",2,600],
+  NGN:["Naira","₦",0,0.4],GHS:["Cedi","GH₵",2,40],GNF:["Franc guinéen","FG",0,0.07],MAD:["Dirham marocain","DH",2,60],GBP:["Livre sterling","£",2,780],CAD:["Dollar canadien","CA$",2,440]};
+const cur=k=>CUR[k]||CUR.XOF;
+const rate=k=>Number((cfg.change||{})[k])||cur(k)[3];
+/* montant avec la monnaie de l'annonce : 2 700 F, 4,50 €, 12,00 $ */
+const money=(v,k)=>{const c=cur(k);return fmt(Number(v)||0,c[2]&&Math.round(v)!==Number(v)?c[2]:0)+"\u00a0"+c[1]};
+const conv=(v,from,to)=>(Number(v)||0)*rate(from)/rate(to);
+/* sommes de plusieurs monnaies : « 8 100 F + 12 € » */
+const moneyMulti=list=>{const m={};list.forEach(([v,k])=>{k=k||"XOF";m[k]=(m[k]||0)+(Number(v)||0)});const ks=Object.keys(m);return ks.length?ks.map(k=>money(m[k],k)).join(" + "):money(0,"XOF")};
+let voirEn=B.lsGet("b2a-m-voir")||"";   /* monnaie de l'acheteur pour l'équivalence indicative */
 
 /* ---------- 1. accès aux données ---------- */
 let S=null;
@@ -67,10 +78,12 @@ function badge(){const t=$("tab-marche");if(!t)return;const n=recues.filter(c=>c
 /* ---------- 3. calculs vendeur ---------- */
 const isSeller=()=>!!me&&me.statut==="actif";
 const taux=()=>me&&me.taux!=null?Number(me.taux):Number(cfg.taux)||0;
-function compte(){const v=recues.filter(c=>c.statut==="vendue");const ventes=v.reduce((p,c)=>p+(Number(c.total)||0),0);const com=v.reduce((p,c)=>p+(Number(c.commission)||0),0);
-  const paye=paiements.reduce((p,x)=>p+(Number(x.montant)||0),0);const m=today().slice(0,7);
+const maDevise=()=>B.lsGet("b2a-m-devise")||(mesAnnonces[0]&&mesAnnonces[0].devise)||"XOF";
+function compte(){const v=recues.filter(c=>c.statut==="vendue");const D=maDevise();const ventes=v.reduce((p,c)=>p+conv(c.total,c.devise||"XOF",D),0);const com=v.reduce((p,c)=>p+conv(c.commission,c.devise||"XOF",D),0);
+  const paye=paiements.reduce((p,x)=>p+conv(x.montant,x.devise||"XOF",D),0);const m=today().slice(0,7);
   const mois=v.filter(c=>new Date(ms(c.venduLe)||ms(c.majLe)).toISOString().slice(0,7)===m);
-  return {nb:v.length,ventes,com,paye,reste:Math.max(0,com-paye),moisV:mois.reduce((p,c)=>p+(Number(c.total)||0),0),moisN:mois.length}}
+  return {D,nb:v.length,ventes,com,paye,reste:Math.max(0,com-paye),moisV:mois.reduce((p,c)=>p+conv(c.total,c.devise||"XOF",D),0),moisN:mois.length,
+    ventesTxt:moneyMulti(v.map(c=>[c.total,c.devise])),moisTxt:moneyMulti(mois.map(c=>[c.total,c.devise]))}}
 
 /* ---------- 4. affichage ---------- */
 function render(){try{const sh=$("x-set");if(sh&&!sh.hidden)renderSetM()}catch(e){}const V=$("v-marche");if(!V||V.hidden)return;
@@ -91,20 +104,24 @@ function renderBuy(Bd){
   const f=el("section","card m-filters");const s=el("input");s.type="search";s.placeholder="Rechercher : œufs, maïs, poussins…";s.value=q;s.setAttribute("aria-label","Rechercher");
   s.oninput=()=>{q=s.value;renderList(L)};const v=el("input");v.type="search";v.placeholder="Ville";v.value=ville;v.setAttribute("aria-label","Ville");v.style.maxWidth="160px";v.oninput=()=>{ville=v.value;renderList(L)};
   const r=el("div","row");r.append(s,v);f.append(r);
+  const eqR=el("div","row m-eqsel");const eqL=el("label",null,"Voir aussi les prix en");const eqS=el("select");eqS.id="m-voir";eqL.htmlFor=eqS.id;eqS.append(new Option("— monnaie du vendeur seulement —",""));
+  Object.entries(CUR).forEach(([k,c])=>eqS.append(new Option(`${c[0]} (${c[1]})`,k)));eqS.value=voirEn;eqS.onchange=()=>{voirEn=eqS.value;B.lsSet("b2a-m-voir",voirEn||null);renderList(L)};eqR.append(eqL,eqS);f.append(eqR);
   const ch=el("div","m-chips");[["","Tout"],...CATS].forEach(([k,n])=>{const b=el("button","chip",n);b.type="button";b.setAttribute("aria-pressed",cat===k);b.onclick=()=>{cat=k;ch.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b));renderList(L)};ch.append(b)});
   f.append(ch);const L=el("div","m-grid");f.append(L);Bd.append(f);renderList(L)}
 function renderList(L){L.innerHTML="";const qq=q.trim().toLowerCase(),vv=ville.trim().toLowerCase();
   const list=enVente().filter(a=>(!cat||a.cat===cat)&&(!qq||[a.titre,a.desc,CN(a.cat),a.vendeurNom].join(" ").toLowerCase().includes(qq))&&(!vv||String(a.ville||"").toLowerCase().includes(vv)));
   if(!list.length){const e=el("div","empty");e.append(el("strong",null,annonces.length?"Aucun produit ne correspond":"Aucun produit en vente pour l'instant"),el("span",null,annonces.length?"Changez la recherche ou la catégorie.":"Les annonces des éleveurs et agriculteurs apparaîtront ici."));L.append(e);return}
   list.forEach(a=>L.append(cardA(a)))}
+/* équivalence indicative dans la monnaie choisie par l'acheteur */
+function equiv(v,k){k=k||"XOF";if(!voirEn||voirEn===k)return document.createTextNode("");return notr(el("small","m-eq","≈ "+money(Math.round(conv(v,k,voirEn)*100)/100,voirEn)+" (indicatif)"))}
 function cardA(a,own){const b=el("button","m-card");b.type="button";const ph=el("div","m-ph");if(a.photo){const im=el("img");im.src=a.photo;im.alt="";im.loading="lazy";ph.append(im)}else ph.append(el("span",null,CN(a.cat).slice(0,1)));
-  b.append(ph);const t=el("div","m-tx");t.append(notr(el("b",null,a.titre||"Produit")),el("span","m-price",fmt(a.prix)+" F / "+(a.unite||"unité")),
+  b.append(ph);const t=el("div","m-tx");t.append(notr(el("b",null,a.titre||"Produit")),el("span","m-price",money(a.prix,a.devise)+" / "+(a.unite||"unité")),equiv(a.prix,a.devise),
     el("small",null,[a.qte!=null?fmt(a.qte)+" disponible(s)":null,a.ville].filter(Boolean).join(" · ")));
   if(!own)t.append(notr(el("small","m-sell",a.vendeurNom||"")));else t.append(el("span","pill s-"+(a.statut==="actif"?"ok":"warn"),a.statut==="actif"?"En vente":a.statut==="epuise"?"Épuisé":"Retiré"));
   b.append(t);b.onclick=()=>{open=a.id;openB=null;mode=own?"vendre":"acheter";render();window.scrollTo(0,0)};return b}
 function detail(a){const own=S&&a.vendeur===S.uid;const c=el("div","card m-det");const bk=el("button","back","‹ Retour aux produits");bk.type="button";bk.onclick=()=>{open=null;render()};c.append(bk);
   if(a.photo){const im=el("img","m-big");im.src=a.photo;im.alt=a.titre||"";c.append(im)}
-  c.append(notr(el("h2","sec",a.titre||"Produit")),el("div","m-price big",fmt(a.prix)+" F / "+(a.unite||"unité")));
+  c.append(notr(el("h2","sec",a.titre||"Produit")),el("div","m-price big",money(a.prix,a.devise)+" / "+(a.unite||"unité")),equiv(a.prix,a.devise));
   const info=[["Catégorie",CN(a.cat)],["Disponible",a.qte!=null?fmt(a.qte)+" "+(a.unite||""):"—"],["Lieu de retrait",a.ville],["Publié le",fd(a.creeLe)]].filter(x=>x[1]);
   const dl=el("dl","cu-info");info.forEach(([k,v])=>{dl.append(el("dt",null,k));dl.append(notr(el("dd",null,String(v))))});c.append(dl);
   if(a.desc)c.append(notr(el("p",null,a.desc)));
@@ -118,7 +135,7 @@ function detail(a){const own=S&&a.vendeur===S.uid;const c=el("div","card m-det")
   const tl=fld("Votre téléphone",Object.assign(el("input"),{type:"tel",value:B.lsGet("b2a-m-tel")||"",placeholder:"ex. 70 12 34 56"}));
   const vl=fld("Votre ville",Object.assign(el("input"),{type:"text",value:B.lsGet("b2a-m-ville")||"",maxLength:60}));
   const nt=fld("Message (facultatif)",Object.assign(el("input"),{type:"text",placeholder:"ex. livraison samedi matin",maxLength:200}));
-  c.append(g);const tot=el("p","m-total");const upT=()=>{tot.textContent="Total : "+fmt((N(qt.value)||0)*(Number(a.prix)||0))+" F"};qt.oninput=upT;upT();c.append(tot);
+  c.append(g);const tot=el("p","m-total");const upT=()=>{tot.textContent="Total : "+money((N(qt.value)||0)*(Number(a.prix)||0),a.devise)};qt.oninput=upT;upT();c.append(tot);
   const m=el("p","msg");const go=el("button","btn","Envoyer la commande");go.type="button";c.append(go,m);
   c.append(el("p","note","Le paiement se fait directement avec le vendeur (espèces, Orange Money, Moov Money) à la livraison ou selon votre accord."));
   go.onclick=async()=>{const n=N(qt.value);const bad=x=>{m.textContent=x;m.className="msg err"};
@@ -126,9 +143,9 @@ function detail(a){const own=S&&a.vendeur===S.uid;const c=el("div","card m-det")
     if(!nm.value.trim())return bad("Indiquez votre nom.");if(String(tl.value).replace(/\D/g,"").length<8)return bad("Indiquez votre numéro de téléphone.");
     B.lsSet("b2a-m-tel",tl.value.trim());B.lsSet("b2a-m-ville",vl.value.trim());
     const d={annonce:a.id,titre:a.titre||"",vendeur:a.vendeur,vendeurNom:sh.nom||a.vendeurNom||"",vendeurTel:sh.tel||a.vendeurTel||"",acheteur:S.uid,acheteurNom:nm.value.trim(),acheteurTel:tl.value.trim(),acheteurVille:vl.value.trim(),
-      qte:n,unite:a.unite||"",prix:Number(a.prix)||0,total:Math.round(n*(Number(a.prix)||0)),statut:"demande",note:nt.value.trim(),creeLe:S.ts(),majLe:S.ts()};
-    go.disabled=true;try{await put("marche_commandes/"+S.newId("marche_commandes"),d);flashT=Date.now()+15000;flash=`Commande envoyée à ${a.vendeurNom||"au vendeur"} : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (${fmt(d.total)} F). Le vendeur va vous contacter.`;open=null;mode="mes";render();window.scrollTo(0,0);
-      if(ph)window.open("https://wa.me/"+ph+"?text="+encodeURIComponent(`Bonjour ${a.vendeurNom||""}, je viens de commander sur le Marché B2A : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (total ${fmt(d.total)} F). ${d.acheteurNom}, ${d.acheteurTel}${d.acheteurVille?", "+d.acheteurVille:""}.${d.note?" "+d.note:""}`),"_blank")}
+      qte:n,unite:a.unite||"",prix:Number(a.prix)||0,total:Math.round(n*(Number(a.prix)||0)*100)/100,devise:a.devise||"XOF",statut:"demande",note:nt.value.trim(),creeLe:S.ts(),majLe:S.ts()};
+    go.disabled=true;try{await put("marche_commandes/"+S.newId("marche_commandes"),d);flashT=Date.now()+15000;flash=`Commande envoyée à ${a.vendeurNom||"au vendeur"} : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (${money(d.total,d.devise)}). Le vendeur va vous contacter.`;open=null;mode="mes";render();window.scrollTo(0,0);
+      if(ph)window.open("https://wa.me/"+ph+"?text="+encodeURIComponent(`Bonjour ${a.vendeurNom||""}, je viens de commander sur le Marché B2A : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (total ${money(d.total,d.devise)}). ${d.acheteurNom}, ${d.acheteurTel}${d.acheteurVille?", "+d.acheteurVille:""}.${d.note?" "+d.note:""}`),"_blank")}
     catch(e){console.warn(e);go.disabled=false;bad("La commande n'a pas pu être envoyée. Vérifiez la connexion.")}};
   return c}
 
@@ -158,8 +175,8 @@ function renderSell(Bd){
   const C=compte();const K=el("div","kpis");
   K.append(A.kpi("Annonces en vente",String(mesAnnonces.filter(a=>a.statut==="actif").length),mesAnnonces.length+" au total"),
     A.kpi("Commandes à traiter",String(recues.filter(c=>c.statut==="demande"||c.statut==="acceptee").length),recues.filter(c=>c.statut==="demande").length+" nouvelle(s)"),
-    A.kpi("Ventes du mois",fmt(C.moisV)+" F",C.moisN+" vente(s)"),
-    A.kpi("Ventes totales",fmt(C.ventes)+" F",C.nb+" vente(s) conclue(s)"));
+    A.kpi("Ventes du mois",C.moisTxt,C.moisN+" vente(s)"),
+    A.kpi("Ventes totales",C.ventesTxt,C.nb+" vente(s) conclue(s)"));
   Bd.append(K);
   /* commandes reçues */
   const C1=el("section","card");Bd.append(C1);C1.append(el("h2","sec","Commandes reçues"));const act=recues.filter(c=>c.statut==="demande"||c.statut==="acceptee"),old=recues.filter(c=>c.statut!=="demande"&&c.statut!=="acceptee");
@@ -285,13 +302,14 @@ function annForm(){const a=editA||{};const c=el("section","card");const bk=el("b
   if(!editA&&lots.length){ls=el("select");ls.append(new Option("— Choisir un lot (facultatif) —",""));lots.forEach(l=>{const o=new Option(l.nom,l.id);o.setAttribute("data-notr","");ls.append(o)});fld("Remplir à partir d'un lot",ls,"Œufs, réformes, animaux, récolte…")}
   const ct=el("select");CATS.forEach(([k,n])=>ct.append(new Option(n,k)));ct.value=a.cat||"oeufs";fld("Catégorie",ct);
   const ti=fld("Titre",Object.assign(el("input"),{type:"text",value:a.titre||"",maxLength:80,placeholder:"ex. Œufs frais ISA Brown"}));
-  const pr=fld("Prix (FCFA)",Object.assign(el("input"),{type:"number",inputMode:"decimal",min:"0",value:a.prix??""}));
+  const dv=el("select");Object.entries(CUR).forEach(([k,c])=>dv.append(new Option(`${c[0]} (${c[1]})`,k)));dv.value=a.devise||maDevise();fld("Monnaie",dv);
+  const pr=fld("Prix",Object.assign(el("input"),{type:"number",inputMode:"decimal",min:"0",step:"any",value:a.prix??""}));
   const un=el("select");UNITS.forEach(u=>un.append(new Option(u,u)));if(a.unite&&!UNITS.includes(a.unite))un.append(new Option(a.unite,a.unite));un.value=a.unite||"plateau de 30";fld("Prix pour",un);
   const qt=fld("Quantité disponible",Object.assign(el("input"),{type:"number",inputMode:"decimal",min:"0",value:a.qte??""}),"Diminue toute seule à chaque vente");
   const vi=fld("Ville / lieu de retrait",Object.assign(el("input"),{type:"text",value:a.ville||me.ville||"",maxLength:60}));
   const ds=el("textarea");ds.rows=3;ds.maxLength=600;ds.value=a.desc||"";ds.placeholder="ex. Œufs ramassés chaque matin, livraison possible à Ouagadougou";fld("Description",ds);
   c.append(g);
-  if(ls)ls.onchange=()=>{const l=lots.find(x=>x.id===ls.value);if(!l)return;const p=fromLot(l);ct.value=p.cat;ti.value=p.titre;if(p.prix)pr.value=p.prix;if(!UNITS.includes(p.unite))un.append(new Option(p.unite,p.unite));un.value=p.unite};
+  if(ls)ls.onchange=()=>{const l=lots.find(x=>x.id===ls.value);if(!l)return;const p=fromLot(l);ct.value=p.cat;ti.value=p.titre;if(p.prix)pr.value=dv.value==="XOF"||dv.value==="XAF"?p.prix:Math.round(conv(p.prix,"XOF",dv.value)*100)/100;if(!UNITS.includes(p.unite))un.append(new Option(p.unite,p.unite));un.value=p.unite};
   /* photo */
   let photo=a.photo||"";const pw=el("div","m-photo");const pv=el("div","m-ph");const setPv=()=>{pv.innerHTML="";if(photo){const im=el("img");im.src=photo;im.alt="";pv.append(im)}else pv.append(el("span",null,"Photo"))};setPv();
   const fi=el("input");fi.type="file";fi.accept="image/*";fi.id="m-a-photo";fi.hidden=true;const fl=el("label","btn small ghost","Ajouter une photo");fl.htmlFor="m-a-photo";
@@ -301,7 +319,7 @@ function annForm(){const a=editA||{};const c=el("section","card");const bk=el("b
   const m=el("p","msg");const sv=el("button","btn",editA?"Enregistrer":"Publier l'annonce");sv.type="button";c.append(sv,m);
   sv.onclick=async()=>{const bad=x=>{m.textContent=x;m.className="msg err"};const p=N(pr.value),q2=N(qt.value);
     if(!ti.value.trim())return bad("Indiquez un titre.");if(!(p>0))return bad("Indiquez le prix.");if(q2!=null&&q2<0)return bad("Quantité invalide.");
-    const bq=boutiques[S.uid]||me;const d={vendeur:S.uid,vendeurNom:bq.nom||me.nom||"",vendeurTel:bq.tel||me.tel||"",ville:vi.value.trim(),cat:ct.value,titre:ti.value.trim(),desc:ds.value.trim(),prix:p,unite:un.value,qte:q2,photo,
+    B.lsSet("b2a-m-devise",dv.value);const bq=boutiques[S.uid]||me;const d={devise:dv.value,vendeur:S.uid,vendeurNom:bq.nom||me.nom||"",vendeurTel:bq.tel||me.tel||"",ville:vi.value.trim(),cat:ct.value,titre:ti.value.trim(),desc:ds.value.trim(),prix:p,unite:un.value,qte:q2,photo,
       statut:q2===0?"epuise":(editA?editA.statut==="retire"?"retire":"actif":"actif"),majLe:S.ts()};
     if(!editA)d.creeLe=S.ts();sv.disabled=true;
     try{const id=editA?editA.id:S.newId("marche_annonces");await (editA?upd("marche_annonces/"+id,d):put("marche_annonces/"+id,d));formOpen=false;editA=null;render()}
@@ -314,7 +332,7 @@ function compress(file,MX,LIM){return new Promise((res,rej)=>{const im=new Image
 /* --- commandes --- */
 function orderCard(c,side){const w=el("div","m-order");const st=ST[c.statut]||ST.demande;
   const top=el("div","row between");top.append(notr(el("b",null,c.titre||"Produit")),el("span","pill s-"+st[1],st[0]));w.append(top);
-  w.append(el("span",null,`${fmt(c.qte)} ${c.unite||""} × ${fmt(c.prix)} F = ${fmt(c.total)} F`));
+  w.append(el("span",null,`${fmt(c.qte)} ${c.unite||""} × ${money(c.prix,c.devise)} = ${money(c.total,c.devise)}`));
   const who=side==="vendeur"?[c.acheteurNom,c.acheteurTel,c.acheteurVille]:[c.vendeurNom,c.vendeurTel];w.append(notr(el("small",null,who.filter(Boolean).join(" · ")+" · "+fd(c.creeLe))));
   if(c.note)w.append(notr(el("small","m-note","« "+c.note+" »")));
   const r=el("div","row");const ph=tel226(side==="vendeur"?c.acheteurTel:c.vendeurTel);
@@ -323,7 +341,7 @@ function orderCard(c,side){const w=el("div","m-order");const st=ST[c.statut]||ST
   const set=s=>upd("marche_commandes/"+c.id,{statut:s,majLe:S.ts()});
   if(side==="vendeur"){
     if(c.statut==="demande"){act("Accepter","",()=>set("acceptee"));act("Refuser","ghost",()=>set("refusee"))}
-    if(c.statut==="acceptee")act("Vendu : livré et payé","",async()=>{const t=taux();const com=Math.round((Number(c.total)||0)*t/100);
+    if(c.statut==="acceptee")act("Vendu : livré et payé","",async()=>{const t=taux();const com=Math.round((Number(c.total)||0)*t)/100;
       await upd("marche_commandes/"+c.id,{statut:"vendue",taux:t,commission:com,venduLe:S.ts(),majLe:S.ts()});
       const a=mesAnnonces.find(x=>x.id===c.annonce);if(a&&a.qte!=null){const left=Math.max(0,(Number(a.qte)||0)-(Number(c.qte)||0));await upd("marche_annonces/"+a.id,{qte:left,statut:left===0?"epuise":a.statut,majLe:S.ts()})}});
     if(c.statut==="acceptee")act("Annuler","ghost",()=>set("annulee"))}
@@ -341,9 +359,9 @@ function renderSetM(){const sh=$("x-set");if(!sh)return;let sec=$("m-set");
   sec.innerHTML="";const C=compte();sec.append(el("h3","sec","Marché B2A : ma commission"));
   if(piece&&piece.statut==="validee")sec.append(el("p","msg good","✓ Vendeur vérifié"));
   sec.append(el("p","note",`Commission B2A : ${fmt(taux(),1)} % sur chaque vente conclue (déclarée « Vendu » dans le Marché).`));
-  const K=el("div","kpis");K.append(A.kpi("Commission totale",fmt(C.com)+" F",C.nb+" vente(s)"),A.kpi("Déjà payé",fmt(C.paye)+" F"),A.kpi("Reste à payer",fmt(C.reste)+" F",null,C.reste>0?"down":null));sec.append(K);
+  const K=el("div","kpis");K.append(A.kpi("Commission totale",money(Math.round(C.com*100)/100,C.D),C.nb+" vente(s)"),A.kpi("Déjà payé",money(C.paye,C.D)),A.kpi("Reste à payer",money(Math.round(C.reste*100)/100,C.D),null,C.reste>0?"down":null));sec.append(K);
   if(C.reste>0){sec.append(el("p","note",cfg.telPaiement?`Payez par Orange Money ou Moov Money au ${cfg.telPaiement} (${cfg.nomPaiement||"B2A"}), puis envoyez la preuve par WhatsApp : B2A enregistre le paiement.`:"B2A vous indiquera le numéro de paiement (Orange Money ou Moov Money)."));
-    if(cfg.telPaiement){const w=el("a","btn small ghost","Envoyer la preuve par WhatsApp");w.href="https://wa.me/"+tel226(cfg.telPaiement)+"?text="+encodeURIComponent(`Bonjour B2A, je paie ma commission du Marché : ${fmt(C.reste)} F. Vendeur : ${me.nom||""} (${me.tel||""}).`);w.target="_blank";w.rel="noopener";sec.append(w)}}
+    if(cfg.telPaiement){const w=el("a","btn small ghost","Envoyer la preuve par WhatsApp");w.href="https://wa.me/"+tel226(cfg.telPaiement)+"?text="+encodeURIComponent(`Bonjour B2A, je paie ma commission du Marché : ${money(Math.round(C.reste*100)/100,C.D)}. Vendeur : ${me.nom||""} (${me.tel||""}).`);w.target="_blank";w.rel="noopener";sec.append(w)}}
   addCguLink(sec)}
 function addCguLink(sec){const d=el("details","box");d.append(el("summary",null,"Lire les conditions d'utilisation du Marché"));d.append(cguBox());sec.append(d)}
 document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest(".gearbtn"))setTimeout(()=>{listen();renderSetM()},60)});
@@ -381,6 +399,7 @@ a.btn{text-decoration:none}.m-flash{background:var(--surface);padding:12px 14px;
 .m-cgu{display:grid;gap:6px}.m-cgu-txt{max-height:300px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);font-size:14px;line-height:1.5}
 .m-cgu-txt h4{margin:12px 0 4px;font:700 14px var(--display);color:var(--heading)}.m-cgu-txt h4:first-child{margin-top:0}.m-cgu-txt p{margin:0}.m-cgu-end{margin-top:12px!important;color:var(--muted);font-size:12px}
 .m-cgu-hint{color:var(--muted)}.m-cgu-hint.ok{color:#1e7b34}.m-check.off{opacity:.55}.m-doc{aspect-ratio:3/2}
+.m-eq{color:var(--muted)}.m-eqsel{align-items:center;gap:8px}.m-eqsel label{font-size:13px;color:var(--muted)}.m-eqsel select{flex:1;min-width:0;max-width:260px}
 .m-hist{display:grid;gap:10px;margin-top:10px}
 .m-note{color:var(--muted);font-style:italic}
 .m-photo{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center}.m-photo .m-ph{border-radius:12px}
