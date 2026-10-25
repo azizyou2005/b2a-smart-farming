@@ -162,21 +162,48 @@ service cloud.firestore {
     }
     // Commandes : l'acheteur crée la demande ; le vendeur accepte, refuse ou déclare la vente (avec la commission B2A) ;
     // l'acheteur peut annuler tant que la demande n'est pas acceptée.
+    // Commandes : l'acheteur crée la demande SANS ses coordonnées (elles vont dans marche_contacts) ;
+    // le vendeur accepte (la commission B2A est due dès l'acceptation et ne peut plus baisser), refuse,
+    // déclare la vente ou annule ; l'acheteur peut annuler tant que la demande n'est pas acceptée.
+    function tauxVendeur() { return get(/databases/$(database)/documents/marche_vendeurs/$(request.auth.uid)).data.taux; }
     match /marche_commandes/{id} {
       allow read: if isAdmin() || (request.auth != null && (resource.data.acheteur == request.auth.uid || resource.data.vendeur == request.auth.uid));
       allow create: if approved() && request.resource.data.acheteur == request.auth.uid && request.resource.data.statut == 'demande'
-        && request.resource.data.total is number && txt(request.resource.data.get('note',''), 200);
+        && request.resource.data.total is number
+        && !request.resource.data.keys().hasAny(['acheteurNom','acheteurTel','note','commission','accepteLe','commAnnulee']);
       allow update: if isAdmin()
         || (request.auth != null && resource.data.vendeur == request.auth.uid
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut','taux','commission','venduLe','majLe'])
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut','taux','commission','venduLe','accepteLe','majLe'])
             && request.resource.data.statut in ['acceptee','refusee','vendue','annulee']
-            && (request.resource.data.statut != 'vendue'
-                || (request.resource.data.commission is number
-                    && request.resource.data.commission >= resource.data.total * get(/databases/$(database)/documents/marche_vendeurs/$(request.auth.uid)).data.taux / 100 - 1)))
+            // acceptation : seulement depuis une demande, avec la commission au taux du vendeur
+            && (request.resource.data.statut != 'acceptee' || resource.data.statut == 'acceptee'
+                || (resource.data.statut == 'demande' && request.resource.data.commission is number
+                    && request.resource.data.commission >= resource.data.total * tauxVendeur() / 100 - 0.01))
+            && (request.resource.data.statut != 'refusee' || resource.data.statut == 'demande')
+            && (request.resource.data.statut != 'vendue' || resource.data.statut == 'acceptee')
+            // une commission fixée ne baisse jamais ; si elle est posée à la vente (anciennes commandes), elle respecte le taux
+            && (resource.data.get('commission', 0) == 0
+                ? (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['commission'])
+                   || request.resource.data.commission >= resource.data.total * tauxVendeur() / 100 - 0.01)
+                : request.resource.data.get('commission', 0) == resource.data.commission))
         || (request.auth != null && resource.data.acheteur == request.auth.uid && resource.data.statut == 'demande'
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut','majLe'])
             && request.resource.data.statut == 'annulee');
       allow delete: if isAdmin();
+    }
+    // Coordonnées de l'acheteur pour une commande : lisibles par l'acheteur, par B2A, et par le vendeur
+    // SEULEMENT après qu'il a accepté la commande (accepteLe posé).
+    match /marche_contacts/{id} {
+      allow read: if isAdmin() || (request.auth != null && (resource.data.acheteur == request.auth.uid
+        || (resource.data.vendeur == request.auth.uid
+            && get(/databases/$(database)/documents/marche_commandes/$(id)).data.get('accepteLe', null) != null)));
+      allow create: if approved() && request.resource.data.acheteur == request.auth.uid
+        && getAfter(/databases/$(database)/documents/marche_commandes/$(id)).data.acheteur == request.auth.uid
+        && getAfter(/databases/$(database)/documents/marche_commandes/$(id)).data.vendeur == request.resource.data.vendeur
+        && request.resource.data.keys().hasOnly(['acheteur','vendeur','nom','tel','ville','note','creeLe'])
+        && txt(request.resource.data.nom, 60) && txt(request.resource.data.tel, 30)
+        && txt(request.resource.data.get('ville',''), 60) && txt(request.resource.data.get('note',''), 200);
+      allow update, delete: if isAdmin();
     }
     // Paiements de commission : enregistrés par B2A, visibles par le vendeur concerné.
     match /marche_paiements/{id} {

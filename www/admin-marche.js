@@ -47,20 +47,28 @@ function renderRates(){const R=$("mk-rates");if(!R)return;R.innerHTML="";Object.
   const i=el("input");i.type="number";i.step="any";i.min="0";i.id="mk-r-"+k;l.htmlFor=i.id;i.dataset.k=k;i.value=rate(k);if(k==="EUR")i.disabled=true;f.append(l,i,el("small",null,"FCFA"));R.append(f)})}
 renderRates();
 function kpi(l,v,s,c){const k=el("div","kpi"+(c?" "+c:""));k.append(el("span",null,l),el("b",null,v));if(s)k.append(el("small",null,s));return k}
-function render(){const sold=cmd.filter(c=>c.statut==="vendue");const tot=sold.reduce((p,c)=>p+toF(c.total,c.devise),0),com=sold.reduce((p,c)=>p+toF(c.commission,c.devise),0),paid=pay.reduce((p,x)=>p+toF(x.montant,x.devise),0);
+/* commission due dès l'acceptation de la commande par le vendeur ; B2A peut l'annuler en cas de litige */
+const comDue=c=>Number(c.commission)>0&&!c.commAnnulee;
+function render(){const sold=cmd.filter(c=>c.statut==="vendue"),due=cmd.filter(comDue);const tot=sold.reduce((p,c)=>p+toF(c.total,c.devise),0),com=due.reduce((p,c)=>p+toF(c.commission,c.devise),0),paid=pay.reduce((p,x)=>p+toF(x.montant,x.devise),0);
   const K=$("mk-kpis");K.innerHTML="";K.append(kpi("Vendeurs actifs",fmt(vend.filter(v=>v.statut==="actif").length),fmt(vend.length)+" au total","ok"),
-    kpi("Ventes conclues",fmt(tot)+" F",fmt(sold.length)+" vente(s) · converties en FCFA"),kpi("Commissions dues",fmt(com)+" F",multi(sold.map(c=>[c.commission,c.devise]))),kpi("Commissions encaissées",fmt(paid)+" F","reste ≈ "+fmt(Math.max(0,com-paid))+" F",com-paid>0.5?"warn":null),
+    kpi("Ventes conclues",fmt(tot)+" F",fmt(sold.length)+" vente(s) · converties en FCFA"),kpi("Commissions dues",fmt(com)+" F",multi(due.map(c=>[c.commission,c.devise]))+" · "+due.length+" commande(s) acceptée(s)"),kpi("Commissions encaissées",fmt(paid)+" F","reste ≈ "+fmt(Math.max(0,com-paid))+" F",com-paid>0.5?"warn":null),
     kpi("Pièces à vérifier",fmt(Object.values(pieces).filter(p=>p.statut==="attente").length),"CNIB, RCCM / IFU",Object.values(pieces).some(p=>p.statut==="attente")?"warn":null),
     kpi("Commandes en cours",fmt(cmd.filter(c=>c.statut==="demande"||c.statut==="acceptee").length),"demandées ou acceptées"));
   const L=$("mk-list");L.innerHTML="";if(!vend.length){L.append(el("p","empty","Aucun vendeur pour l'instant."));return}
-  vend.map(v=>{const s=sold.filter(c=>c.vendeur===v.id);const c2=s.reduce((p,c)=>p+toF(c.commission,c.devise),0);const pv=pay.filter(x=>x.vendeur===v.id);const p2=pv.reduce((p,x)=>p+toF(x.montant,x.devise),0);
+  vend.map(v=>{const s=sold.filter(c=>c.vendeur===v.id),dv0=due.filter(c=>c.vendeur===v.id);const c2=dv0.reduce((p,c)=>p+toF(c.commission,c.devise),0);const pv=pay.filter(x=>x.vendeur===v.id);const p2=pv.reduce((p,x)=>p+toF(x.montant,x.devise),0);
     /* monnaie principale du vendeur : celle de ses ventes les plus nombreuses */
     const cnt={};s.forEach(c=>{const k=c.devise||"XOF";cnt[k]=(cnt[k]||0)+1});const dv=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||"XOF";
-    return {v,dv,ventesTxt:multi(s.map(c=>[c.total,c.devise])),comTxt:multi(s.map(c=>[c.commission,c.devise])),paidTxt:multi(pv.map(x=>[x.montant,x.devise])),ventes:s.reduce((p,c)=>p+toF(c.total,c.devise),0),n:s.length,com:c2,paid:p2,reste:Math.max(0,c2-p2),encours:cmd.filter(c=>c.vendeur===v.id&&(c.statut==="demande"||c.statut==="acceptee")).length}})
-  .sort((a,b)=>((pieces[b.v.id]||{}).statut==="attente")-((pieces[a.v.id]||{}).statut==="attente")||b.reste-a.reste||b.ventes-a.ventes).forEach(({v,dv,ventesTxt,comTxt,paidTxt,ventes,n,com,paid,reste,encours})=>{const resteDv=Math.round(reste/rate(dv)*100)/100;
+    return {v,dv,ventesTxt:multi(s.map(c=>[c.total,c.devise])),comTxt:multi(dv0.map(c=>[c.commission,c.devise])),dueList:cmd.filter(c=>c.vendeur===v.id&&Number(c.commission)>0),paidTxt:multi(pv.map(x=>[x.montant,x.devise])),ventes:s.reduce((p,c)=>p+toF(c.total,c.devise),0),n:s.length,com:c2,paid:p2,reste:Math.max(0,c2-p2),encours:cmd.filter(c=>c.vendeur===v.id&&(c.statut==="demande"||c.statut==="acceptee")).length}})
+  .sort((a,b)=>((pieces[b.v.id]||{}).statut==="attente")-((pieces[a.v.id]||{}).statut==="attente")||b.reste-a.reste||b.ventes-a.ventes).forEach(({v,dv,dueList,ventesTxt,comTxt,paidTxt,ventes,n,com,paid,reste,encours})=>{const resteDv=Math.round(reste/rate(dv)*100)/100;
     const c=el("article","u");const top=el("div","u-top");top.append(el("b",null,v.nom||"Vendeur"),el("span","pill "+(v.statut==="actif"?"p-approuve":"p-bloque"),v.statut==="actif"?"Actif":"Suspendu"));c.append(top);
     c.append(el("small",null,[v.tel,v.ville,"commission "+fmt(v.taux,1)+" %","depuis le "+(ms(v.accepteLe)?new Date(ms(v.accepteLe)).toLocaleDateString("fr-FR"):"—")].filter(Boolean).join(" · ")));
     c.append(el("small",null,`Ventes : ${ventesTxt} (${n}) · commission ${comTxt} · payé ${paidTxt} · reste ≈ ${money(resteDv,dv)} · ${encours} commande(s) en cours`));
+    if(dueList.length){const d=el("details");d.append(el("summary",null,`Commandes acceptées (${dueList.length})`));
+      dueList.sort((a,b)=>ms(b.accepteLe||b.creeLe)-ms(a.accepteLe||a.creeLe)).slice(0,100).forEach(o=>{const rr=el("div","row");
+        rr.append(el("small",null,`${o.titre||"Produit"} · ${fmt(o.qte)} ${o.unite||""} · ${money(o.total,o.devise)} · commission ${money(o.commission,o.devise)} · ${o.statut}${o.commAnnulee?" · commission annulée":""}`));
+        const b=el("button","btn small "+(o.commAnnulee?"ok":"bad"),o.commAnnulee?"Rétablir la commission":"Annuler la commission");b.type="button";
+        b.onclick=async()=>{if(!o.commAnnulee&&b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmer : annuler (litige)";return}b.disabled=true;
+          try{await db.doc("marche_commandes/"+o.id).update({commAnnulee:!o.commAnnulee})}catch(e){b.disabled=false}};rr.append(b);d.append(rr)});c.append(d)}
     c.append(el("small",null,"Conditions acceptées : version "+(v.cgu||"—")+(ms(v.cguLe)?" le "+new Date(ms(v.cguLe)).toLocaleDateString("fr-FR"):"")));
     /* pièce justificative (privée : visible seulement ici) */
     const P=pieces[v.id];const pb0=el("div","mk-piece");

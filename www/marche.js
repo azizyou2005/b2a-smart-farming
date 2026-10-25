@@ -6,7 +6,8 @@
 
    Données (Firestore, hors des fermes, visibles par tous les inscrits) :
    marche_annonces/<id>   { vendeur, vendeurNom, vendeurTel, ville, cat, titre, desc, prix, unite, qte, photo, statut: actif|epuise|retire, creeLe, majLe }
-   marche_commandes/<id>  { annonce, titre, vendeur, vendeurNom, vendeurTel, acheteur, acheteurNom, acheteurTel, acheteurVille, qte, unite, prix, total,
+   marche_commandes/<id>  { annonce, titre, vendeur, vendeurNom, vendeurTel, acheteur, acheteurVille, qte, unite, prix, total, devise, reserve, accepteLe,
+   marche_contacts/<id>   { acheteur, vendeur, nom, tel, ville, note }  (coordonnées de l'acheteur : le vendeur ne les voit qu'après avoir accepté)
                             statut: demande|acceptee|refusee|vendue|annulee, taux, commission, creeLe, majLe, note }
    marche_boutiques/<uid> { nom, activite, ville, quartier, tel, horaires, desc, majLe }   (fiche publique de l'entreprise, seule visible par les acheteurs)
    marche_vendeurs/<uid>  { statut: actif|suspendu, nom, tel, ville, taux, accepteLe, cgu, cguLe }  (privé : vendeur et B2A)
@@ -61,21 +62,21 @@ function sure(p,d){const pr=S.doc(p).set(d);if(S.kind!=="cloud"||!navigator.onLi
    La commande et la baisse de la quantité de l'annonce sont faites ensemble (transaction) : deux acheteurs ne peuvent pas
    acheter le même stock ; si la commande est annulée ou refusée, la quantité revient sur l'annonce. */
 const stStock=(q,old)=>q<=0?"epuise":old==="epuise"?"actif":old;
-async function placeOrder(a,d){const id=S.newId("marche_commandes");
-  if(S.kind!=="cloud"){const cur=(await S.doc("marche_annonces/"+a.id).get()).data();
+async function placeOrder(a,d,ct){const id=S.newId("marche_commandes");ct={...ct,acheteur:d.acheteur,vendeur:d.vendeur,creeLe:S.ts()};
+  if(S.kind!=="cloud"){await S.doc("marche_contacts/"+id).set(ct);const cur=(await S.doc("marche_annonces/"+a.id).get()).data();
     if(!cur||cur.statut!=="actif")throw {code:"indispo"};
     if(cur.qte!=null){if(Number(cur.qte)<d.qte)throw {code:"stock",left:Number(cur.qte)};const left=Number(cur.qte)-d.qte;d.reserve=true;
       await S.doc("marche_commandes/"+id).set(d);await S.doc("marche_annonces/"+a.id).update({qte:left,statut:stStock(left,cur.statut),majLe:S.ts(),derniereCommande:id})}
     else await S.doc("marche_commandes/"+id).set(d);return "ok"}
   if(!navigator.onLine)throw {code:"unavailable"};
-  const fs=firebase.firestore(),aRef=fs.doc("marche_annonces/"+a.id),oRef=fs.doc("marche_commandes/"+id);
-  try{await fs.runTransaction(async t=>{const snap=await t.get(aRef);const cur=snap.exists?snap.data():null;
+  const fs=firebase.firestore(),aRef=fs.doc("marche_annonces/"+a.id),oRef=fs.doc("marche_commandes/"+id),cRef=fs.doc("marche_contacts/"+id);
+  try{await fs.runTransaction(async t=>{const snap=await t.get(aRef);const cur=snap.exists?snap.data():null;t.set(cRef,ct);
     if(!cur||cur.statut!=="actif")throw {code:"indispo"};
     if(cur.qte!=null){if(Number(cur.qte)<d.qte)throw {code:"stock",left:Number(cur.qte)};const left=Number(cur.qte)-d.qte;
       t.set(oRef,{...d,reserve:true});t.update(aRef,{qte:left,statut:stStock(left,cur.statut),majLe:S.ts(),derniereCommande:id})}
     else t.set(oRef,d)})}
   catch(e){/* règles Firebase pas encore mises à jour : la commande passe quand même, sans réservation (le vendeur baisse le stock à la vente) */
-    if(e&&e.code==="permission-denied"){await oRef.set(d);return "ok"}throw e}
+    if(e&&e.code==="permission-denied"){await oRef.set({...d,acheteurNom:ct.nom,acheteurTel:ct.tel,note:ct.note||""});return "ok"}throw e}
   return "ok"}
 /* annulation ou refus : la quantité réservée revient sur l'annonce */
 async function releaseOrder(c,statut){
@@ -131,10 +132,12 @@ function badge(){const t=$("tab-marche");if(!t)return;const n=recues.filter(c=>c
 const isSeller=()=>!!me&&me.statut==="actif";
 const taux=()=>me&&me.taux!=null?Number(me.taux):Number(cfg.taux)||0;
 const maDevise=()=>B.lsGet("b2a-m-devise")||(mesAnnonces[0]&&mesAnnonces[0].devise)||"XOF";
-function compte(){const v=recues.filter(c=>c.statut==="vendue");const D=maDevise();const ventes=v.reduce((p,c)=>p+conv(c.total,c.devise||"XOF",D),0);const com=v.reduce((p,c)=>p+conv(c.commission,c.devise||"XOF",D),0);
+/* la commission est due dès que le vendeur accepte la commande (il voit alors les coordonnées du client) */
+const comDue=c=>Number(c.commission)>0&&!c.commAnnulee;
+function compte(){const v=recues.filter(c=>c.statut==="vendue");const D=maDevise();const ventes=v.reduce((p,c)=>p+conv(c.total,c.devise||"XOF",D),0);const com=recues.filter(comDue).reduce((p,c)=>p+conv(c.commission,c.devise||"XOF",D),0);
   const paye=paiements.reduce((p,x)=>p+conv(x.montant,x.devise||"XOF",D),0);const m=today().slice(0,7);
   const mois=v.filter(c=>new Date(ms(c.venduLe)||ms(c.majLe)).toISOString().slice(0,7)===m);
-  return {D,nb:v.length,ventes,com,paye,reste:Math.max(0,com-paye),moisV:mois.reduce((p,c)=>p+conv(c.total,c.devise||"XOF",D),0),moisN:mois.length,
+  return {D,nbCom:recues.filter(comDue).length,nb:v.length,ventes,com,paye,reste:Math.max(0,com-paye),moisV:mois.reduce((p,c)=>p+conv(c.total,c.devise||"XOF",D),0),moisN:mois.length,
     ventesTxt:moneyMulti(v.map(c=>[c.total,c.devise])),moisTxt:moneyMulti(mois.map(c=>[c.total,c.devise]))}}
 
 /* ---------- 4. affichage ---------- */
@@ -195,10 +198,10 @@ function detail(a){needShop(a.vendeur);const own=S&&a.vendeur===S.uid;const c=el
     if(!(n>0))return bad("Indiquez la quantité.");if(a.qte!=null&&n>a.qte)return bad(`Il n'en reste que ${fmt(a.qte)}.`);
     if(!nm.value.trim())return bad("Indiquez votre nom.");if(String(tl.value).replace(/\D/g,"").length<8)return bad("Indiquez votre numéro de téléphone.");
     B.lsSet("b2a-m-tel",tl.value.trim());B.lsSet("b2a-m-ville",vl.value.trim());B.lsSet("b2a-m-nom",nm.value.trim());
-    const d={annonce:a.id,titre:a.titre||"",vendeur:a.vendeur,vendeurNom:sh.nom||a.vendeurNom||"",vendeurTel:sh.tel||a.vendeurTel||"",acheteur:S.uid,acheteurNom:nm.value.trim(),acheteurTel:tl.value.trim(),acheteurVille:vl.value.trim(),
-      qte:n,unite:a.unite||"",prix:Number(a.prix)||0,total:Math.round(n*(Number(a.prix)||0)*100)/100,devise:a.devise||"XOF",statut:"demande",note:nt.value.trim(),creeLe:S.ts(),majLe:S.ts()};
-    go.disabled=true;go.textContent="Envoi de la commande…";m.textContent="";try{const res=await placeOrder(a,d);flashT=Date.now()+15000;flash=(res==="lent"?"Réseau lent : la commande part dès que la connexion le permet. ":"")+`Commande envoyée à ${a.vendeurNom||"au vendeur"} : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (${money(d.total,d.devise)}). Le vendeur va vous contacter.`;open=null;mode="mes";render();window.scrollTo(0,0);
-      if(ph)window.open("https://wa.me/"+ph+"?text="+encodeURIComponent(`Bonjour ${a.vendeurNom||""}, je viens de commander sur le Marché B2A : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (total ${money(d.total,d.devise)}). ${d.acheteurNom}, ${d.acheteurTel}${d.acheteurVille?", "+d.acheteurVille:""}.${d.note?" "+d.note:""}`),"_blank")}
+    const d={annonce:a.id,titre:a.titre||"",vendeur:a.vendeur,vendeurNom:sh.nom||a.vendeurNom||"",vendeurTel:sh.tel||a.vendeurTel||"",acheteur:S.uid,acheteurVille:vl.value.trim(),
+      qte:n,unite:a.unite||"",prix:Number(a.prix)||0,total:Math.round(n*(Number(a.prix)||0)*100)/100,devise:a.devise||"XOF",statut:"demande",creeLe:S.ts(),majLe:S.ts()};
+    const ct={nom:nm.value.trim(),tel:tl.value.trim(),ville:vl.value.trim(),note:nt.value.trim()};
+    go.disabled=true;go.textContent="Envoi de la commande…";m.textContent="";try{const res=await placeOrder(a,d,ct);flashT=Date.now()+15000;flash=(res==="lent"?"Réseau lent : la commande part dès que la connexion le permet. ":"")+`Commande envoyée à ${a.vendeurNom||"au vendeur"} : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (${money(d.total,d.devise)}). Le vendeur va accepter la commande puis vous contacter.`;open=null;mode="mes";render();window.scrollTo(0,0)}
     catch(e){console.warn(e);go.disabled=false;go.textContent="Envoyer la commande";bad(errTxt(e))}};
   return c}
 
@@ -385,22 +388,36 @@ function compress(file,MX,LIM){return new Promise((res,rej)=>{const im=new Image
   while(u.length>(LIM||350000)&&q>0.35){q-=0.1;u=cv.toDataURL("image/jpeg",q)}URL.revokeObjectURL(im.src);res(u)};im.onerror=rej;im.src=URL.createObjectURL(file)})}
 
 /* --- commandes --- */
+const contacts={};
+function needContact(c){if(c.acheteurNom||contacts[c.id]!==undefined||!S)return;contacts[c.id]=null;
+  S.doc("marche_contacts/"+c.id).get().then(d=>{contacts[c.id]=d.exists?d.data():false;render()}).catch(()=>{contacts[c.id]=false})}
 function orderCard(c,side){const w=el("div","m-order");const st=ST[c.statut]||ST.demande;
   const top=el("div","row between");top.append(notr(el("b",null,c.titre||"Produit")),el("span","pill s-"+st[1],st[0]));w.append(top);
   w.append(el("span",null,`${fmt(c.qte)} ${c.unite||""} × ${money(c.prix,c.devise)} = ${money(c.total,c.devise)}`));
-  const who=side==="vendeur"?[c.acheteurNom,c.acheteurTel,c.acheteurVille]:[c.vendeurNom,c.vendeurTel];w.append(notr(el("small",null,who.filter(Boolean).join(" · ")+" · "+fd(c.creeLe))));
-  if(c.note)w.append(notr(el("small","m-note","« "+c.note+" »")));
-  const r=el("div","row");const ph=tel226(side==="vendeur"?c.acheteurTel:c.vendeurTel);
-  if(ph){const wa=el("a","btn small ghost","WhatsApp");wa.href="https://wa.me/"+ph;wa.target="_blank";wa.rel="noopener";const tl=el("a","btn small ghost","Appeler");tl.href="tel:+"+ph;r.append(wa,tl)}
-  const act=(t,cls,fn)=>{const b=el("button","btn small "+cls,t);b.type="button";b.onclick=async()=>{b.disabled=true;try{await fn()}catch(e){console.warn(e);b.disabled=false}};r.append(b)};
-  const set=s=>upd("marche_commandes/"+c.id,{statut:s,majLe:S.ts()});
+  const r=el("div","row");let ph="";
   if(side==="vendeur"){
-    if(c.statut==="demande"){act("Accepter","",()=>set("acceptee"));act("Refuser","ghost",()=>releaseOrder(c,"refusee"))}
-    if(c.statut==="acceptee")act("Vendu : livré et payé","",async()=>{const t=taux();const com=Math.round((Number(c.total)||0)*t)/100;
-      await upd("marche_commandes/"+c.id,{statut:"vendue",taux:t,commission:com,venduLe:S.ts(),majLe:S.ts()});
-      /* commandes réservées : le stock a déjà baissé à la commande ; anciennes commandes : on le baisse maintenant */
-      const a=mesAnnonces.find(x=>x.id===c.annonce);if(!c.reserve&&a&&a.qte!=null){const left=Math.max(0,(Number(a.qte)||0)-(Number(c.qte)||0));await upd("marche_annonces/"+a.id,{qte:left,statut:left===0?"epuise":a.statut,majLe:S.ts()})}});
-    if(c.statut==="acceptee")act("Annuler","ghost",()=>releaseOrder(c,"annulee"))}
+    /* coordonnées du client : seulement après acceptation (contrôlé aussi par les règles Firebase) */
+    const vu=!!c.accepteLe||c.statut==="acceptee"||c.statut==="vendue"||!!c.acheteurNom;
+    if(!vu){w.append(el("small",null,`Client${c.acheteurVille?" de "+c.acheteurVille:""} · ${fd(c.creeLe)}`));w.append(el("small","m-lock","🔒 Nom, téléphone et message du client visibles après acceptation."))}
+    else{if(!c.acheteurNom)needContact(c);const k=c.acheteurNom?{nom:c.acheteurNom,tel:c.acheteurTel,ville:c.acheteurVille,note:c.note}:contacts[c.id];
+      if(k){w.append(notr(el("small",null,[k.nom,k.tel,k.ville||c.acheteurVille].filter(Boolean).join(" · ")+" · "+fd(c.creeLe))));if(k.note)w.append(notr(el("small","m-note","« "+k.note+" »")));ph=tel226(k.tel)}
+      else w.append(el("small",null,k===false?"Coordonnées du client indisponibles.":"Chargement des coordonnées du client…"))}}
+  else{w.append(notr(el("small",null,[c.vendeurNom,c.vendeurTel].filter(Boolean).join(" · ")+" · "+fd(c.creeLe))));ph=tel226(c.vendeurTel)}
+  if(ph){const wa=el("a","btn small ghost","WhatsApp");wa.href="https://wa.me/"+ph;wa.target="_blank";wa.rel="noopener";const tl=el("a","btn small ghost","Appeler");tl.href="tel:+"+ph;r.append(wa,tl)}
+  const act=(t,cls,fn,confirmTxt)=>{const b=el("button","btn small "+cls,t);b.type="button";b.onclick=async()=>{if(confirmTxt&&b.dataset.c!=="1"){b.dataset.c="1";b.textContent=confirmTxt;return}b.disabled=true;try{await fn()}catch(e){console.warn(e);b.disabled=false;b.textContent=t}};r.append(b)};
+  if(side==="vendeur"){
+    if(c.statut==="demande"){
+      act("Accepter la commande","",async()=>{const t=taux();const com=Math.round((Number(c.total)||0)*t)/100;
+        await upd("marche_commandes/"+c.id,{statut:"acceptee",taux:t,commission:com,accepteLe:S.ts(),majLe:S.ts()})},"Confirmer : j'accepte cette commande");
+      act("Refuser","ghost",()=>releaseOrder(c,"refusee"));
+      w.append(el("small","note","Accepter confirme la vente et vous donne les coordonnées du client (commission B2A : voir Réglages)."))}
+    if(c.statut==="acceptee"){
+      act("Vendu : livré et payé","",async()=>{const up={statut:"vendue",venduLe:S.ts(),majLe:S.ts()};
+        if(!(Number(c.commission)>0)){const t=taux();up.taux=t;up.commission=Math.round((Number(c.total)||0)*t)/100}  /* commande acceptée avant cette version */
+        await upd("marche_commandes/"+c.id,up);
+        /* commandes réservées : le stock a déjà baissé à la commande ; anciennes commandes : on le baisse maintenant */
+        const a=mesAnnonces.find(x=>x.id===c.annonce);if(!c.reserve&&a&&a.qte!=null){const left=Math.max(0,(Number(a.qte)||0)-(Number(c.qte)||0));await upd("marche_annonces/"+a.id,{qte:left,statut:left===0?"epuise":a.statut,majLe:S.ts()})}});
+      act("Annuler","ghost",()=>releaseOrder(c,"annulee"),"Confirmer l'annulation (la commission reste due)")}}
   else if(c.statut==="demande")act("Annuler ma commande","ghost",()=>releaseOrder(c,"annulee"));
   w.append(r);return w}
 function renderMine(Bd){if(flash&&Date.now()<flashT){Bd.append(el("p","msg good m-flash",flash))}const C=el("section","card");Bd.append(C);C.append(el("h2","sec","Mes commandes"));
@@ -414,8 +431,8 @@ function renderSetM(){const sh=$("x-set");if(!sh)return;let sec=$("m-set");
     const after=[...host.children].find(x=>x.tagName==="SECTION");host.insertBefore(sec,after||null)}
   sec.innerHTML="";const C=compte();sec.append(el("h3","sec","Marché B2A : ma commission"));
   if(piece&&piece.statut==="validee")sec.append(el("p","msg good","✓ Vendeur vérifié"));
-  sec.append(el("p","note",`Commission B2A : ${fmt(taux(),1)} % sur chaque vente conclue (déclarée « Vendu » dans le Marché).`));
-  const K=el("div","kpis");K.append(A.kpi("Commission totale",money(Math.round(C.com*100)/100,C.D),C.nb+" vente(s)"),A.kpi("Déjà payé",money(C.paye,C.D)),A.kpi("Reste à payer",money(Math.round(C.reste*100)/100,C.D),null,C.reste>0?"down":null));sec.append(K);
+  sec.append(el("p","note",`Commission B2A : ${fmt(taux(),1)} % de chaque commande acceptée (l'acceptation donne accès aux coordonnées du client).`));
+  const K=el("div","kpis");K.append(A.kpi("Commission totale",money(Math.round(C.com*100)/100,C.D),C.nbCom+" commande(s) acceptée(s)"),A.kpi("Déjà payé",money(C.paye,C.D)),A.kpi("Reste à payer",money(Math.round(C.reste*100)/100,C.D),null,C.reste>0?"down":null));sec.append(K);
   if(C.reste>0){sec.append(el("p","note",cfg.telPaiement?`Payez par Orange Money ou Moov Money au ${cfg.telPaiement} (${cfg.nomPaiement||"B2A"}), puis envoyez la preuve par WhatsApp : B2A enregistre le paiement.`:"B2A vous indiquera le numéro de paiement (Orange Money ou Moov Money)."));
     if(cfg.telPaiement){const w=el("a","btn small ghost","Envoyer la preuve par WhatsApp");w.href="https://wa.me/"+tel226(cfg.telPaiement)+"?text="+encodeURIComponent(`Bonjour B2A, je paie ma commission du Marché : ${money(Math.round(C.reste*100)/100,C.D)}. Vendeur : ${me.nom||""} (${me.tel||""}).`);w.target="_blank";w.rel="noopener";sec.append(w)}}
   addCguLink(sec)}
@@ -458,6 +475,7 @@ a.btn{text-decoration:none}.m-flash{background:var(--surface);padding:12px 14px;
 .m-cgu-hint{color:var(--muted)}.m-cgu-hint.ok{color:#1e7b34}.m-check.off{opacity:.55}.m-doc{aspect-ratio:3/2}
 .m-eq{color:var(--muted)}.m-eqsel{align-items:center;gap:8px}.m-eqsel label{font-size:13px;color:var(--muted)}.m-eqsel select{flex:1;min-width:0;max-width:260px}
 .m-more{grid-column:1/-1;justify-self:center}
+.m-lock{color:var(--muted)}
 .m-hist{display:grid;gap:10px;margin-top:10px}
 .m-note{color:var(--muted);font-style:italic}
 .m-photo{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center}.m-photo .m-ph{border-radius:12px}
