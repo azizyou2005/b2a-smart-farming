@@ -45,12 +45,12 @@ const put=(p,d,o)=>quick(o?S.doc(p).set(d,o):S.doc(p).set(d));
 const upd=(p,d)=>quick(S.doc(p).update(d));
 
 /* ---------- 2. état ---------- */
-let cfg={...DEF},me=null,piece=null,cguOpen=false,pieceOpen=false,boutiques={},openB=null,ficheOpen=false,annonces=[],mesAnnonces=[],recues=[],passees=[],paiements=[];
+let noAccess=false,cfg={...DEF},me=null,piece=null,cguOpen=false,pieceOpen=false,boutiques={},openB=null,ficheOpen=false,annonces=[],mesAnnonces=[],recues=[],passees=[],paiements=[];
 let flashT=0,flash="",mode="acheter",cat="",q="",ville="",open=null,editA=null,formOpen=false,started=false;
 const subs=[];
 function listen(){if(started)return;started=true;
   store().then(s=>{
-    const err=e=>console.warn("marché",e);
+    const err=e=>{console.warn("marché",e);if(e&&e.code==="permission-denied"&&!noAccess){noAccess=true;render()}};
     subs.push(s.doc("marche_config/global").onSnapshot(d=>{cfg={...DEF,...(d.exists?d.data():{})};render()},err));
     subs.push(s.doc("marche_vendeurs/"+s.uid).onSnapshot(d=>{me=d.exists?d.data():null;render()},err));
     subs.push(s.doc("marche_pieces/"+s.uid).onSnapshot(d=>{piece=d.exists?d.data():null;render()},err));
@@ -77,6 +77,8 @@ function render(){try{const sh=$("x-set");if(sh&&!sh.hidden)renderSetM()}catch(e
   const seg=$("m-seg");seg.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===mode));
   const nNew=recues.filter(c=>c.statut==="demande").length;const vb=seg.querySelector('[data-m="vendre"]');vb.textContent=nNew?`Vendre (${nNew})`:"Vendre";
   const Bd=$("m-body");const keepY=window.scrollY;Bd.innerHTML="";
+  /* règles Firebase du Marché pas encore publiées, ou accès retiré : message clair au lieu d'erreurs */
+  if(noAccess){const c=el("section","card");c.append(el("h2","sec","Marché B2A"),el("p","note","Le Marché ouvre très bientôt. Revenez dans quelques instants."));Bd.append(c);return}
   if(mode==="acheter")renderBuy(Bd);else if(mode==="vendre")renderSell(Bd);else renderMine(Bd);
   window.scrollTo(0,keepY)}
 
