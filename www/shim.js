@@ -59,7 +59,14 @@ async function makeCloud(cfg,code){
   const fs=firebase.firestore();
   ensureUser(cfg).catch(()=>{});
   const base="farms/"+code;
-  return {kind:"cloud",collection:n=>fs.collection(base+"/"+n),doc:p=>fs.doc(base+"/"+p)};
+  /* Firestore applique l'écriture tout de suite sur le téléphone, mais sa promesse attend la réponse du serveur.
+     Sans réseau (ou réseau faible), les boutons « Enregistrer » restaient bloqués et on ne pouvait plus corriger.
+     On rend la main après 1,5 s au plus : l'envoi se fait tout seul au retour du réseau. Une erreur rapide (droits) reste signalée. */
+  const quick=pr=>{pr.catch(()=>{});return Promise.race([pr,new Promise(r=>setTimeout(()=>r("local"),1500))])};
+  const W=["set","update","delete"];
+  const wrapDoc=ref=>new Proxy(ref,{get(t,k){const v=t[k];if(W.includes(k))return (...a)=>quick(v.apply(t,a));return typeof v==="function"?v.bind(t):v}});
+  const wrapCol=col=>new Proxy(col,{get(t,k){if(k==="doc")return (...a)=>wrapDoc(t.doc(...a));const v=t[k];return typeof v==="function"?v.bind(t):v}});
+  return {kind:"cloud",collection:n=>wrapCol(fs.collection(base+"/"+n)),doc:p=>wrapDoc(fs.doc(base+"/"+p))};
 }
 const today=()=>new Date().toISOString().slice(0,10);
 const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),ms))]);

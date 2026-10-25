@@ -1173,7 +1173,7 @@ async function renderDetail(){
         tr.append(el("td","n",fmt(r.morts)),el("td","n",r.aliment!=null?fmt(r.aliment,1)+" kg":"—"),el("td",null,(names[r.by]||"—")),el("td",null,r.note||""));
         if(canWrite){tr.style.cursor="pointer";tr.onclick=()=>{show("saisie");$("s-lot").value=l.id;$("s-date").value=r.date;loadSaisie()}}body.append(tr)});
       tb.append(body);w.append(tb);D.append(w);
-      if(canWrite)D.append(el("p","note","Touchez une ligne pour la corriger."))}
+      if(canWrite)D.append(el("p","note","Erreur dans une fiche (morts, œufs, aliment…) ? Touchez la ligne pour la corriger ou la supprimer."))}
   }
 }
 
@@ -1241,14 +1241,19 @@ function loadSaisie(){const id=$("s-lot").value,d=$("s-date").value;const s=sais
   $("s-poids").previousElementSibling.textContent=bigS?"Poids moyen (kg)":"Poids moyen (g)";$("s-poids").step=bigS?"0.1":"1";$("s-recu").value=s?s.alimentRecu??"":"";$("s-note").value=s?s.note||"":"";
   {const lR=lots.find(x=>x.id===id),h=$("s-ration");if(h){const ra=lR?ration(lR,stats(lR),d):null;h.textContent=ra?`Conseillé : ≈ ${fmt(ra.kg,1)} kg pour ${fmt(ra.n)} sujets (${fmt(ra.g)} g par sujet), selon l'âge.`:"";h.hidden=!ra;h.onclick=ra?()=>{if(!$("s-aliment").value)$("s-aliment").value=Math.round(ra.kg*10)/10}:null}}
   const l=lots.find(x=>x.id===id);$("s-oeufs").closest(".field").hidden=l?!hasProd(l):false;$("s-oeufs").previousElementSibling.textContent=l&&isDairy(l)?"Lait trait (litres)":"Œufs ramassés";$("s-oeufs").step=l&&isDairy(l)?"0.5":"1";
-  sMsg(s?"Fiche existante chargée. Modifiez puis enregistrez.":"")}
+  sMsg(s?"Fiche existante chargée : corrigez les chiffres (morts, œufs, aliment…) puis touchez Enregistrer.":"");
+  const del=$("s-del");if(del){del.hidden=!s||!canWrite;del.dataset.c="";del.textContent="Supprimer cette fiche"}}
 $("s-date").value=today();$("s-lot").onchange=loadSaisie;$("s-date").onchange=loadSaisie;
 $("s-save").onclick=async()=>{
   const id=$("s-lot").value,d=$("s-date").value;if(!db||!id||!d)return;
   if(d>today()){sMsg("La date ne peut pas être dans le futur.","err");return}
   const body={lotId:id,date:d,oeufs:N($("s-oeufs").value),morts:N($("s-morts").value)||0,alimentKg:N($("s-aliment").value),alimentRecu:N($("s-recu").value),poidsG:(()=>{const v=N($("s-poids").value);const lS=lots.find(x=>x.id===id);return v==null?null:(lS&&big(lS)?v*1000:v)})(),note:$("s-note").value.trim(),by:me,updatedAt:Date.now()};
   $("s-save").disabled=true;sMsg("Enregistrement…");
-  try{await db.doc("saisies/"+id+"_"+d).set(body);sMsg("Enregistré.","good")}catch(e){sMsg(errText(e),"err")}finally{$("s-save").disabled=false}};
+  try{const r=await db.doc("saisies/"+id+"_"+d).set(body);sMsg(r==="local"?"Enregistré sur ce téléphone : envoi automatique au retour du réseau.":"Enregistré. Vous pouvez encore corriger cette fiche à tout moment.","good");$("s-del").hidden=!canWrite}
+  catch(e){sMsg(errText(e),"err")}finally{$("s-save").disabled=false}};
+$("s-del").onclick=async()=>{const id=$("s-lot").value,d=$("s-date").value,b=$("s-del");if(!db||!id||!d)return;
+  if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmer la suppression";return}
+  b.disabled=true;try{await db.doc("saisies/"+id+"_"+d).delete();saisies=saisies.filter(x=>!(x.lotId===id&&x.date===d));loadSaisie();renderLots();sMsg("Fiche supprimée.","good")}catch(e){sMsg(errText(e),"err")}finally{b.disabled=false}};
 
 /* ---------- db boot ---------- */
 (async()=>{
