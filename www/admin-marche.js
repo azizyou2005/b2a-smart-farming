@@ -21,6 +21,7 @@ const sec=el("section","card");sec.id="mk-admin";sec.innerHTML=`<h2>Marché B2A 
     <div class="field"><label for="mk-nom">Nom du bénéficiaire</label><input type="text" id="mk-nom"></div>
     <button class="btn small" id="mk-save" type="button">Enregistrer</button><span class="msg" id="mk-msg"></span>
   </div>
+  <h3 style="margin-top:14px">Demandes de suppression de compte</h3><div id="mk-sup" class="note">Chargement…</div>
   <details class="mk-rates"><summary>Taux de change indicatifs (valeur en FCFA de 1 unité)</summary>
     <p class="note">Servent aux équivalences affichées aux acheteurs et aux totaux en FCFA de cette page. L'euro est fixe (655,957 F).</p>
     <div class="mk-cfg" id="mk-rates"></div></details>
