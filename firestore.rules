@@ -76,5 +76,90 @@ service cloud.firestore {
       allow read, write: if canUse(farm)
         && col in ['lots', 'saisies', 'soins', 'analyses', 'previsions', 'formules', 'factures', 'reglages', 'contacts', 'depenses', 'couveuses', 'couvees'];
     }
+
+    // ---------- Marché B2A (partie payante) ----------
+    // Tout utilisateur inscrit voit les annonces ; seuls les vendeurs actifs publient ; B2A (isAdmin) gère tout.
+    function seller() { return request.auth != null
+      && get(/databases/$(database)/documents/marche_vendeurs/$(request.auth.uid)).data.statut == 'actif'; }
+    function mcfg() { return get(/databases/$(database)/documents/marche_config/global).data; }
+    function tauxB2A() { return exists(/databases/$(database)/documents/marche_config/global) ? mcfg().get('taux', 5) : 5; }
+
+    match /marche_config/{id} {
+      allow read: if approved() || isAdmin();
+      allow write: if isAdmin();
+    }
+    // Ouverture de la boutique : le vendeur accepte le taux de commission en vigueur ; seul B2A peut suspendre ou changer le taux.
+    match /marche_vendeurs/{uid} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow create: if approved() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['statut','nom','tel','ville','taux','accepteLe','cgu','cguLe'])
+        && request.resource.data.statut == 'actif' && request.resource.data.taux == tauxB2A()
+        && txt(request.resource.data.nom, 60) && txt(request.resource.data.tel, 30) && txt(request.resource.data.ville, 60);
+      allow update: if isAdmin() || (approved() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nom','tel','ville','cgu','cguLe'])
+        && txt(request.resource.data.nom, 60) && txt(request.resource.data.tel, 30) && txt(request.resource.data.ville, 60));
+      allow delete: if isAdmin();
+    }
+    // Fiche publique de l'entreprise : la seule information du vendeur visible par les acheteurs (nom, activité, lieu, contact).
+    // Les données de gestion (lots, saisies, ventes, commissions…) restent dans farms/<code> ou marche_vendeurs, jamais lisibles par les acheteurs.
+    match /marche_boutiques/{uid} {
+      allow read: if approved() || isAdmin();
+      // le badge « verifie » est posé seulement par B2A (isAdmin) après contrôle de la pièce
+      allow write: if isAdmin();
+      allow create, update: if approved() && request.auth.uid == uid && seller()
+        && request.resource.data.keys().hasOnly(['nom','activite','ville','quartier','tel','horaires','desc','majLe','verifie'])
+        && request.resource.data.get('verifie', false) == (resource == null ? false : resource.data.get('verifie', false))
+        && txt(request.resource.data.nom, 60) && txt(request.resource.data.get('activite',''), 60) && txt(request.resource.data.ville, 60)
+        && txt(request.resource.data.get('quartier',''), 60) && txt(request.resource.data.tel, 30) && txt(request.resource.data.get('horaires',''), 60)
+        && txt(request.resource.data.get('desc',''), 400);
+      allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+    }
+    // Pièce justificative (CNIB, ou RCCM + IFU) : privée, lisible seulement par le vendeur et B2A ; seul B2A la valide ou la refuse.
+    match /marche_pieces/{uid} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow write: if isAdmin();
+      allow create, update: if approved() && request.auth.uid == uid
+        && (resource == null || resource.data.statut != 'validee')
+        && request.resource.data.keys().hasOnly(['type','titulaire','cnib','rccm','ifu','photo','statut','motif','envoyeLe'])
+        && request.resource.data.statut == 'attente' && request.resource.data.type in ['cnib','entreprise']
+        && txt(request.resource.data.titulaire, 80) && txt(request.resource.data.cnib, 20) && txt(request.resource.data.rccm, 40) && txt(request.resource.data.ifu, 20)
+        && txt(request.resource.data.photo, 400000);
+    }
+    match /marche_annonces/{id} {
+      allow read: if approved() || isAdmin();
+      allow create: if approved() && seller() && request.resource.data.vendeur == request.auth.uid
+        && request.resource.data.statut in ['actif','epuise','retire']
+        && txt(request.resource.data.titre, 80) && txt(request.resource.data.get('desc',''), 600)
+        && request.resource.data.prix is number && request.resource.data.prix > 0
+        && (request.resource.data.get('photo','') == '' || txt(request.resource.data.photo, 400000));
+      allow update: if isAdmin() || (approved() && seller() && resource.data.vendeur == request.auth.uid
+        && request.resource.data.vendeur == request.auth.uid
+        && request.resource.data.statut in ['actif','epuise','retire']
+        && (request.resource.data.get('photo','') == '' || txt(request.resource.data.photo, 400000)));
+      allow delete: if isAdmin() || (request.auth != null && resource.data.vendeur == request.auth.uid);
+    }
+    // Commandes : l'acheteur crée la demande ; le vendeur accepte, refuse ou déclare la vente (avec la commission B2A) ;
+    // l'acheteur peut annuler tant que la demande n'est pas acceptée.
+    match /marche_commandes/{id} {
+      allow read: if isAdmin() || (request.auth != null && (resource.data.acheteur == request.auth.uid || resource.data.vendeur == request.auth.uid));
+      allow create: if approved() && request.resource.data.acheteur == request.auth.uid && request.resource.data.statut == 'demande'
+        && request.resource.data.total is number && txt(request.resource.data.get('note',''), 200);
+      allow update: if isAdmin()
+        || (request.auth != null && resource.data.vendeur == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut','taux','commission','venduLe','majLe'])
+            && request.resource.data.statut in ['acceptee','refusee','vendue','annulee']
+            && (request.resource.data.statut != 'vendue'
+                || (request.resource.data.commission is number
+                    && request.resource.data.commission >= resource.data.total * get(/databases/$(database)/documents/marche_vendeurs/$(request.auth.uid)).data.taux / 100 - 1)))
+        || (request.auth != null && resource.data.acheteur == request.auth.uid && resource.data.statut == 'demande'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut','majLe'])
+            && request.resource.data.statut == 'annulee');
+      allow delete: if isAdmin();
+    }
+    // Paiements de commission : enregistrés par B2A, visibles par le vendeur concerné.
+    match /marche_paiements/{id} {
+      allow read: if isAdmin() || (request.auth != null && resource.data.vendeur == request.auth.uid);
+      allow write: if isAdmin();
+    }
   }
 }
