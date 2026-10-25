@@ -27,7 +27,11 @@ sheet.innerHTML=`<div class="sheet-in">
   <section class="card"><h3 class="sec">Partager avec l'équipe</h3><p class="note" id="x-sst"></p><div id="x-sync" style="display:grid;gap:10px"></div></section>
   <section class="card">
     <h3 class="sec">Sauvegarde</h3>
-    <p class="note">Téléchargez une copie de toutes vos données (lots, saisies, soins, formules, factures). Pour changer de téléphone, importez-la sur le nouveau.</p>
+    <div class="x-warn"><b>Attention avant de désinstaller l'application</b>
+      <span>La désinstallation efface toutes les données remplies sur ce téléphone (lots, saisies, soins, formules, factures).</span>
+      <ol><li>Avant de désinstaller : touchez « Télécharger une sauvegarde » et gardez le fichier (ou envoyez-le-vous par WhatsApp).</li>
+      <li>Après la réinstallation : ouvrez Réglages, puis « Importer une sauvegarde » et choisissez ce fichier.</li></ol></div>
+    <p class="note" id="x-blast"></p>
     <div class="row"><button class="btn small" id="x-export" type="button">Télécharger une sauvegarde</button>
       <label class="btn small ghost" for="x-import">Importer une sauvegarde</label><input type="file" id="x-import" accept="application/json,.json" hidden></div>
     <span class="msg" id="x-bmsg"></span>
@@ -65,7 +69,23 @@ gear.onclick=openSet;$("x-close").onclick=closeSet;$("x-back").onclick=closeSet;
 {const f=document.createElement("button");f.type="button";f.className="btn ghost";f.textContent="Fermer les réglages";f.style.width="100%";f.onclick=closeSet;sheet.querySelector(".sheet-in").append(f)}
 sheet.addEventListener("click",e=>{if(e.target===sheet)closeSet()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!sheet.hidden)closeSet()});
+/* ---------- sauvegarde : rappel avant une désinstallation ---------- */
+function lastTs(){try{return Number(localStorage.getItem("b2a-last-backup"))||0}catch(e){return 0}}
+function lastBackup(){const t=lastTs(),x=$("x-blast");if(!x)return;
+  x.textContent=t?"Dernière sauvegarde : "+new Date(t).toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"})+".":"Aucune sauvegarde téléchargée sur ce téléphone pour l'instant."}
+/* sur l'accueil : rappel si les données sont seulement sur ce téléphone et pas sauvegardées depuis 7 jours */
+async function backupNudge(){if(document.documentElement.classList.contains("acces-on")||$("x-bkp"))return;const home=$("home");if(!home||!db||db.kind!=="local")return;
+  let n=0;try{n=(await db.collection("lots").get()).size}catch(e){}if(!n)return;
+  if(Date.now()-lastTs()<7*864e5)return;let snooze=0;try{snooze=Number(localStorage.getItem("b2a-bkp-off"))||0}catch(e){}if(Date.now()<snooze)return;
+  const c=el("section","card x-bkp");c.id="x-bkp";c.append(el("h2","sec","Sauvegardez vos données"));
+  c.append(el("p","note",lastTs()?"Votre dernière sauvegarde date de plus de 7 jours.":"Vos données sont seulement sur ce téléphone et n'ont jamais été sauvegardées."));
+  c.append(el("p","note","Si vous désinstallez l'application ou changez de téléphone, tout ce que vous avez rempli est perdu. Téléchargez une sauvegarde, gardez le fichier, puis après la réinstallation : Réglages, « Importer une sauvegarde »."));
+  const r=el("div","row");const go=el("button","btn","Télécharger une sauvegarde maintenant");go.type="button";go.onclick=()=>$("x-export").click();
+  const later=el("button","btn ghost","Plus tard");later.type="button";later.onclick=()=>{try{localStorage.setItem("b2a-bkp-off",String(Date.now()+3*864e5))}catch(e){}c.remove()};r.append(go,later);c.append(r);
+  home.insertBefore(c,home.children[1]||null)}
+setTimeout(()=>backupNudge().catch(()=>{}),2500);
 function renderSet(){
+  lastBackup();
   $("x-nom").value=B.lsGet(B.LS_NAME)||"";
   const st=$("x-sst"),box=$("x-sync");box.innerHTML="";
   if(!B.CFG){st.textContent="Vos données sont enregistrées sur ce téléphone. Le partage entre téléphones n'est pas encore activé pour cette installation.";return}
@@ -148,7 +168,8 @@ $("x-export").onclick=async()=>{
   if(!db)return;const out={app:"B2A Smart Farming",version:2,exporte:new Date().toISOString()};
   for(const n of B.COLS){const s=await db.collection(n).get();out[n]=s.docs.map(d=>({id:d.id,...d.data()}))}
   const blob=new Blob([JSON.stringify(out)],{type:"application/json"});
-  try{const dl=await window.claude.use("downloads");await dl.save({filename:"b2a-sauvegarde-"+today()+".json",data:blob});$("x-bmsg").textContent="Sauvegarde téléchargée. Gardez-la ou envoyez-la par WhatsApp."}
+  try{const dl=await window.claude.use("downloads");await dl.save({filename:"b2a-sauvegarde-"+today()+".json",data:blob});$("x-bmsg").textContent="Sauvegarde téléchargée. Gardez-la ou envoyez-la par WhatsApp.";
+    try{localStorage.setItem("b2a-last-backup",String(Date.now()))}catch(e){}lastBackup();const nd=$("x-bkp");if(nd)nd.remove()}
   catch(e){$("x-bmsg").textContent="Le téléchargement a échoué."}};
 $("x-import").onchange=async e=>{const f=e.target.files[0];if(!f||!db)return;
   try{if(f.size>30*1024*1024)throw 0;const d=JSON.parse(await f.text());if(!d||typeof d!=="object"||Array.isArray(d))throw 0;
@@ -157,7 +178,7 @@ $("x-import").onchange=async e=>{const f=e.target.files[0];if(!f||!db)return;
     const plain=v=>v&&typeof v==="object"&&!Array.isArray(v);
     const scrub=v=>Array.isArray(v)?v.map(scrub):plain(v)?Object.fromEntries(Object.entries(v).filter(([k])=>!/^__|^(constructor|prototype)$/.test(k)).map(([k,x])=>[k,scrub(x)])):v;
     let n=0;for(const col of B.COLS){const arr=d[col];if(!Array.isArray(arr))continue;for(const x of arr){if(!plain(x))continue;const {id,...rest}=x;if(okId(id)){await db.doc(col+"/"+id).set(scrub(rest));n++}}}
-    $("x-bmsg").textContent=n+" éléments importés."}catch(err){$("x-bmsg").textContent="Fichier non reconnu."}e.target.value=""};
+    $("x-bmsg").textContent=n+" éléments importés. Vos données sont de retour."}catch(err){$("x-bmsg").textContent="Fichier non reconnu."}e.target.value=""};
 let installEvt=null;addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;$("x-install").hidden=false});
 $("x-install").onclick=async()=>{if(!installEvt)return;installEvt.prompt();await installEvt.userChoice;installEvt=null;$("x-install").hidden=true};
 if(window.Capacitor)$("x-inst").hidden=true;
