@@ -54,6 +54,11 @@ async function store(){if(S)return S;
   return S}
 const put=(p,d,o)=>quick(o?S.doc(p).set(d,o):S.doc(p).set(d));
 const upd=(p,d)=>quick(S.doc(p).update(d));
+/* écriture confirmée par le serveur (commandes) : on attend la réponse de Firebase jusqu'à 12 s pour signaler un refus au lieu de « rien ne se passe » */
+function sure(p,d){const pr=S.doc(p).set(d);if(S.kind!=="cloud"||!navigator.onLine)return quick(pr);
+  return Promise.race([pr.then(()=>"ok"),new Promise(r=>setTimeout(()=>r("lent"),12000))])}
+const errTxt=e=>{const c=e&&e.code||"";return c==="permission-denied"?"Envoi refusé par le serveur (accès au Marché). Fermez et rouvrez l'application, puis réessayez ; si cela continue, contactez B2A.":
+  c==="unavailable"?"Pas de connexion au serveur. Réessayez quand le réseau revient.":"La commande n'a pas pu être envoyée"+(c?" ("+c+")":"")+". Vérifiez la connexion."};
 
 /* ---------- 2. état ---------- */
 let noAccess=false,cfg={...DEF},me=null,piece=null,cguOpen=false,pieceOpen=false,boutiques={},openB=null,ficheOpen=false,annonces=[],mesAnnonces=[],recues=[],passees=[],paiements=[];
@@ -144,9 +149,9 @@ function detail(a){const own=S&&a.vendeur===S.uid;const c=el("div","card m-det")
     B.lsSet("b2a-m-tel",tl.value.trim());B.lsSet("b2a-m-ville",vl.value.trim());
     const d={annonce:a.id,titre:a.titre||"",vendeur:a.vendeur,vendeurNom:sh.nom||a.vendeurNom||"",vendeurTel:sh.tel||a.vendeurTel||"",acheteur:S.uid,acheteurNom:nm.value.trim(),acheteurTel:tl.value.trim(),acheteurVille:vl.value.trim(),
       qte:n,unite:a.unite||"",prix:Number(a.prix)||0,total:Math.round(n*(Number(a.prix)||0)*100)/100,devise:a.devise||"XOF",statut:"demande",note:nt.value.trim(),creeLe:S.ts(),majLe:S.ts()};
-    go.disabled=true;try{await put("marche_commandes/"+S.newId("marche_commandes"),d);flashT=Date.now()+15000;flash=`Commande envoyée à ${a.vendeurNom||"au vendeur"} : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (${money(d.total,d.devise)}). Le vendeur va vous contacter.`;open=null;mode="mes";render();window.scrollTo(0,0);
+    go.disabled=true;go.textContent="Envoi de la commande…";m.textContent="";try{const res=await sure("marche_commandes/"+S.newId("marche_commandes"),d);flashT=Date.now()+15000;flash=(res==="lent"?"Réseau lent : la commande part dès que la connexion le permet. ":"")+`Commande envoyée à ${a.vendeurNom||"au vendeur"} : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (${money(d.total,d.devise)}). Le vendeur va vous contacter.`;open=null;mode="mes";render();window.scrollTo(0,0);
       if(ph)window.open("https://wa.me/"+ph+"?text="+encodeURIComponent(`Bonjour ${a.vendeurNom||""}, je viens de commander sur le Marché B2A : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (total ${money(d.total,d.devise)}). ${d.acheteurNom}, ${d.acheteurTel}${d.acheteurVille?", "+d.acheteurVille:""}.${d.note?" "+d.note:""}`),"_blank")}
-    catch(e){console.warn(e);go.disabled=false;bad("La commande n'a pas pu être envoyée. Vérifiez la connexion.")}};
+    catch(e){console.warn(e);go.disabled=false;go.textContent="Envoyer la commande";bad(errTxt(e))}};
   return c}
 
 /* fiche publique de l'entreprise : nom, activité, lieu, horaires, présentation et contact. Rien d'autre. */
