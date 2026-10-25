@@ -14,16 +14,13 @@ service cloud.firestore {
       allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
       allow create: if request.auth != null && request.auth.uid == uid
         && request.resource.data.statut == 'approuve'
-        && request.resource.data.keys().hasOnly(['prenom','nom','ville','pays','elevage','taille','statut','creeLe','vuLe','plateforme','langue','version','appareil','email','ferme'])
+        && request.resource.data.keys().hasOnly(['prenom','nom','ville','pays','elevage','taille','statut','creeLe','vuLe','plateforme','langue','version','appareil'])
         && txt(request.resource.data.prenom, 60) && txt(request.resource.data.nom, 60)
         && txt(request.resource.data.ville, 60) && txt(request.resource.data.pays, 60)
         && txt(request.resource.data.elevage, 60) && txt(request.resource.data.taille, 60);
       // l'utilisateur ne peut changer que sa date de dernière ouverture ; seul le propriétaire peut retirer ou rendre l'accès
-      // email et ferme : permettent de retrouver l'accès et la ferme après une réinstallation (connexion avec le compte)
       allow update: if isAdmin() || (request.auth != null && request.auth.uid == uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vuLe','version','plateforme','email','ferme'])
-        && (!request.resource.data.keys().hasAny(['email']) || request.resource.data.email == null || txt(request.resource.data.email, 100))
-        && (!request.resource.data.keys().hasAny(['ferme']) || request.resource.data.ferme == null || request.resource.data.ferme.matches('^[A-Z0-9]{10}$')));
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vuLe','version','plateforme']));
       allow delete: if isAdmin();
     }
 
