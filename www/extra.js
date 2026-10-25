@@ -268,9 +268,11 @@ if("serviceWorker" in navigator&&!window.Capacitor&&(location.protocol==="https:
   }).catch(()=>{});
 }
 /* application Android (APK) : prévenir quand une nouvelle version est disponible */
-const APP_VERSION=26;
+/* la version installée est celle du fichier version.json livré dans l'APK (avant : nombre fixe, la bannière restait après la mise à jour) */
 if(window.Capacitor&&navigator.onLine){
-  fetch("https://azizyou2005.github.io/b2a-smart-farming/version.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).then(v=>{
+  Promise.all([fetch("version.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null),
+    fetch("https://azizyou2005.github.io/b2a-smart-farming/version.json",{cache:"no-store"}).then(r=>r.ok?r.json():null)]).then(([loc,v])=>{
+    const APP_VERSION=Number(loc&&loc.v)||26;
     if(!v||!(Number(v.v)>APP_VERSION)||document.getElementById("x-upd"))return;
     const d=document.createElement("div");d.id="x-upd";d.setAttribute("role","status");
     d.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:60;background:#1b2e4c;color:#fff;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgb(0 0 0/.3);font:600 14px/1.35 'Source Sans 3',sans-serif";
