@@ -2,7 +2,8 @@ name: Construire et publier B2A Smart Farming
 
 on:
   push:
-    branches: [main]
+    # main : application publiée (site + APK + AAB) · marche : version d'essai du Marché, en ligne seulement sous /essai/
+    branches: [main, marche]
   workflow_dispatch:
 
 permissions:
@@ -22,6 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main          # le site publié vient toujours de main, même quand la branche marche déclenche la publication
           fetch-depth: 0
 
       # Le code publié (site + APK) est compressé et brouillé : plus difficile à lire et à recopier.
@@ -40,7 +42,7 @@ jobs:
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
         run: |
-          if [ -n "$KEYSTORE_B64" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"
+          if [ -n "$KEYSTORE_B64" ] && [ "$GITHUB_REF" = "refs/heads/main" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"
           else
             echo "ok=false" >> "$GITHUB_OUTPUT"
             echo "::warning::Secret ANDROID_KEYSTORE_B64 absent : le site est publié, mais pas d'APK ni d'AAB. Voir LISEZ-MOI.md, étape 1, point 4."
@@ -124,6 +126,25 @@ jobs:
         if: steps.cle.outputs.ok != 'true'
         run: |
           git fetch origin gh-pages 2>/dev/null && git show origin/gh-pages:b2a-smart-farming.apk > www/b2a-smart-farming.apk 2>/dev/null || rm -f www/b2a-smart-farming.apk
+
+      # Version d'essai du Marché (branche marche) : https://azizyou2005.github.io/b2a-smart-farming/essai/
+      # Non indexée, absente de l'APK et de Google Play ; même Firebase que l'application publiée.
+      - name: Ajouter la version d'essai (branche marche)
+        run: |
+          if git fetch -q origin marche 2>/dev/null; then
+            mkdir -p "$RUNNER_TEMP/essai" www/essai
+            git archive origin/marche www | tar -x -C "$RUNNER_TEMP/essai"
+            cp -r "$RUNNER_TEMP/essai/www/." www/essai/
+            rm -f www/essai/b2a-smart-farming.apk
+            sed -i 's/"b2a-v/"b2a-essai-v/; s/keys.filter(k => k !== CACHE)/keys.filter(k => k !== CACHE \&\& k.startsWith("b2a-essai"))/' www/essai/sw.js
+            python3 - <<'PY'
+          p="www/essai/index.html";s=open(p,encoding="utf-8").read()
+          s=s.replace("<head>",'<head><meta name="robots" content="noindex">',1)
+          badge='<div style="position:fixed;left:8px;bottom:96px;z-index:999;background:#c0392b;color:#fff;font:700 11px/1 sans-serif;padding:6px 9px;border-radius:9px;pointer-events:none">VERSION D\'ESSAI</div>'
+          s=s.replace("</body>",badge+"</body>",1);open(p,"w",encoding="utf-8").write(s)
+          PY
+            echo "Version d'essai ajoutée : $(git rev-parse --short origin/marche)"
+          else echo "Pas de branche marche : pas de version d'essai"; fi
 
       - name: Publier sur GitHub Pages (branche gh-pages)
         run: |

@@ -14,7 +14,8 @@ self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
-  if (!CACHEABLE.includes(url.host)) return;            // données Firebase : jamais en cache ici
+  if (!CACHEABLE.includes(url.host)) return;
+  if (url.pathname.includes("/essai/")) return;               // version d'essai : jamais dans le cache de l'application publiée            // données Firebase : jamais en cache ici
   if (url.pathname.endsWith(".apk")) return;
   if (req.mode === "navigate") {                          // page : réseau d'abord, sinon copie locale
     e.respondWith(fetch(req, { cache: "no-cache" }).then(r => { const c = r.clone(); caches.open(CACHE).then(x => x.put("index.html", c)); return r; })
