@@ -71,7 +71,7 @@ function compte(){const v=recues.filter(c=>c.statut==="vendue");const ventes=v.r
   return {nb:v.length,ventes,com,paye,reste:Math.max(0,com-paye),moisV:mois.reduce((p,c)=>p+(Number(c.total)||0),0),moisN:mois.length}}
 
 /* ---------- 4. affichage ---------- */
-function render(){const V=$("v-marche");if(!V||V.hidden)return;
+function render(){try{const sh=$("x-set");if(sh&&!sh.hidden)renderSetM()}catch(e){}const V=$("v-marche");if(!V||V.hidden)return;
   const seg=$("m-seg");seg.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===mode));
   const nNew=recues.filter(c=>c.statut==="demande").length;const vb=seg.querySelector('[data-m="vendre"]');vb.textContent=nNew?`Vendre (${nNew})`:"Vendre";
   const Bd=$("m-body");const keepY=window.scrollY;Bd.innerHTML="";
@@ -154,12 +154,8 @@ function renderSell(Bd){
   K.append(A.kpi("Annonces en vente",String(mesAnnonces.filter(a=>a.statut==="actif").length),mesAnnonces.length+" au total"),
     A.kpi("Commandes à traiter",String(recues.filter(c=>c.statut==="demande"||c.statut==="acceptee").length),recues.filter(c=>c.statut==="demande").length+" nouvelle(s)"),
     A.kpi("Ventes du mois",fmt(C.moisV)+" F",C.moisN+" vente(s)"),
-    A.kpi("Commission B2A à payer",fmt(C.reste)+" F",`${fmt(taux(),1)} % des ventes · déjà payé ${fmt(C.paye)} F`,C.reste>0?"down":null));
+    A.kpi("Ventes totales",fmt(C.ventes)+" F",C.nb+" vente(s) conclue(s)"));
   Bd.append(K);
-  if(C.reste>0){const p=el("div","suggest");p.append(el("span","label","Payer la commission B2A"),el("b",null,fmt(C.reste)+" F"));
-    p.append(el("span","note",cfg.telPaiement?`Par Orange Money ou Moov Money au ${cfg.telPaiement} (${cfg.nomPaiement||"B2A"}), puis envoyez la preuve par WhatsApp. B2A enregistre le paiement.`:"B2A vous indiquera le numéro de paiement (Orange Money ou Moov Money)."));
-    if(cfg.telPaiement){const w=el("a","btn small ghost","Envoyer la preuve par WhatsApp");w.href="https://wa.me/"+tel226(cfg.telPaiement)+"?text="+encodeURIComponent(`Bonjour B2A, je paie ma commission du Marché : ${fmt(C.reste)} F. Vendeur : ${me.nom||""} (${me.tel||""}).`);w.target="_blank";w.rel="noopener";w.style.justifySelf="start";p.append(w)}
-    Bd.append(p)}
   /* commandes reçues */
   const C1=el("section","card");Bd.append(C1);C1.append(el("h2","sec","Commandes reçues"));const act=recues.filter(c=>c.statut==="demande"||c.statut==="acceptee"),old=recues.filter(c=>c.statut!=="demande"&&c.statut!=="acceptee");
   if(!act.length)C1.append(el("p","note","Aucune commande en attente."));act.forEach(c=>C1.append(orderCard(c,"vendeur")));
@@ -177,7 +173,7 @@ function renderSell(Bd){
   C3.append(el("p","note","Voici ce que voient les acheteurs : vos produits en vente et cette fiche."));
   C3.append(sellerBox(S.uid,boutiques[S.uid]||{nom:me.nom,tel:me.tel,ville:me.ville},null,false));
   const pv=el("p","msg good m-priv","Vos lots, saisies, effectifs, aliment, ventes, factures, dépenses et commissions restent privés : aucun acheteur ne peut les voir.");C3.append(pv);
-  C3.append(el("p","note",`Commission B2A : ${fmt(taux(),1)} % sur chaque vente conclue.`))}
+}
 function ficheForm(){const b=boutiques[S.uid]||{nom:me.nom,tel:me.tel,ville:me.ville};const c=el("section","card");const bk=el("button","back","‹ Annuler");bk.type="button";bk.onclick=()=>{ficheOpen=false;render()};c.append(bk);
   c.append(el("h2","sec","Ma fiche entreprise"),el("p","note","Informations publiques, visibles par les acheteurs. N'y mettez rien de confidentiel."));
   const g=el("div","grid2");const fld=(lab,val,ph,max,type)=>{const f=el("div","field");const l=el("label",null,lab);const i=el("input");i.type=type||"text";i.id="m-f-"+Math.random().toString(36).slice(2,7);l.htmlFor=i.id;i.value=val||"";if(ph)i.placeholder=ph;i.maxLength=max||60;f.append(l,i);g.append(f);return i};
@@ -194,7 +190,7 @@ async function saveShop(d){const body={...d,majLe:S.ts()};await put("marche_bout
 function becomeSeller(){const c=el("section","card m-join");c.append(el("h2","sec","Vendez vos produits sur le Marché B2A"));
   const ul=el("ul","plain");["Publiez vos œufs, animaux, poussins, aliment, plants, récoltes… : visibles tout de suite par tous les utilisateurs de B2A Smart Farming.",
     "Les clients commandent dans l'application ou vous écrivent sur WhatsApp ; vous êtes payé directement (espèces, Orange Money, Moov Money).",
-    `Commission B2A : ${fmt(Number(cfg.taux)||0,1)} % seulement sur les ventes conclues. Pas de vente, rien à payer.`,"Vos lots se transforment en annonce en un geste (œufs, réformes, récoltes…)."].forEach(t=>ul.append(el("li",null,t)));c.append(ul);
+    "Vous ne payez rien pour publier : une petite commission seulement sur les ventes conclues (voir les conditions ci-dessous).","Vos lots se transforment en annonce en un geste (œufs, réformes, récoltes…)."].forEach(t=>ul.append(el("li",null,t)));c.append(ul);
   const g=el("div","grid2");const fld=(id,lab,type,val,ph)=>{const f=el("div","field");const l=el("label",null,lab);l.htmlFor=id;const i=el("input");i.type=type;i.id=id;i.value=val||"";if(ph)i.placeholder=ph;i.maxLength=60;f.append(l,i);g.append(f);return i};
   const n=fld("m-j-nom","Nom de la boutique ou de la ferme","text",B.lsGet(B.LS_NAME)||"","ex. B2A Élevage Bayere");const t=fld("m-j-tel","Numéro WhatsApp","tel",B.lsGet("b2a-m-tel")||"","ex. 70 12 34 56");
   const v=fld("m-j-ville","Ville","text",B.lsGet("b2a-m-ville")||"","ex. Ouagadougou");const ac=fld("m-j-act","Activité","text","","ex. Élevage de poules pondeuses");c.append(g);
@@ -256,7 +252,6 @@ function orderCard(c,side){const w=el("div","m-order");const st=ST[c.statut]||ST
   w.append(el("span",null,`${fmt(c.qte)} ${c.unite||""} × ${fmt(c.prix)} F = ${fmt(c.total)} F`));
   const who=side==="vendeur"?[c.acheteurNom,c.acheteurTel,c.acheteurVille]:[c.vendeurNom,c.vendeurTel];w.append(notr(el("small",null,who.filter(Boolean).join(" · ")+" · "+fd(c.creeLe))));
   if(c.note)w.append(notr(el("small","m-note","« "+c.note+" »")));
-  if(side==="vendeur"&&c.statut==="vendue"&&c.commission)w.append(el("small",null,`Commission B2A : ${fmt(c.commission)} F (${fmt(c.taux,1)} %)`));
   const r=el("div","row");const ph=tel226(side==="vendeur"?c.acheteurTel:c.vendeurTel);
   if(ph){const wa=el("a","btn small ghost","WhatsApp");wa.href="https://wa.me/"+ph;wa.target="_blank";wa.rel="noopener";const tl=el("a","btn small ghost","Appeler");tl.href="tel:+"+ph;r.append(wa,tl)}
   const act=(t,cls,fn)=>{const b=el("button","btn small "+cls,t);b.type="button";b.onclick=async()=>{b.disabled=true;try{await fn()}catch(e){console.warn(e);b.disabled=false}};r.append(b)};
@@ -272,6 +267,18 @@ function orderCard(c,side){const w=el("div","m-order");const st=ST[c.statut]||ST
 function renderMine(Bd){if(flash&&Date.now()<flashT){Bd.append(el("p","msg good m-flash",flash))}const C=el("section","card");Bd.append(C);C.append(el("h2","sec","Mes commandes"));
   if(!passees.length){C.append(el("p","note","Vous n'avez encore rien commandé. Touchez « Acheter » pour voir les produits en vente."));return}
   passees.forEach(c=>C.append(orderCard(c,"acheteur")))}
+
+/* ---------- 4 bis. commission : visible seulement dans Réglages, pour le vendeur ---------- */
+function renderSetM(){const sh=$("x-set");if(!sh)return;let sec=$("m-set");
+  if(!isSeller()){if(sec)sec.remove();return}
+  if(!sec){sec=el("section","card");sec.id="m-set";const at=sh.querySelector("#x-acct")||sh.querySelector(".sheet-head");const host=sh.querySelector(".sheet-in");
+    const after=[...host.children].find(x=>x.tagName==="SECTION");host.insertBefore(sec,after||null)}
+  sec.innerHTML="";const C=compte();sec.append(el("h3","sec","Marché B2A : ma commission"));
+  sec.append(el("p","note",`Commission B2A : ${fmt(taux(),1)} % sur chaque vente conclue (déclarée « Vendu » dans le Marché).`));
+  const K=el("div","kpis");K.append(A.kpi("Commission totale",fmt(C.com)+" F",C.nb+" vente(s)"),A.kpi("Déjà payé",fmt(C.paye)+" F"),A.kpi("Reste à payer",fmt(C.reste)+" F",null,C.reste>0?"down":null));sec.append(K);
+  if(C.reste>0){sec.append(el("p","note",cfg.telPaiement?`Payez par Orange Money ou Moov Money au ${cfg.telPaiement} (${cfg.nomPaiement||"B2A"}), puis envoyez la preuve par WhatsApp : B2A enregistre le paiement.`:"B2A vous indiquera le numéro de paiement (Orange Money ou Moov Money)."));
+    if(cfg.telPaiement){const w=el("a","btn small ghost","Envoyer la preuve par WhatsApp");w.href="https://wa.me/"+tel226(cfg.telPaiement)+"?text="+encodeURIComponent(`Bonjour B2A, je paie ma commission du Marché : ${fmt(C.reste)} F. Vendeur : ${me.nom||""} (${me.tel||""}).`);w.target="_blank";w.rel="noopener";sec.append(w)}}}
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest(".gearbtn"))setTimeout(()=>{listen();renderSetM()},60)});
 
 /* ---------- 5. onglet ---------- */
 const V=$("v-marche");if(!V)return;
