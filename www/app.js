@@ -29,6 +29,8 @@ function dbMsg(t,err){const m=$("dbmsg");m.hidden=!t;m.textContent=t||"";m.class
 
 /* ---------- stats ---------- */
 function isLayer(l){return /pondeuse/i.test(l.espece||"")}
+function isCrop(l){return !!l&&l.type==="culture"}
+const CC=()=>window.B2A_CULT||null;
 function stats(l){
   const rows=saisies.filter(s=>s.lotId===l.id).sort((a,b)=>a.date<b.date?-1:1);
   let alive=(Number(l.effectif)||0)-(Number(l.mortsAvant)||0);const out=[];
@@ -128,7 +130,7 @@ const PROG={
 function progKey(l){const e=l.espece||"";return /poisson|tilapia|silure|clarias/i.test(e)?"poisson":/pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade/i.test(e)?"local":/chèvre|mouton/i.test(e)?"petitsrum":/bovin|vache/i.test(e)?"bovin":/porc/i.test(e)?"porc":null}
 const dAdd=(isoD,n)=>{const d=new Date(isoD+"T12:00");d.setDate(d.getDate()+Math.round(n));return iso(d)};
 function programme(l){
-  const out=[];const key=progKey(l);if(key&&l.arrivee){const P=PROG[key];const age0=(Number(l.ageArrivee)||0)*7;
+  const out=isCrop(l)?(CC()?CC().programme(l,soins):[]):[];const key=isCrop(l)?null:progKey(l);if(key&&l.arrivee){const P=PROG[key];const age0=(Number(l.ageArrivee)||0)*7;
     const endJ=P.mode==="age"?(Number(l.ageFin)||defaultEnd(l))*7:730;
     P.items.forEach(it=>{const js=[];if(it.every){for(let j=it.j;j<=endJ-21;j+=it.every)js.push(j)}else js.push(it.j);
       js.forEach(j=>{const date=P.mode==="age"?dAdd(l.arrivee,j-1-age0):dAdd(l.arrivee,j);if(date<l.arrivee)return;
@@ -149,11 +151,13 @@ function feedStock(l,s){
   return {stock,daily,days,rupture:addDays(days),order,qty,cost:qty*(Number(l.prixAliment)||0)};
 }
 function allAlerts(l,s){
-  const A=s.alerts.slice();const t=today();
+  const crop=isCrop(l);const A=crop?(CC()?CC().alerts(l):[]):s.alerts.slice();const t=today();
   const prog=programme(l);const late=prog.filter(p=>!p.done&&daysBetween(p.date,t)>=1);
-  if(late.length)A.unshift(["bad",`${late.length} soin(s) en retard, dont « ${late[late.length-1].nom} » prévu le ${fdate(late[late.length-1].date)} : marquez-les faits ou rattrapez-les.`,"cal"]);
+  if(late.length&&crop)A.unshift(["bad",`${late.length} travaux en retard, dont « ${late[late.length-1].nom} » prévu le ${fdate(late[late.length-1].date)} : marquez-les faits dans le calendrier.`,"cal"]);
+  else if(late.length)A.unshift(["bad",`${late.length} soin(s) en retard, dont « ${late[late.length-1].nom} » prévu le ${fdate(late[late.length-1].date)} : marquez-les faits ou rattrapez-les.`,"cal"]);
   prog.filter(p=>!p.done&&daysBetween(t,p.date)>=0&&daysBetween(t,p.date)<=3).forEach(p=>{const d=daysBetween(t,p.date);
     A.push([d===0?"bad":"warn",`${p.type==="vaccin"?"Vaccin":p.type==="traitement"?"Traitement":"À faire"} ${d===0?"aujourd'hui":d===1?"demain":"dans "+d+" jours"} : ${p.nom}.`,"cal"])});
+  if(crop){const o0={bad:0,warn:1,info:2,ok:3};return A.sort((a,b)=>o0[a[0]]-o0[b[0]])}
   const fs=feedStock(l,s);
   if(fs){if(fs.stock<=0)A.unshift(["bad",`Stock d'aliment épuisé selon les saisies. Acheter environ ${fmt(fs.qty)} kg (≈ ${fmt(fs.cost)} F pour 4 semaines), puis noter l'achat dans la saisie du jour.`,"feed"]);
     else if(fs.days<=3)A.unshift(["bad",`Rupture d'aliment dans ${fmt(fs.days)} jour(s) : il reste ${fmt(fs.stock)} kg. Acheter environ ${fmt(fs.qty)} kg (≈ ${fmt(fs.cost)} F pour 4 semaines).`,"feed"]);
@@ -188,11 +192,12 @@ function renderHome(){
   const act=lots.filter(l=>l.actif!==false);const T=$("tiles");T.innerHTML="";
   if(!act.length){T.hidden=true;return}T.hidden=false;
   let animaux=0,oeufs=0,hasEggs=false,nb=0,nw=0,next=null;
-  act.forEach(l=>{const s=stats(l);animaux+=s.alive;if(isLayer(l)){hasEggs=true;const r=s.rows.find(r=>r.date===today());if(r&&r.oeufs!=null)oeufs+=r.oeufs}
+  act.forEach(l=>{const s=stats(l);if(!isCrop(l))animaux+=s.alive;if(isLayer(l)){hasEggs=true;const r=s.rows.find(r=>r.date===today());if(r&&r.oeufs!=null)oeufs+=r.oeufs}
     allAlerts(l,s).forEach(a=>{if(a[0]==="bad")nb++;else if(a[0]==="warn")nw++});
     programme(l).filter(p=>!p.done&&p.date>=today()).slice(0,1).forEach(p=>{if(!next||p.date<next.p.date)next={p,l}})});
   const tile=(lbl,val,sm,cls,fn)=>{const t=el(fn?"button":"div","tile"+(cls?" "+cls:""));if(fn){t.type="button";t.onclick=fn}t.append(el("span",null,lbl),el("b",null,val));if(sm)t.append(el("small",null,sm));T.append(t)};
-  tile("Animaux",fmt(animaux),act.length+" lot"+(act.length>1?"s":""));
+  {const na=act.filter(l=>!isCrop(l)).length,cr=act.filter(isCrop);if(na||!cr.length)tile("Animaux",fmt(animaux),na+" lot"+(na>1?"s":""));
+   if(cr.length&&CC())tile("Cultures",CC().surfTxt(cr),cr.length+" lot"+(cr.length>1?"s":""),null,()=>openLot(cr[0].id))}
   if(hasEggs)tile("Œufs aujourd'hui",fmt(oeufs),fmt(oeufs/30,1)+" plateaux",null,()=>show("saisie"));
   tile("Alertes",String(nb+nw),nb?nb+" urgente"+(nb>1?"s":""):"rien d'urgent",nb?"bad":nw?"warn":"ok",()=>$("alertcard").scrollIntoView({behavior:"smooth"}));
   if(next){const d=daysBetween(today(),next.p.date);tile("Prochain soin",d===0?"Aujourd'hui":d===1?"Demain":"Dans "+d+" j",next.p.nom,d<=1?"warn":null,()=>show("calendrier"))}
@@ -220,7 +225,7 @@ async function renderCal(){
   // upcoming 30 days, all lots
   const up=$("upcoming");up.innerHTML="";const t=today();let items=[];
   act.forEach(l=>{const s=stats(l);programme(l).filter(p=>!p.done&&daysBetween(t,p.date)>=-0&&daysBetween(t,p.date)<=30).forEach(p=>items.push([p,l]));
-    const fs=feedStock(l,s);if(fs&&fs.days<=35)items.push([{code:"feed",nom:`Acheter l'aliment (≈ ${fmt(fs.qty)} kg, ${fmt(fs.cost)} F)`,type:"conduite",voie:`stock actuel ${fmt(fs.stock)} kg`,date:iso(fs.order),virtual:true},l]);
+    if(isCrop(l))return;const fs=feedStock(l,s);if(fs&&fs.days<=35)items.push([{code:"feed",nom:`Acheter l'aliment (≈ ${fmt(fs.qty)} kg, ${fmt(fs.cost)} F)`,type:"conduite",voie:`stock actuel ${fmt(fs.stock)} kg`,date:iso(fs.order),virtual:true},l]);
     const ph=feedPhase(l,s.ageW);if(ph&&ph.next){const dt=dAdd(l.arrivee,(ph.next[0]-(Number(l.ageArrivee)||0))*7);if(daysBetween(t,dt)>=0&&daysBetween(t,dt)<=30)items.push([{code:"ph",nom:`Passer à l'aliment ${ph.next[1]}`,type:"conduite",voie:"transition sur 3 à 5 jours",date:dt,virtual:true},l])}});
   items.sort((a,b)=>a[0].date<b[0].date?-1:1);
   if(!items.length)up.append(el("li",null,act.length?"Rien de prévu dans les 30 prochains jours.":"Créez un lot pour générer son calendrier."));
@@ -228,13 +233,13 @@ async function renderCal(){
   // lot calendar
   const body=$("calbody");body.innerHTML="";$("feedbox").innerHTML="";
   const l=act.find(x=>x.id===calLot);$("c-add").hidden=!l||!canWrite||!db;if(!l)return;
-  const s=stats(l);const fs=feedStock(l,s),ph=feedPhase(l,s.ageW);
+  const s=stats(l);const crop=isCrop(l);const fs=crop?null:feedStock(l,s),ph=crop?null:feedPhase(l,s.ageW);
   const K=el("div","kpis");if(ph)K.append(kpi("Aliment conseillé",ph.cur,ph.next?`« ${ph.next[1]} » à ${ph.next[0]} sem.`:"jusqu'à la fin du cycle"));
   if(fs){K.append(kpi("Stock d'aliment",fmt(Math.max(0,fs.stock))+" kg",fs.stock<=0?"épuisé : commander":`≈ ${fmt(fs.days)} jours (${fmt(fs.daily)} kg/jour)`,fs.days<=7?"down":null));
     K.append(kpi("Prochain achat",fs.order.toLocaleDateString("fr-FR",{day:"numeric",month:"short"}),`≈ ${fmt(fs.qty)} kg · ${fmt(fs.cost)} F`))}
   else K.append(kpi("Stock d'aliment","—","à indiquer dans Modifier"));
-  $("feedbox").append(K);
-  const prog=programme(l);if(!prog.length){body.append(el("p","note","Pas de programme type pour cette espèce. Ajoutez vos soins ci-dessous."));return}
+  if(!crop)$("feedbox").append(K);
+  const prog=programme(l);if(!prog.length){body.append(el("p","note",crop?"Indiquez la date de semis du lot pour générer son calendrier cultural.":"Pas de programme type pour cette espèce. Ajoutez vos soins ci-dessous."));return}
   await loadNames([...new Set(prog.map(p=>p.by).filter(Boolean))]);
   const late=prog.filter(p=>!p.done&&daysBetween(p.date,t)>=1),next=prog.filter(p=>!p.done&&daysBetween(p.date,t)<1),done=prog.filter(p=>p.done);
   if(late.length){const h=el("div","row between");h.append(el("h3","sec",`En retard (${late.length})`));
@@ -641,6 +646,7 @@ const PRODS=[
  ["lait","Lait","litre",l=>Number(l.prixOeuf)||0],
  ["aliment","Aliment","kg",l=>Number(l.prixAlimentAlt)||Number(l.prixAliment)||0],
  ["fumier","Fumier","sac",()=>0],
+ ["recolte","Récolte (produits de culture)","kg",l=>Number(l.prixVente)||0],
  ["autre","Autre","unité",()=>0]];
 const prodOf=k=>PRODS.find(p=>p[0]===k)||PRODS[PRODS.length-1];
 const STAT={payee:["Payée","ok"],acompte:["Acompte","warn"],apayer:["À payer","bad"]};
@@ -718,7 +724,7 @@ function openFacture(f){vEdit=f||null;$("v-form").hidden=false;$("v-listcard").h
   if(!f)applyLotPrices();renderVLines();renderVStat();$("v-msg").textContent="";window.scrollTo(0,0)}
 function closeFacture(){$("v-form").hidden=true;$("v-listcard").hidden=false;$("v-tiles").hidden=false;$("v-entbox").hidden=false;vEdit=null;renderVentes();window.scrollTo(0,0)}
 function applyLotPrices(){const l=lots.find(x=>x.id===$("v-lot").value);if(!l)return;
-  if(vLines.length===1&&!vLines[0].desc){const k=isLayer(l)?"oeufs_plateau":isDairy(l)?"lait":isPoultry(l)?(Number(l.prixKg)?"poulets_kg":"poulets"):(Number(l.prixKg)?"animaux_kg":"animaux");vLines[0].prod=k}
+  if(vLines.length===1&&!vLines[0].desc){const k=isCrop(l)?"recolte":isLayer(l)?"oeufs_plateau":isDairy(l)?"lait":isPoultry(l)?(Number(l.prixKg)?"poulets_kg":"poulets"):(Number(l.prixKg)?"animaux_kg":"animaux");vLines[0].prod=k}
   vLines.forEach(x=>{if(!Number(x.pu)){const p=prodOf(x.prod)[3](l);if(p)x.pu=Math.round(p)}})}
 function renderVLines(){const B=$("v-lines");B.innerHTML="";
   vLines.forEach((x,i)=>{const r=el("div","vline");
@@ -798,7 +804,7 @@ function renderLots(){
     if(db)e.append(el("span",null,"Créez votre premier lot (ex. vos pondeuses ISA Brown) pour suivre la ponte, la mortalité et l'aliment."));
     L.append(e);$("lotdetail").hidden=true;$("home").hidden=false;detailOpen=false;fillLotSelects();renderGlobalAlerts();return;}
   if(selLot&&!act.find(l=>l.id===selLot)){selLot=null;detailOpen=false}
-  act.forEach(l=>{const s=stats(l);const AA=allAlerts(l,s);const lev=AA.some(a=>a[0]==="bad")?"bad":AA.some(a=>a[0]==="warn")?"warn":"ok";const b=el("button","lot");b.type="button";
+  act.forEach(l=>{if(isCrop(l)){if(CC())L.append(CC().card(l));return}const s=stats(l);const AA=allAlerts(l,s);const lev=AA.some(a=>a[0]==="bad")?"bad":AA.some(a=>a[0]==="warn")?"warn":"ok";const b=el("button","lot");b.type="button";
     {const av=el("span","av");av.innerHTML=isPoultry(l)?'<svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="13" rx="6.5" ry="8"/></svg>':isDairy(l)?'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3.5 4.5 6 8 6 11a6 6 0 0 1-12 0c0-3 2.5-6.5 6-11z"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13l8-7 8 7"/><path d="M8 13v6h8v-6"/></svg>';b.append(av)}b.append(notr(el("b",null,l.nom||"Lot")));
     const parts=[l.race||l.espece,fmt(s.alive)+" sujets"];if(isLayer(l)&&s.last&&s.last.ponte!=null)parts.push("ponte "+fmt(s.last.ponte,1)+" %");if(isDairy(l)&&s.lait7!=null)parts.push(fmt(s.lait7,1)+" L/tête/j");if(!hasProd(l)&&s.poids!=null)parts.push(fmtW(l,s.poids));
     b.append(el("small",null,parts.filter(Boolean).join(" · ")));
@@ -1070,6 +1076,7 @@ async function renderDetail(){
   if(formOpen){$("home").hidden=true;D.hidden=true;return}
   $("home").hidden=!!(detailOpen&&l);
   if(!l||!detailOpen){D.hidden=true;return}
+  if(isCrop(l)){D.hidden=false;D.innerHTML="";if(CC())CC().detail(D,l);return}
   const s=stats(l);await loadNames([...new Set(s.rows.slice(-30).map(r=>r.by).filter(Boolean))]);if(my!==rt)return;
   D.hidden=false;D.innerHTML="";
   const H=el("div","detail-head");const bk=el("button","back","‹ Mes lots");bk.type="button";bk.onclick=closeLot;H.append(bk);
@@ -1136,7 +1143,7 @@ async function loadNames(ids){const miss=ids.filter(i=>!(i in names));if(!miss.l
 
 /* ---------- lot form ---------- */
 let formOpen=false,lStep=0;
-function openLotForm(l){editLot=l||null;formOpen=true;lStep=0;$("lotform-card").hidden=false;$("home").hidden=true;$("lotdetail").hidden=true;$("lotform-title").textContent=l?"Modifier le lot":"Nouveau lot";
+function openLotForm(l){if(l&&isCrop(l)&&CC()){CC().form(l);return}editLot=l||null;formOpen=true;lStep=0;$("lotform-card").hidden=false;$("home").hidden=true;$("lotdetail").hidden=true;$("lotform-title").textContent=l?"Modifier le lot":"Nouveau lot";
   $("l-nom").value=l?l.nom||"":"";$("l-espece").value=l?l.espece||"Poules pondeuses":"Poules pondeuses";$("l-race").value=l?l.race||"":"";
   $("l-effectif").value=l?l.effectif??"":"";$("l-arrivee").value=l?l.arrivee||"":today();$("l-age").value=l?l.ageArrivee??0:0;
   $("l-paliment").value=l?l.prixAliment??"":"";$("l-pkg").value=l?l.prixKg??"":"";$("l-pvente").value=l?l.prixOeuf??"":"";$("l-close").hidden=!l;$("l-msg").textContent="";if(l&&l.espece&&![...$("l-espece").options].some(o=>o.value===l.espece)){const o=el("option",null,l.espece);$("l-espece").append(o);$("l-espece").value=l.espece}
@@ -1155,7 +1162,7 @@ function renderStep(){document.querySelectorAll("#lotform-card .wiz-step").forEa
 $("l-next").onclick=()=>{if(!stepOk())return;lStep=Math.min(3,lStep+1);renderStep();window.scrollTo(0,0)};
 $("l-prev").onclick=()=>{lStep=Math.max(0,lStep-1);renderStep();window.scrollTo(0,0)};
 document.querySelectorAll("#l-steps li").forEach(li=>li.onclick=()=>{const i=Number(li.dataset.i);if(i>lStep&&!stepOk())return;lStep=i;renderStep()});
-$("btn-newlot").onclick=()=>openLotForm(null);
+$("btn-newlot").onclick=()=>CC()?CC().choose():openLotForm(null);
 function syncSpeciesForm(){const fake={espece:$("l-espece").value,ageArrivee:N($("l-age").value)||0};
   $("l-agefin").placeholder=defaultEnd(fake)+" par défaut";
   $("l-pvente").closest(".field").hidden=!hasProd(fake);$("l-pvente-lbl").textContent=isDairy(fake)?"Prix de vente d'un litre de lait (FCFA)":"Prix de vente d'un œuf (FCFA)";
@@ -1182,12 +1189,12 @@ function errText(e){const c=e&&e.code;return c==="invalid_argument"?"Vous n'avez
 
 /* ---------- saisie ---------- */
 function fillLotSelects(){
-  const act=lots.filter(l=>l.actif!==false);
+  const all=lots.filter(l=>l.actif!==false),act=all.filter(l=>!isCrop(l));
   const s=$("s-lot"),keep=s.value;s.innerHTML="";act.forEach(l=>{const o=notr(el("option",null,l.nom));o.value=l.id;s.append(o)});
   if(act.find(l=>l.id===keep))s.value=keep;else if(selLot)s.value=selLot;
-  const c=$("ctx-lot"),k2=c.value;c.innerHTML="";const o0=el("option",null,"Aucun");o0.value="";c.append(o0);act.forEach(l=>{const o=notr(el("option",null,l.nom));o.value=l.id;c.append(o)});c.value=k2||"";
+  const c=$("ctx-lot"),k2=c.value;c.innerHTML="";const o0=el("option",null,"Aucun");o0.value="";c.append(o0);all.forEach(l=>{const o=notr(el("option",null,l.nom));o.value=l.id;c.append(o)});c.value=k2||"";
   $("s-save").disabled=!act.length||!canWrite||!db;
-  if(!act.length&&db)sMsg("Créez d'abord un lot dans le tableau de bord.");
+  if(!act.length&&db)sMsg(all.length?"La saisie du jour concerne les lots d'animaux. Pour une culture, notez les travaux dans la fiche du lot.":"Créez d'abord un lot dans le tableau de bord.");
 }
 function sMsg(t,cls){$("s-msg").textContent=t||"";$("s-msg").className="msg"+(cls?" "+cls:"")}
 function loadSaisie(){const id=$("s-lot").value,d=$("s-date").value;const s=saisies.find(x=>x.lotId===id&&x.date===d);
@@ -1223,7 +1230,9 @@ $("s-save").onclick=async()=>{
   renderLots();loadSaisie();
 })();
 /* accès pour les modules complémentaires (plus.js) */
-window.B2A.app={db:()=>db,me:()=>me,can:()=>canWrite,lots:()=>lots.filter(l=>l.actif!==false),stats,allAlerts,programme,isLayer,isDairy,fmt,fdate,today,show,openLot,factures:()=>factures,facTotals,spName:l=>sp(l).sale};
+window.B2A.app={isCrop,kpi,alertList,calItem,errText,loadNames,names,openLotForm,closeLot,renderLots,renderDetail,notr,
+  saisies:()=>saisies,soins:()=>soins,allLots:()=>lots,CULT,ENG,pEng,setForm:v=>{formOpen=v},setSel:(id,open)=>{selLot=id;detailOpen=!!open},setCalLot:id=>{calLot=id},
+  db:()=>db,me:()=>me,can:()=>canWrite,lots:()=>lots.filter(l=>l.actif!==false),stats,allAlerts,programme,isLayer,isDairy,fmt,fdate,today,show,openLot,factures:()=>factures,facTotals,spName:l=>sp(l).sale};
 
 /* ---------- diagnostic ---------- */
 const OBJ={animal:["Non précisé","Ponte","Chair / engraissement","Lait","Reproduction / élevage","Traction"],
@@ -1245,7 +1254,7 @@ function updateBtn(){$("analyse").disabled=!(sample&&files.length&&!ctl);
   const lim=await s.limits().catch(()=>null);if(!lim||!lim.images){setMsg("L'envoi de photos n'est pas disponible ici.",true);return}
   sample=s;updateBtn()}catch(e){setMsg("L'analyse n'est pas disponible ici.",true)}})();
 
-function lotContext(id){const l=lots.find(x=>x.id===id);if(!l)return "";const s=stats(l);
+function lotContext(id){const l=lots.find(x=>x.id===id);if(!l)return "";if(isCrop(l))return CC()?CC().context(l):"";const s=stats(l);
   return `\nDONNÉES DU LOT « ${l.nom} » : ${l.espece}, ${l.race||"race non précisée"}, âge ≈ ${s.ageW} semaines, effectif ${s.alive} (départ ${l.effectif}), mortalité 7 j : ${s.morts7}, cumulée ${fmt(s.mortsTotPct,1)} %` +
     ", "+prodSummary(l,s)+`, aliment ${fmt(s.gpj7)} g/sujet/jour. Alertes : ${s.alerts.map(a=>a[1]).join(" ")||"aucune"}.\n`}
 function prompt(){
