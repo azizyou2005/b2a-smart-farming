@@ -100,6 +100,17 @@ service cloud.firestore {
         && txt(request.resource.data.nom, 60) && txt(request.resource.data.tel, 30) && txt(request.resource.data.ville, 60));
       allow delete: if isAdmin();
     }
+    // Fiche publique de l'entreprise : la seule information du vendeur visible par les acheteurs (nom, activité, lieu, contact).
+    // Les données de gestion (lots, saisies, ventes, commissions…) restent dans farms/<code> ou marche_vendeurs, jamais lisibles par les acheteurs.
+    match /marche_boutiques/{uid} {
+      allow read: if approved() || isAdmin();
+      allow create, update: if approved() && request.auth.uid == uid && seller()
+        && request.resource.data.keys().hasOnly(['nom','activite','ville','quartier','tel','horaires','desc','majLe'])
+        && txt(request.resource.data.nom, 60) && txt(request.resource.data.get('activite',''), 60) && txt(request.resource.data.ville, 60)
+        && txt(request.resource.data.get('quartier',''), 60) && txt(request.resource.data.tel, 30) && txt(request.resource.data.get('horaires',''), 60)
+        && txt(request.resource.data.get('desc',''), 400);
+      allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+    }
     match /marche_annonces/{id} {
       allow read: if approved() || isAdmin();
       allow create: if approved() && seller() && request.resource.data.vendeur == request.auth.uid

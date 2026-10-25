@@ -8,7 +8,8 @@
    marche_annonces/<id>   { vendeur, vendeurNom, vendeurTel, ville, cat, titre, desc, prix, unite, qte, photo, statut: actif|epuise|retire, creeLe, majLe }
    marche_commandes/<id>  { annonce, titre, vendeur, vendeurNom, vendeurTel, acheteur, acheteurNom, acheteurTel, acheteurVille, qte, unite, prix, total,
                             statut: demande|acceptee|refusee|vendue|annulee, taux, commission, creeLe, majLe, note }
-   marche_vendeurs/<uid>  { statut: actif|suspendu, nom, tel, ville, taux, accepteLe }
+   marche_boutiques/<uid> { nom, activite, ville, quartier, tel, horaires, desc, majLe }   (fiche publique de l'entreprise, seule visible par les acheteurs)
+   marche_vendeurs/<uid>  { statut: actif|suspendu, nom, tel, ville, taux, accepteLe }      (privé : vendeur et B2A)
    marche_paiements/<id>  { vendeur, montant, date, note }   (écrit par B2A)
    marche_config/global   { taux, telPaiement, nomPaiement }  (écrit par B2A) */
 (function(){
@@ -43,7 +44,7 @@ const put=(p,d)=>quick(S.doc(p).set(d));
 const upd=(p,d)=>quick(S.doc(p).update(d));
 
 /* ---------- 2. état ---------- */
-let cfg={...DEF},me=null,annonces=[],mesAnnonces=[],recues=[],passees=[],paiements=[];
+let cfg={...DEF},me=null,boutiques={},openB=null,ficheOpen=false,annonces=[],mesAnnonces=[],recues=[],passees=[],paiements=[];
 let flashT=0,flash="",mode="acheter",cat="",q="",ville="",open=null,editA=null,formOpen=false,started=false;
 const subs=[];
 function listen(){if(started)return;started=true;
@@ -51,6 +52,7 @@ function listen(){if(started)return;started=true;
     const err=e=>console.warn("marché",e);
     subs.push(s.doc("marche_config/global").onSnapshot(d=>{cfg={...DEF,...(d.exists?d.data():{})};render()},err));
     subs.push(s.doc("marche_vendeurs/"+s.uid).onSnapshot(d=>{me=d.exists?d.data():null;render()},err));
+    subs.push(s.col("marche_boutiques").limit(1000).onSnapshot(x=>{boutiques={};x.docs.forEach(d=>boutiques[d.id]=d.data());render()},err));
     subs.push(s.col("marche_annonces").where("statut","==","actif").limit(500).onSnapshot(x=>{annonces=x.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));render()},err));
     subs.push(s.col("marche_annonces").where("vendeur","==",s.uid).onSnapshot(x=>{mesAnnonces=x.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));render()},err));
     subs.push(s.col("marche_commandes").where("vendeur","==",s.uid).onSnapshot(x=>{recues=x.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));render();badge()},err));
@@ -76,8 +78,11 @@ function render(){const V=$("v-marche");if(!V||V.hidden)return;
   if(mode==="acheter")renderBuy(Bd);else if(mode==="vendre")renderSell(Bd);else renderMine(Bd);
   window.scrollTo(0,keepY)}
 
-/* --- acheter --- */
+/* --- acheter : les acheteurs voient seulement les produits en vente et la fiche publique du vendeur --- */
+const enVente=()=>annonces.filter(a=>a.statut==="actif"&&!(a.qte!=null&&Number(a.qte)<=0));
+const shop=a=>boutiques[a.vendeur]||{nom:a.vendeurNom,tel:a.vendeurTel,ville:a.ville};
 function renderBuy(Bd){
+  if(openB){Bd.append(shopView(openB));return}
   if(open){const a=annonces.find(x=>x.id===open)||mesAnnonces.find(x=>x.id===open);if(a){Bd.append(detail(a));return}open=null}
   const f=el("section","card m-filters");const s=el("input");s.type="search";s.placeholder="Rechercher : œufs, maïs, poussins…";s.value=q;s.setAttribute("aria-label","Rechercher");
   s.oninput=()=>{q=s.value;renderList(L)};const v=el("input");v.type="search";v.placeholder="Ville";v.value=ville;v.setAttribute("aria-label","Ville");v.style.maxWidth="160px";v.oninput=()=>{ville=v.value;renderList(L)};
@@ -85,24 +90,23 @@ function renderBuy(Bd){
   const ch=el("div","m-chips");[["","Tout"],...CATS].forEach(([k,n])=>{const b=el("button","chip",n);b.type="button";b.setAttribute("aria-pressed",cat===k);b.onclick=()=>{cat=k;ch.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b));renderList(L)};ch.append(b)});
   f.append(ch);const L=el("div","m-grid");f.append(L);Bd.append(f);renderList(L)}
 function renderList(L){L.innerHTML="";const qq=q.trim().toLowerCase(),vv=ville.trim().toLowerCase();
-  const list=annonces.filter(a=>(!cat||a.cat===cat)&&(!qq||[a.titre,a.desc,CN(a.cat),a.vendeurNom].join(" ").toLowerCase().includes(qq))&&(!vv||String(a.ville||"").toLowerCase().includes(vv)));
+  const list=enVente().filter(a=>(!cat||a.cat===cat)&&(!qq||[a.titre,a.desc,CN(a.cat),a.vendeurNom].join(" ").toLowerCase().includes(qq))&&(!vv||String(a.ville||"").toLowerCase().includes(vv)));
   if(!list.length){const e=el("div","empty");e.append(el("strong",null,annonces.length?"Aucun produit ne correspond":"Aucun produit en vente pour l'instant"),el("span",null,annonces.length?"Changez la recherche ou la catégorie.":"Les annonces des éleveurs et agriculteurs apparaîtront ici."));L.append(e);return}
   list.forEach(a=>L.append(cardA(a)))}
 function cardA(a,own){const b=el("button","m-card");b.type="button";const ph=el("div","m-ph");if(a.photo){const im=el("img");im.src=a.photo;im.alt="";im.loading="lazy";ph.append(im)}else ph.append(el("span",null,CN(a.cat).slice(0,1)));
   b.append(ph);const t=el("div","m-tx");t.append(notr(el("b",null,a.titre||"Produit")),el("span","m-price",fmt(a.prix)+" F / "+(a.unite||"unité")),
     el("small",null,[a.qte!=null?fmt(a.qte)+" disponible(s)":null,a.ville].filter(Boolean).join(" · ")));
   if(!own)t.append(notr(el("small","m-sell",a.vendeurNom||"")));else t.append(el("span","pill s-"+(a.statut==="actif"?"ok":"warn"),a.statut==="actif"?"En vente":a.statut==="epuise"?"Épuisé":"Retiré"));
-  b.append(t);b.onclick=()=>{open=a.id;mode=own?"vendre":"acheter";render();window.scrollTo(0,0)};return b}
+  b.append(t);b.onclick=()=>{open=a.id;openB=null;mode=own?"vendre":"acheter";render();window.scrollTo(0,0)};return b}
 function detail(a){const own=S&&a.vendeur===S.uid;const c=el("div","card m-det");const bk=el("button","back","‹ Retour aux produits");bk.type="button";bk.onclick=()=>{open=null;render()};c.append(bk);
   if(a.photo){const im=el("img","m-big");im.src=a.photo;im.alt=a.titre||"";c.append(im)}
   c.append(notr(el("h2","sec",a.titre||"Produit")),el("div","m-price big",fmt(a.prix)+" F / "+(a.unite||"unité")));
-  const info=[["Catégorie",CN(a.cat)],["Disponible",a.qte!=null?fmt(a.qte)+" "+(a.unite||""):"—"],["Lieu",a.ville],["Vendeur",a.vendeurNom],["Publié le",fd(a.creeLe)]].filter(x=>x[1]);
+  const info=[["Catégorie",CN(a.cat)],["Disponible",a.qte!=null?fmt(a.qte)+" "+(a.unite||""):"—"],["Lieu de retrait",a.ville],["Publié le",fd(a.creeLe)]].filter(x=>x[1]);
   const dl=el("dl","cu-info");info.forEach(([k,v])=>{dl.append(el("dt",null,k));dl.append(notr(el("dd",null,String(v))))});c.append(dl);
   if(a.desc)c.append(notr(el("p",null,a.desc)));
   if(own){c.append(el("p","note","C'est votre annonce. Modifiez-la dans « Vendre »."));return c}
-  const r=el("div","row");const ph=tel226(a.vendeurTel);
-  if(ph){const w=el("a","btn ghost","WhatsApp");w.href="https://wa.me/"+ph+"?text="+encodeURIComponent(`Bonjour, je suis intéressé(e) par « ${a.titre} » vu sur le Marché B2A Smart Farming.`);w.target="_blank";w.rel="noopener";
-    const t=el("a","btn ghost","Appeler");t.href="tel:+"+ph;r.append(w,t)}c.append(r);
+  const sh=shop(a);const ph=tel226(sh.tel||a.vendeurTel);
+  c.append(sellerBox(a.vendeur,sh,`Bonjour, je suis intéressé(e) par « ${a.titre} » vu sur le Marché B2A Smart Farming.`,true));
   /* commande */
   c.append(el("h3","sec","Commander"));const g=el("div","grid2");const fld=(lab,inp)=>{const f=el("div","field");const l=el("label",null,lab);inp.id="m-o-"+Math.random().toString(36).slice(2,7);l.htmlFor=inp.id;f.append(l,inp);g.append(f);return inp};
   const qt=fld(`Quantité (${a.unite||"unité"})`,Object.assign(el("input"),{type:"number",inputMode:"decimal",min:"0",value:"1"}));
@@ -117,17 +121,34 @@ function detail(a){const own=S&&a.vendeur===S.uid;const c=el("div","card m-det")
     if(!(n>0))return bad("Indiquez la quantité.");if(a.qte!=null&&n>a.qte)return bad(`Il n'en reste que ${fmt(a.qte)}.`);
     if(!nm.value.trim())return bad("Indiquez votre nom.");if(String(tl.value).replace(/\D/g,"").length<8)return bad("Indiquez votre numéro de téléphone.");
     B.lsSet("b2a-m-tel",tl.value.trim());B.lsSet("b2a-m-ville",vl.value.trim());
-    const d={annonce:a.id,titre:a.titre||"",vendeur:a.vendeur,vendeurNom:a.vendeurNom||"",vendeurTel:a.vendeurTel||"",acheteur:S.uid,acheteurNom:nm.value.trim(),acheteurTel:tl.value.trim(),acheteurVille:vl.value.trim(),
+    const d={annonce:a.id,titre:a.titre||"",vendeur:a.vendeur,vendeurNom:sh.nom||a.vendeurNom||"",vendeurTel:sh.tel||a.vendeurTel||"",acheteur:S.uid,acheteurNom:nm.value.trim(),acheteurTel:tl.value.trim(),acheteurVille:vl.value.trim(),
       qte:n,unite:a.unite||"",prix:Number(a.prix)||0,total:Math.round(n*(Number(a.prix)||0)),statut:"demande",note:nt.value.trim(),creeLe:S.ts(),majLe:S.ts()};
     go.disabled=true;try{await put("marche_commandes/"+S.newId("marche_commandes"),d);flashT=Date.now()+15000;flash=`Commande envoyée à ${a.vendeurNom||"au vendeur"} : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (${fmt(d.total)} F). Le vendeur va vous contacter.`;open=null;mode="mes";render();window.scrollTo(0,0);
       if(ph)window.open("https://wa.me/"+ph+"?text="+encodeURIComponent(`Bonjour ${a.vendeurNom||""}, je viens de commander sur le Marché B2A : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (total ${fmt(d.total)} F). ${d.acheteurNom}, ${d.acheteurTel}${d.acheteurVille?", "+d.acheteurVille:""}.${d.note?" "+d.note:""}`),"_blank")}
     catch(e){console.warn(e);go.disabled=false;bad("La commande n'a pas pu être envoyée. Vérifiez la connexion.")}};
   return c}
 
+/* fiche publique de l'entreprise : nom, activité, lieu, horaires, présentation et contact. Rien d'autre. */
+function sellerBox(uid,sh,msg,link){const w=el("div","m-shop");const h=el("div","m-shop-h");const av=el("span","m-av",(sh.nom||"?").trim().slice(0,1).toUpperCase());
+  const t=el("div");t.append(el("span","label","Vendu par"),notr(el("b",null,sh.nom||"Vendeur")));if(sh.activite)t.append(notr(el("small",null,sh.activite)));h.append(av,t);w.append(h);
+  const info=[["Lieu",[sh.quartier,sh.ville].filter(Boolean).join(", ")],["Horaires",sh.horaires],["Téléphone",sh.tel]].filter(x=>x[1]);
+  if(info.length){const dl=el("dl","cu-info");info.forEach(([k,v])=>{dl.append(el("dt",null,k));dl.append(notr(el("dd",null,String(v))))});w.append(dl)}
+  if(sh.desc)w.append(notr(el("p","note",sh.desc)));
+  const r=el("div","row");const ph=tel226(sh.tel);
+  if(ph){const wa=el("a","btn small","WhatsApp");wa.href="https://wa.me/"+ph+"?text="+encodeURIComponent(msg||"Bonjour, je vous contacte depuis le Marché B2A Smart Farming.");wa.target="_blank";wa.rel="noopener";
+    const tl=el("a","btn small ghost","Appeler");tl.href="tel:+"+ph;r.append(wa,tl)}
+  if(link){const n=enVente().filter(x=>x.vendeur===uid).length;const b=el("button","btn small ghost",`Voir ses produits (${n})`);b.type="button";b.onclick=()=>{openB=uid;open=null;render();window.scrollTo(0,0)};r.append(b)}
+  w.append(r);return w}
+function shopView(uid){const list=enVente().filter(a=>a.vendeur===uid);const sh=boutiques[uid]||(list[0]?shop(list[0]):{nom:"Vendeur"});
+  const c=el("section","card");const bk=el("button","back","‹ Retour aux produits");bk.type="button";bk.onclick=()=>{openB=null;render()};c.append(bk);
+  c.append(sellerBox(uid,sh,null,false));c.append(el("h3","sec",`Produits en vente (${list.length})`));
+  if(!list.length)c.append(el("p","note","Aucun produit en vente pour le moment."));const G=el("div","m-grid");list.forEach(a=>G.append(cardA(a)));c.append(G);return c}
+
 /* --- vendre --- */
 function renderSell(Bd){
   if(!isSeller()){Bd.append(becomeSeller());return}
   if(formOpen){Bd.append(annForm());return}
+  if(ficheOpen){Bd.append(ficheForm());return}
   if(open){const a=mesAnnonces.find(x=>x.id===open);if(a){Bd.append(detail(a));return}open=null}
   const C=compte();const K=el("div","kpis");
   K.append(A.kpi("Annonces en vente",String(mesAnnonces.filter(a=>a.statut==="actif").length),mesAnnonces.length+" au total"),
@@ -151,20 +172,40 @@ function renderSell(Bd){
     if(a.statut==="actif"){const x=el("button","btn small ghost","Retirer");x.type="button";x.onclick=()=>upd("marche_annonces/"+a.id,{statut:"retire",majLe:S.ts()});r.append(x)}
     else{const x=el("button","btn small ghost","Remettre en vente");x.type="button";x.onclick=()=>upd("marche_annonces/"+a.id,{statut:"actif",majLe:S.ts()});r.append(x)}
     w.append(r);G.append(w)});C2.append(G);
-  const p=el("p","note");C2.append(p);p.append(document.createTextNode(`Vendeur : ${me.nom||""} · ${me.tel||""} · ${me.ville||""} · commission ${fmt(taux(),1)} % sur chaque vente conclue.`))}
+  /* fiche publique */
+  const C3=el("section","card");Bd.append(C3);const h3=el("div","row between");h3.append(el("h2","sec","Ma fiche entreprise"));const fe=el("button","btn small ghost","Modifier");fe.type="button";fe.onclick=()=>{ficheOpen=true;render();window.scrollTo(0,0)};h3.append(fe);C3.append(h3);
+  C3.append(el("p","note","Voici ce que voient les acheteurs : vos produits en vente et cette fiche."));
+  C3.append(sellerBox(S.uid,boutiques[S.uid]||{nom:me.nom,tel:me.tel,ville:me.ville},null,false));
+  const pv=el("p","msg good m-priv","Vos lots, saisies, effectifs, aliment, ventes, factures, dépenses et commissions restent privés : aucun acheteur ne peut les voir.");C3.append(pv);
+  C3.append(el("p","note",`Commission B2A : ${fmt(taux(),1)} % sur chaque vente conclue.`))}
+function ficheForm(){const b=boutiques[S.uid]||{nom:me.nom,tel:me.tel,ville:me.ville};const c=el("section","card");const bk=el("button","back","‹ Annuler");bk.type="button";bk.onclick=()=>{ficheOpen=false;render()};c.append(bk);
+  c.append(el("h2","sec","Ma fiche entreprise"),el("p","note","Informations publiques, visibles par les acheteurs. N'y mettez rien de confidentiel."));
+  const g=el("div","grid2");const fld=(lab,val,ph,max,type)=>{const f=el("div","field");const l=el("label",null,lab);const i=el("input");i.type=type||"text";i.id="m-f-"+Math.random().toString(36).slice(2,7);l.htmlFor=i.id;i.value=val||"";if(ph)i.placeholder=ph;i.maxLength=max||60;f.append(l,i);g.append(f);return i};
+  const n=fld("Nom de l'entreprise",b.nom,"ex. B2A Élevage Bayere"),ac=fld("Activité",b.activite,"ex. Élevage de poules pondeuses"),t=fld("Téléphone / WhatsApp",b.tel,"ex. 70 12 34 56",30,"tel"),
+    v=fld("Ville",b.ville,"ex. Ouagadougou"),qu=fld("Quartier ou village (facultatif)",b.quartier,"ex. Kouli"),ho=fld("Horaires (facultatif)",b.horaires,"ex. Lundi–samedi, 7 h–18 h");
+  const fd2=el("div","field");const ld=el("label",null,"Présentation (facultatif)");const ds=el("textarea");ds.id="m-f-desc";ld.htmlFor=ds.id;ds.rows=3;ds.maxLength=400;ds.value=b.desc||"";ds.placeholder="ex. Œufs frais chaque jour, livraison à Ouagadougou";fd2.append(ld,ds);g.append(fd2);c.append(g);
+  const m=el("p","msg");const sv=el("button","btn","Enregistrer ma fiche");sv.type="button";c.append(sv,m);
+  sv.onclick=async()=>{const bad=x=>{m.textContent=x;m.className="msg err"};if(!n.value.trim())return bad("Indiquez le nom.");if(String(t.value).replace(/\D/g,"").length<8)return bad("Indiquez le téléphone.");if(!v.value.trim())return bad("Indiquez la ville.");
+    sv.disabled=true;try{await saveShop({nom:n.value.trim(),activite:ac.value.trim(),tel:t.value.trim(),ville:v.value.trim(),quartier:qu.value.trim(),horaires:ho.value.trim(),desc:ds.value.trim()});ficheOpen=false;render()}
+    catch(e){console.warn(e);sv.disabled=false;bad("Échec de l'enregistrement. Vérifiez la connexion.")}};return c}
+async function saveShop(d){const body={...d,majLe:S.ts()};await put("marche_boutiques/"+S.uid,body);if(S.kind==="local"){boutiques[S.uid]={...body}}
+  /* garder le nom et le contact à jour sur les annonces */
+  for(const a of mesAnnonces){if(a.vendeurNom!==d.nom||a.vendeurTel!==d.tel)await upd("marche_annonces/"+a.id,{vendeurNom:d.nom,vendeurTel:d.tel,majLe:S.ts()})}}
 function becomeSeller(){const c=el("section","card m-join");c.append(el("h2","sec","Vendez vos produits sur le Marché B2A"));
   const ul=el("ul","plain");["Publiez vos œufs, animaux, poussins, aliment, plants, récoltes… : visibles tout de suite par tous les utilisateurs de B2A Smart Farming.",
     "Les clients commandent dans l'application ou vous écrivent sur WhatsApp ; vous êtes payé directement (espèces, Orange Money, Moov Money).",
     `Commission B2A : ${fmt(Number(cfg.taux)||0,1)} % seulement sur les ventes conclues. Pas de vente, rien à payer.`,"Vos lots se transforment en annonce en un geste (œufs, réformes, récoltes…)."].forEach(t=>ul.append(el("li",null,t)));c.append(ul);
   const g=el("div","grid2");const fld=(id,lab,type,val,ph)=>{const f=el("div","field");const l=el("label",null,lab);l.htmlFor=id;const i=el("input");i.type=type;i.id=id;i.value=val||"";if(ph)i.placeholder=ph;i.maxLength=60;f.append(l,i);g.append(f);return i};
   const n=fld("m-j-nom","Nom de la boutique ou de la ferme","text",B.lsGet(B.LS_NAME)||"","ex. B2A Élevage Bayere");const t=fld("m-j-tel","Numéro WhatsApp","tel",B.lsGet("b2a-m-tel")||"","ex. 70 12 34 56");
-  const v=fld("m-j-ville","Ville","text",B.lsGet("b2a-m-ville")||"","ex. Ouagadougou");c.append(g);
+  const v=fld("m-j-ville","Ville","text",B.lsGet("b2a-m-ville")||"","ex. Ouagadougou");const ac=fld("m-j-act","Activité","text","","ex. Élevage de poules pondeuses");c.append(g);
+  c.append(el("p","note","Les acheteurs verront seulement vos produits en vente et votre fiche entreprise (nom, activité, ville, contact). Vos lots, chiffres et ventes restent privés."));
   const lb=el("label","m-check");const ck=el("input");ck.type="checkbox";lb.append(ck,document.createTextNode(` J'accepte de payer à B2A une commission de ${fmt(Number(cfg.taux)||0,1)} % sur chaque vente conclue grâce au Marché, et de ne publier que des produits honnêtes et en règle.`));c.append(lb);
   const m=el("p","msg");const b=el("button","btn","Ouvrir ma boutique");b.type="button";c.append(b,m);
   b.onclick=async()=>{const bad=x=>{m.textContent=x;m.className="msg err"};if(!n.value.trim())return bad("Indiquez le nom de votre boutique.");if(String(t.value).replace(/\D/g,"").length<8)return bad("Indiquez votre numéro WhatsApp.");
     if(!v.value.trim())return bad("Indiquez votre ville.");if(!ck.checked)return bad("Cochez l'acceptation des conditions.");
     B.lsSet("b2a-m-tel",t.value.trim());B.lsSet("b2a-m-ville",v.value.trim());b.disabled=true;
     try{await put("marche_vendeurs/"+S.uid,{statut:"actif",nom:n.value.trim(),tel:t.value.trim(),ville:v.value.trim(),taux:Number(cfg.taux)||0,accepteLe:S.ts()});
+      await saveShop({nom:n.value.trim(),activite:ac.value.trim(),tel:t.value.trim(),ville:v.value.trim(),quartier:"",horaires:"",desc:""}).catch(()=>{});
       if(S.kind==="local"){me={statut:"actif",nom:n.value.trim(),tel:t.value.trim(),ville:v.value.trim(),taux:Number(cfg.taux)||0};render()}}
     catch(e){console.warn(e);b.disabled=false;bad("L'ouverture a échoué. Vérifiez la connexion.")}};
   return c}
@@ -199,7 +240,7 @@ function annForm(){const a=editA||{};const c=el("section","card");const bk=el("b
   const m=el("p","msg");const sv=el("button","btn",editA?"Enregistrer":"Publier l'annonce");sv.type="button";c.append(sv,m);
   sv.onclick=async()=>{const bad=x=>{m.textContent=x;m.className="msg err"};const p=N(pr.value),q2=N(qt.value);
     if(!ti.value.trim())return bad("Indiquez un titre.");if(!(p>0))return bad("Indiquez le prix.");if(q2!=null&&q2<0)return bad("Quantité invalide.");
-    const d={vendeur:S.uid,vendeurNom:me.nom||"",vendeurTel:me.tel||"",ville:vi.value.trim(),cat:ct.value,titre:ti.value.trim(),desc:ds.value.trim(),prix:p,unite:un.value,qte:q2,photo,
+    const bq=boutiques[S.uid]||me;const d={vendeur:S.uid,vendeurNom:bq.nom||me.nom||"",vendeurTel:bq.tel||me.tel||"",ville:vi.value.trim(),cat:ct.value,titre:ti.value.trim(),desc:ds.value.trim(),prix:p,unite:un.value,qte:q2,photo,
       statut:q2===0?"epuise":(editA?editA.statut==="retire"?"retire":"actif":"actif"),majLe:S.ts()};
     if(!editA)d.creeLe=S.ts();sv.disabled=true;
     try{const id=editA?editA.id:S.newId("marche_annonces");await (editA?upd("marche_annonces/"+id,d):put("marche_annonces/"+id,d));formOpen=false;editA=null;render()}
@@ -258,6 +299,9 @@ const css=el("style");css.textContent=`
 .m-total{font:700 16px var(--display);margin:0}
 .m-order{display:grid;gap:4px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 a.btn{text-decoration:none}.m-flash{background:var(--surface);padding:12px 14px;border-radius:12px;margin:0}
+.m-shop{display:grid;gap:10px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--bg)}.m-shop-h{display:flex;gap:12px;align-items:center}
+.m-av{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--navy,#1b2e4c);color:var(--brand-green,#7bc043);font:800 18px var(--display);flex:none}
+.m-shop-h b{display:block;font:700 17px var(--display)}.m-priv{margin:0}
 .m-hist{display:grid;gap:10px;margin-top:10px}
 .m-note{color:var(--muted);font-style:italic}
 .m-photo{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center}.m-photo .m-ph{border-radius:12px}
