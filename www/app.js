@@ -59,8 +59,9 @@ function stats(l){
     if(d<=-5)al.push(["bad",`Ponte en baisse de ${fmt(-d,1)} points sur 7 jours (${fmt(res.ponte7,1)} % contre ${fmt(res.pontePrev,1)} %). Vérifier eau, aliment, chaleur, maladie.`]);
     else if(d<=-2)al.push(["warn",`Ponte en léger recul : −${fmt(-d,1)} point sur 7 jours.`]);}
   if(isDairy(l)&&res.lait7!=null&&res.laitPrev!=null&&res.lait7<res.laitPrev*0.9)al.push(["warn",`Production de lait en baisse : ${fmt(res.lait7,2)} L/tête/jour contre ${fmt(res.laitPrev,2)} la semaine précédente. Vérifier eau, ration, mammites.`]);
-  if(!hasProd(l)&&res.poids!=null&&res.poidsDate&&daysBetween(res.poidsDate,today())<=21){const aW=(Number(l.ageArrivee)||0)+(l.arrivee?daysBetween(l.arrivee,res.poidsDate)/7:0);const sw=stdWeight(l,aW);
-    if(sw&&res.poids/1000<sw*0.85)al.push(["warn",`Croissance en retard : ${fmtW(l,res.poids)} contre ≈ ${fmtW(l,sw*1000)} attendu à cet âge. Revoir la ration et le déparasitage.`]);}
+  if((!hasProd(l)||isLayer(l))&&res.poids!=null&&res.poidsDate&&daysBetween(res.poidsDate,today())<=21){const aW=(Number(l.ageArrivee)||0)+(l.arrivee?daysBetween(l.arrivee,res.poidsDate)/7:0);const sw=stdWeight(l,aW);
+    if(sw&&res.poids/1000<sw*0.9){const ra=ration(l,res);al.push([res.poids/1000<sw*0.8?"bad":"warn",`Croissance en retard : ${fmtW(l,res.poids)} contre ≈ ${fmtW(l,sw*1000)} attendu à cet âge (−${fmt((1-res.poids/1000/sw)*100)} %). Rattrapage : ${ra?`donner ${fmt(ra.g)} g par sujet et par jour, `:""}garder l'aliment de croissance, déparasiter et peser chaque semaine.`])}
+    else if(sw&&res.poids/1000>sw*1.1&&isLayer(l)&&aW<18)al.push(["info",`Poulettes plus lourdes que le standard (${fmtW(l,res.poids)} contre ≈ ${fmtW(l,sw*1000)}) : ration légèrement réduite pour éviter l'engraissement avant la ponte.`]);}
   if(res.morts7pct>0.5)al.push(["bad",`Mortalité élevée : ${res.morts7} morts en 7 jours (${fmt(res.morts7pct,2)} % du lot). Faire autopsier un sujet par un vétérinaire.`]);
   else if(res.morts7pct>0.2)al.push(["warn",`Mortalité à surveiller : ${res.morts7} morts en 7 jours.`]);
   if(/poule|poulet|pintade/i.test(l.espece||"")&&res.gpj7!=null&&res.ageW>=18){
@@ -146,7 +147,7 @@ function feedStock(l,s){
   if(l.stockAliment==null&&!recu)return null;
   const used=rows.reduce((p,r)=>p+(N(r.alimentKg)||0),0);const stock=(Number(l.stockAliment)||0)+recu-used;
   const recent=s.rows.slice(-7).filter(r=>r.aliment!=null&&r.aliment>0);
-  let daily=recent.length?recent.reduce((p,r)=>p+r.aliment,0)/recent.length:s.alive*stdFeed(l,s.ageW)/1000;if(!daily||daily<=0)daily=s.alive*0.1||1;
+  let daily=recent.length?recent.reduce((p,r)=>p+r.aliment,0)/recent.length:((ration(l,s)||{}).kg||s.alive*stdFeed(l,s.ageW)/1000);if(!daily||daily<=0)daily=s.alive*0.1||1;
   const days=Math.max(0,stock/daily);const order=addDays(Math.max(0,days-5));const qty=daily*28;
   return {stock,daily,days,rupture:addDays(days),order,qty,cost:qty*(Number(l.prixAliment)||0)};
 }
@@ -163,8 +164,8 @@ function allAlerts(l,s){
     else if(fs.days<=3)A.unshift(["bad",`Rupture d'aliment dans ${fmt(fs.days)} jour(s) : il reste ${fmt(fs.stock)} kg. Acheter environ ${fmt(fs.qty)} kg (≈ ${fmt(fs.cost)} F pour 4 semaines).`,"feed"]);
     else if(fs.days<=7)A.push(["warn",`Commander l'aliment : stock de ${fmt(fs.stock)} kg, soit ≈ ${fmt(fs.days)} jours. Prévoir ${fmt(fs.qty)} kg (≈ ${fmt(fs.cost)} F).`,"feed"]);}
   else if(progKey(l)) A.push(["info","Indiquez votre stock d'aliment (bouton Modifier) pour être prévenu avant la rupture.","feed"]);
-  const ph=feedPhase(l,s.ageW);if(ph&&ph.next&&ph.next[0]-s.ageW<=1&&ph.next[0]-s.ageW>=0){
-    A.push(["warn",`Changement d'aliment : passer de « ${ph.cur} » à « ${ph.next[1]} » à ${ph.next[0]} semaines (vers le ${fdate(dAdd(l.arrivee,(ph.next[0]-(Number(l.ageArrivee)||0))*7))}). Faire la transition sur 3 à 5 jours.`,"feed"]);}
+  const fa=feedAge(l,s),ph=feedPhase(l,fa);if(ph&&ph.next&&ph.next[0]-fa<=1&&ph.next[0]-fa>=0){
+    const lag=s.ageW-fa;A.push(["warn",`Changement d'aliment : passer de « ${ph.cur} » à « ${ph.next[1]} » ${lag>=0.5?`quand le lot aura le poids standard de ${ph.next[0]} semaines`:`à ${ph.next[0]} semaines`} (vers le ${fdate(dAdd(l.arrivee,(ph.next[0]-(Number(l.ageArrivee)||0)+lag)*7))}). Faire la transition sur 3 à 5 jours.`,"feed"]);}
   const end=Number(l.ageFin)||defaultEnd(l);const left=end-s.ageW;
   if(isLayer(l)&&left>=0&&left<=4)A.push(["warn",`Fin de cycle dans ${left} semaine(s) : préparer la vente des poules de réforme et commander le prochain lot.`,"plan"]);
   if(!hasProd(l)&&left>=0&&left<=(isPoultry(l)?1:3))A.push(["warn",`Fin d'engraissement dans ${left} semaine(s) : organiser la vente (${sp(l).sale.toLowerCase()}) et préparer le prochain lot.`,"plan"]);
@@ -226,14 +227,14 @@ async function renderCal(){
   const up=$("upcoming");up.innerHTML="";const t=today();let items=[];
   act.forEach(l=>{const s=stats(l);programme(l).filter(p=>!p.done&&daysBetween(t,p.date)>=-0&&daysBetween(t,p.date)<=30).forEach(p=>items.push([p,l]));
     if(isCrop(l))return;const fs=feedStock(l,s);if(fs&&fs.days<=35)items.push([{code:"feed",nom:`Acheter l'aliment (≈ ${fmt(fs.qty)} kg, ${fmt(fs.cost)} F)`,type:"conduite",voie:`stock actuel ${fmt(fs.stock)} kg`,date:iso(fs.order),virtual:true},l]);
-    const ph=feedPhase(l,s.ageW);if(ph&&ph.next){const dt=dAdd(l.arrivee,(ph.next[0]-(Number(l.ageArrivee)||0))*7);if(daysBetween(t,dt)>=0&&daysBetween(t,dt)<=30)items.push([{code:"ph",nom:`Passer à l'aliment ${ph.next[1]}`,type:"conduite",voie:"transition sur 3 à 5 jours",date:dt,virtual:true},l])}});
+    const fa=feedAge(l,s),ph=feedPhase(l,fa);if(ph&&ph.next){const dt=dAdd(l.arrivee,(ph.next[0]-(Number(l.ageArrivee)||0)+(s.ageW-fa))*7);if(daysBetween(t,dt)>=0&&daysBetween(t,dt)<=30)items.push([{code:"ph",nom:`Passer à l'aliment ${ph.next[1]}`,type:"conduite",voie:"transition sur 3 à 5 jours",date:dt,virtual:true},l])}});
   items.sort((a,b)=>a[0].date<b[0].date?-1:1);
   if(!items.length)up.append(el("li",null,act.length?"Rien de prévu dans les 30 prochains jours.":"Créez un lot pour générer son calendrier."));
   items.forEach(([p,l])=>up.append(calItem(p,l,act.length>1)));
   // lot calendar
   const body=$("calbody");body.innerHTML="";$("feedbox").innerHTML="";
   const l=act.find(x=>x.id===calLot);$("c-add").hidden=!l||!canWrite||!db;if(!l)return;
-  const s=stats(l);const crop=isCrop(l);const fs=crop?null:feedStock(l,s),ph=crop?null:feedPhase(l,s.ageW);
+  const s=stats(l);const crop=isCrop(l);const fs=crop?null:feedStock(l,s),ph=crop?null:feedPhase(l,feedAge(l,s));
   const K=el("div","kpis");if(ph)K.append(kpi("Aliment conseillé",ph.cur,ph.next?`« ${ph.next[1]} » à ${ph.next[0]} sem.`:"jusqu'à la fin du cycle"));
   if(fs){K.append(kpi("Stock d'aliment",fmt(Math.max(0,fs.stock))+" kg",fs.stock<=0?"épuisé : commander":`≈ ${fmt(fs.days)} jours (${fmt(fs.daily)} kg/jour)`,fs.days<=7?"down":null));
     K.append(kpi("Prochain achat",fs.order.toLocaleDateString("fr-FR",{day:"numeric",month:"short"}),`≈ ${fmt(fs.qty)} kg · ${fmt(fs.cost)} F`))}
@@ -369,8 +370,8 @@ const FAKE_ESP={pondeuse:"Poules pondeuses",chair:"Poulets de chair",local:"Poul
 function rationG(key,w,fo){
   if(FAKE_ESP[key]&&w!=null){try{const g=stdFeed({espece:FAKE_ESP[key]},w);if(g>0)return g}catch(e){}}
   return (fo&&fo.g)||((formAt(key,w==null?0:w)||{}).g)||0}
-function formulaForLot(l,s){const key=spKey(l);if(!FORM[key])return null;const fo=formAt(key,s.ageW);
-  const daily=s.gpj7!=null&&s.gpj7>0?s.alive*s.gpj7/1000:s.alive*stdFeed(l,s.ageW)/1000;
+function formulaForLot(l,s){const key=spKey(l);if(!FORM[key])return null;const fa=feedAge(l,s);const fo=formAt(key,fa);
+  const ra=ration(l,s);const daily=s.gpj7!=null&&s.gpj7>0?s.alive*s.gpj7/1000:(ra?ra.kg:s.alive*stdFeed(l,s.ageW)/1000);
   return {key,titre:fo.t,fo,f:fo.f,daily,week:Math.ceil(daily*7/5)*5}}
 function nutri(f){let pb=0,em=0,ca=0,lys=0,met=0,t=0;for(const[k,v]of Object.entries(f)){const i=ING[k];t+=v;if(!i)continue;pb+=v*i.pb/100;em+=v*i.em/100;ca+=v*i.ca/100;lys+=v*(i.lys||0)/100;met+=v*(i.met||0)/100}return {pb,em,ca,lys,met,t}}
 const pFab=()=>Math.max(0,Number(prixIng._fab??14)||0); // fabrication + sacs vides, F par kg (SAPRA : 500 F/sac de 50 kg + 200 F le sac)
@@ -855,6 +856,23 @@ function isDairy(l){return sp(l).prod==="lait"}
 function big(l){return !isPoultry(l)&&spKey(l)!=="poisson"}
 function prodUnit(l){return sp(l).unit||""}
 function stdWeight(l,w){const W=sp(l).w;if(!W)return null;if(w<=W[0][0])return W[0][1];for(let i=1;i<W.length;i++){if(w<=W[i][0]){const [a,va]=W[i-1],[b,vb]=W[i];return va+(vb-va)*(w-a)/(b-a)}}return W[W.length-1][1]}
+/* ---------- rattrapage de poids : la ration et l'aliment suivent le poids réel des animaux ---------- */
+/* âge (semaines) auquel le standard de l'espèce atteint ce poids (kg) */
+function ageForWeight(l,kg){const W=sp(l).w;if(!W||kg==null)return null;if(kg<=W[0][1])return W[0][0];
+  for(let i=1;i<W.length;i++){const [a,va]=W[i-1],[b,vb]=W[i];if(kg<=vb)return a+(b-a)*(kg-va)/((vb-va)||1)}return W[W.length-1][0]}
+/* état du poids d'après la dernière pesée (moins de 4 semaines) */
+function weightStatus(l,s){if(!s||s.poids==null||!s.poidsDate||!l.arrivee||daysBetween(s.poidsDate,today())>28)return null;
+  const aW=(Number(l.ageArrivee)||0)+daysBetween(l.arrivee,s.poidsDate)/7;const sw=stdWeight(l,aW);if(!sw)return null;
+  const kg=s.poids/1000,ratio=kg/sw;const pa=ageForWeight(l,kg);
+  /* âge « physiologique » aujourd'hui : l'âge du poids pesé + le temps écoulé depuis la pesée */
+  const physio=pa==null?null:pa+(s.ageW-aW);
+  return {kg,sw,ratio,aW,physio,date:s.poidsDate,late:ratio<0.95,ahead:ratio>1.1}}
+/* coefficient de ration : + jusqu'à 15 % si les animaux sont en retard, − jusqu'à 10 % si les poulettes sont trop lourdes */
+function catchFactor(l,ws){if(!ws)return 1;if(ws.late)return 1+Math.min(0.15,(1-ws.ratio)*0.6);
+  if(ws.ahead&&(isLayer(l)?ws.aW<18:!isBroiler(l)))return 1-Math.min(0.1,(ws.ratio-1.1)*0.5);return 1}
+/* âge utilisé pour choisir l'aliment : un lot en retard reste plus longtemps sur l'aliment de croissance */
+function feedAge(l,s){const ws=weightStatus(l,s);if(ws&&ws.ratio<0.9&&ws.physio!=null)return Math.min(s.ageW,Math.max(0,ws.physio));return s.ageW}
+function stdGain(l,w){const a=stdWeight(l,w),b=stdWeight(l,w+1);return a!=null&&b!=null?Math.max(0,(b-a)*1000/7):null}
 function stdPonte(w){ // courbe type pondeuse brune (ISA Brown / Lohmann)
   if(w<18)return 0;if(w<19)return 10;if(w<20)return 35;if(w<21)return 60;if(w<22)return 80;if(w<23)return 89;if(w<25)return 93;if(w<31)return 95;
   return Math.max(65,95-(w-30)*0.55);}
@@ -868,7 +886,13 @@ function stdFeed(l,w){ // g/sujet/jour
   if(k==="poisson"){const bw=(stdWeight(l,w)||0)*1000;return Math.round(bw*(bw<20?0.08:bw<100?0.05:bw<300?0.03:0.02)*10)/10}
   if(k==="porc")return w<8?600:w<16?1600:w<24?2300:2800;
   return 0;}
-function ration(l,s,date){const d=date||today();const w=(Number(l.ageArrivee)||0)+(l.arrivee?Math.max(0,daysBetween(l.arrivee,d))/7:0);const g=stdFeed(l,w);if(!g||!s||!(s.alive>0))return null;return {g,kg:s.alive*g/1000,n:s.alive}}
+function ration(l,s,date){const d=date||today();const w=(Number(l.ageArrivee)||0)+(l.arrivee?Math.max(0,daysBetween(l.arrivee,d))/7:0);let g=stdFeed(l,w);if(!g||!s||!(s.alive>0))return null;
+  const ws=weightStatus(l,s);const base=g;
+  /* gros animaux et poissons : la ration suit le poids réel (et non l'âge seul) */
+  /* (un animal en retard n'est jamais moins nourri : il reçoit la ration de son âge + le rattrapage) */
+  if(ws&&(big(l)||spKey(l)==="poisson")&&ws.ratio>1){g=g*Math.min(1.5,ws.ratio)}
+  const f=catchFactor(l,ws);g=g*f;g=g>=100?Math.round(g/5)*5:Math.round(g);
+  return {g,kg:s.alive*g/1000,n:s.alive,base,f,ws}}
 function defaultEnd(l){const P=sp(l);if(P.end)return P.end;if(P.emb)return (Number(l.ageArrivee)||0)+P.emb;return 52}
 function fmtW(l,g){return g==null?"—":big(l)?fmt(g/1000,1)+" kg":fmt(g)+" g"}
 function prodSummary(l,s){
@@ -1102,13 +1126,28 @@ async function renderDetail(){
       K.append(kpi("Œufs 7 j",fmt(s.oeufs7),fmt(s.oeufs7/30,1)+" plateaux"));
     }
     K.append(kpi("Aliment",s.gpj7!=null?fmt(s.gpj7)+" g":"—",s.gpj7!=null?`par sujet et par jour · ≈ ${fmt(s.gpj7*7/1000,2)} kg par semaine`:"par sujet et par jour (7 j)"));
-    {const ra=ration(l,s);if(ra)K.append(kpi("Ration conseillée",fmt(ra.kg,1)+" kg / jour",`pour ${fmt(ra.n)} sujets · ${fmt(ra.g)} g par sujet`))}
+    {const ra=ration(l,s);if(ra)K.append(kpi("Ration conseillée",fmt(ra.kg,1)+" kg / jour",`pour ${fmt(ra.n)} sujets · ${fmtG(ra.g)} par sujet`+(ra.ws?(ra.f>1?` · rattrapage +${fmt((ra.f-1)*100)} %`:ra.f<1?` · réduite ${fmt((1-ra.f)*100)} %`:" · selon le poids pesé"):" · selon l'âge (pesez pour l'ajuster)"),ra.ws&&ra.f>1?"down":null))}
     const fs=feedStock(l,s);if(fs)K.append(kpi("Stock d'aliment",fmt(Math.max(0,fs.stock))+" kg",fs.days<=0?"rupture : commander":`≈ ${fmt(fs.days)} jours · commander avant le ${fs.order.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}`,fs.days<=7?"down":null));
     if(s.coutOeuf!=null)K.append(kpi("Coût aliment / œuf",fmt(s.coutOeuf,1)+" F","moyenne 7 j"));
     if(s.marge7!=null)K.append(kpi("Marge sur aliment 7 j",fmt(s.marge7)+" F",s.marge7>=0?"ventes − aliment":"perte : à analyser",s.marge7>=0?"up":"down"));
     if(isDairy(l))K.append(kpi("Lait moy. 7 j",s.lait7!=null?fmt(s.lait7,2)+" L":"—",`par tête et par jour · standard ≈ ${fmt(sp(l).lait,1)} L`));
     if(s.poids!=null){const sw=stdWeight(l,s.ageW);K.append(kpi("Poids moyen",fmtW(l,s.poids),(sw?"standard ≈ "+fmtW(l,sw*1000):"dernière pesée")+(s.gmq!=null?" · +"+fmtW(l,s.gmq)+"/jour":""),sw?(s.poids/1000>=sw*0.95?"up":"down"):null))}
     D.append(K);
+    {const ws=weightStatus(l,s),ra=ws&&ration(l,s);
+     if(ws&&ra&&(ws.late||ws.ahead)){const g=el("div","suggest");
+      if(ws.late){const def=(ws.sw-ws.kg)*1000,sg=stdGain(l,s.ageW);
+        /* durée réaliste : 4 semaines (volailles) ou 8 semaines (gros animaux), sans dépasser 2 fois le gain normal */
+        let wk=big(l)?8:4;if(sg)wk=Math.max(wk,Math.ceil(def/(sg*7)));const need=sg!=null?sg+def/(wk*7):null;
+        g.append(el("span","label","Rattrapage de poids"),el("b",null,`${fmtW(l,ws.kg*1000)} pesés le ${fdate(ws.date)} : ${fmt((1-ws.ratio)*100)} % sous le standard (${fmtW(l,ws.sw*1000)})`));
+        const ul=el("ul","plain");[
+          `Ration : ${fmtG(ra.g)} par sujet et par jour (au lieu de ${fmtG(ra.base)}), soit ${fmt(ra.kg,1)} kg pour le lot.`,
+          ws.physio!=null&&ws.physio<s.ageW-0.5?`Aliment : le lot a le poids d'un lot de ${fmt(ws.physio,0)} semaines ; garder l'aliment de cette étape jusqu'au poids standard.`:null,
+          need!=null?`Objectif : rattraper ${fmtW(l,def)} en ${wk} semaines, soit un gain d'environ ${fmtG(need)} par jour (standard ≈ ${fmtG(sg)}).`:null,
+          "Vérifier l'eau (toujours propre et à volonté), la place aux mangeoires et déparasiter si ce n'est pas fait.",
+          "Peser 10 sujets chaque semaine : la ration se recalcule toute seule avec le nouveau poids."].filter(Boolean).forEach(t=>ul.append(el("li",null,t)));g.append(ul)}
+      else{g.append(el("span","label","Poids au-dessus du standard"),el("b",null,`${fmtW(l,ws.kg*1000)} contre ${fmtW(l,ws.sw*1000)} attendu`));
+        g.append(el("span","note",ra.f<1?`Ration réduite à ${fmtG(ra.g)} par sujet et par jour pour éviter l'engraissement.`:"Bonne croissance : continuer la ration normale."))}
+      D.append(g)}}
     const key=isLayer(l)?"ponte":isDairy(l)?"lait":"poidsD";
     const unitC=key==="ponte"?"%":key==="lait"?"L":big(l)?"kg":"g";
     const refFn=key==="ponte"?stdPonte:key==="lait"?(()=>sp(l).lait):(sp(l).w?(a=>stdWeight(l,a)*(big(l)?1:1000)):null);
