@@ -57,7 +57,36 @@ const upd=(p,d)=>quick(S.doc(p).update(d));
 /* écriture confirmée par le serveur (commandes) : on attend la réponse de Firebase jusqu'à 12 s pour signaler un refus au lieu de « rien ne se passe » */
 function sure(p,d){const pr=S.doc(p).set(d);if(S.kind!=="cloud"||!navigator.onLine)return quick(pr);
   return Promise.race([pr.then(()=>"ok"),new Promise(r=>setTimeout(()=>r("lent"),12000))])}
-const errTxt=e=>{const c=e&&e.code||"";return c==="permission-denied"?"Envoi refusé par le serveur (accès au Marché). Fermez et rouvrez l'application, puis réessayez ; si cela continue, contactez B2A.":
+/* ---------- stock réservé dès la commande ----------
+   La commande et la baisse de la quantité de l'annonce sont faites ensemble (transaction) : deux acheteurs ne peuvent pas
+   acheter le même stock ; si la commande est annulée ou refusée, la quantité revient sur l'annonce. */
+const stStock=(q,old)=>q<=0?"epuise":old==="epuise"?"actif":old;
+async function placeOrder(a,d){const id=S.newId("marche_commandes");
+  if(S.kind!=="cloud"){const cur=(await S.doc("marche_annonces/"+a.id).get()).data();
+    if(!cur||cur.statut!=="actif")throw {code:"indispo"};
+    if(cur.qte!=null){if(Number(cur.qte)<d.qte)throw {code:"stock",left:Number(cur.qte)};const left=Number(cur.qte)-d.qte;d.reserve=true;
+      await S.doc("marche_commandes/"+id).set(d);await S.doc("marche_annonces/"+a.id).update({qte:left,statut:stStock(left,cur.statut),majLe:S.ts(),derniereCommande:id})}
+    else await S.doc("marche_commandes/"+id).set(d);return "ok"}
+  if(!navigator.onLine)throw {code:"unavailable"};
+  const fs=firebase.firestore(),aRef=fs.doc("marche_annonces/"+a.id),oRef=fs.doc("marche_commandes/"+id);
+  try{await fs.runTransaction(async t=>{const snap=await t.get(aRef);const cur=snap.exists?snap.data():null;
+    if(!cur||cur.statut!=="actif")throw {code:"indispo"};
+    if(cur.qte!=null){if(Number(cur.qte)<d.qte)throw {code:"stock",left:Number(cur.qte)};const left=Number(cur.qte)-d.qte;
+      t.set(oRef,{...d,reserve:true});t.update(aRef,{qte:left,statut:stStock(left,cur.statut),majLe:S.ts(),derniereCommande:id})}
+    else t.set(oRef,d)})}
+  catch(e){/* règles Firebase pas encore mises à jour : la commande passe quand même, sans réservation (le vendeur baisse le stock à la vente) */
+    if(e&&e.code==="permission-denied"){await oRef.set(d);return "ok"}throw e}
+  return "ok"}
+/* annulation ou refus : la quantité réservée revient sur l'annonce */
+async function releaseOrder(c,statut){
+  if(S.kind!=="cloud"){await S.doc("marche_commandes/"+c.id).update({statut,majLe:S.ts()});
+    if(c.reserve){const cur=(await S.doc("marche_annonces/"+c.annonce).get()).data();if(cur){const q2=(Number(cur.qte)||0)+(Number(c.qte)||0);
+      await S.doc("marche_annonces/"+c.annonce).update({qte:q2,statut:stStock(q2,cur.statut),majLe:S.ts(),derniereCommande:c.id})}}return}
+  const fs=firebase.firestore(),aRef=fs.doc("marche_annonces/"+c.annonce),oRef=fs.doc("marche_commandes/"+c.id);
+  await fs.runTransaction(async t=>{const snap=c.reserve?await t.get(aRef):null;t.update(oRef,{statut,majLe:S.ts()});
+    if(snap&&snap.exists){const cur=snap.data();const q2=(Number(cur.qte)||0)+(Number(c.qte)||0);t.update(aRef,{qte:q2,statut:stStock(q2,cur.statut),majLe:S.ts(),derniereCommande:c.id})}})}
+const errTxt=e=>{const c=e&&e.code||"";if(c==="stock")return e.left>0?`Il n'en reste plus que ${fmt(e.left)} : diminuez la quantité.`:"Désolé, ce produit vient d'être épuisé.";
+  if(c==="indispo")return "Ce produit n'est plus en vente.";return c==="permission-denied"?"Envoi refusé par le serveur (accès au Marché). Fermez et rouvrez l'application, puis réessayez ; si cela continue, contactez B2A.":
   c==="unavailable"?"Pas de connexion au serveur. Réessayez quand le réseau revient.":"La commande n'a pas pu être envoyée"+(c?" ("+c+")":"")+". Vérifiez la connexion."};
 
 /* ---------- 2. état ---------- */
@@ -155,7 +184,7 @@ function detail(a){needShop(a.vendeur);const own=S&&a.vendeur===S.uid;const c=el
   /* commande */
   c.append(el("h3","sec","Commander"));const g=el("div","grid2");const fld=(lab,inp)=>{const f=el("div","field");const l=el("label",null,lab);inp.id="m-o-"+Math.random().toString(36).slice(2,7);l.htmlFor=inp.id;f.append(l,inp);g.append(f);return inp};
   const qt=fld(`Quantité (${a.unite||"unité"})`,Object.assign(el("input"),{type:"number",inputMode:"decimal",min:"0",value:"1"}));
-  const nm=fld("Votre nom",Object.assign(el("input"),{type:"text",value:B.lsGet(B.LS_NAME)||"",maxLength:60}));
+  const nm=fld("Votre nom",Object.assign(el("input"),{type:"text",value:B.lsGet("b2a-m-nom")||B.lsGet(B.LS_NAME)||"",maxLength:60}));
   const tl=fld("Votre téléphone",Object.assign(el("input"),{type:"tel",value:B.lsGet("b2a-m-tel")||"",placeholder:"ex. 70 12 34 56"}));
   const vl=fld("Votre ville",Object.assign(el("input"),{type:"text",value:B.lsGet("b2a-m-ville")||"",maxLength:60}));
   const nt=fld("Message (facultatif)",Object.assign(el("input"),{type:"text",placeholder:"ex. livraison samedi matin",maxLength:200}));
@@ -165,10 +194,10 @@ function detail(a){needShop(a.vendeur);const own=S&&a.vendeur===S.uid;const c=el
   go.onclick=async()=>{const n=N(qt.value);const bad=x=>{m.textContent=x;m.className="msg err"};
     if(!(n>0))return bad("Indiquez la quantité.");if(a.qte!=null&&n>a.qte)return bad(`Il n'en reste que ${fmt(a.qte)}.`);
     if(!nm.value.trim())return bad("Indiquez votre nom.");if(String(tl.value).replace(/\D/g,"").length<8)return bad("Indiquez votre numéro de téléphone.");
-    B.lsSet("b2a-m-tel",tl.value.trim());B.lsSet("b2a-m-ville",vl.value.trim());
+    B.lsSet("b2a-m-tel",tl.value.trim());B.lsSet("b2a-m-ville",vl.value.trim());B.lsSet("b2a-m-nom",nm.value.trim());
     const d={annonce:a.id,titre:a.titre||"",vendeur:a.vendeur,vendeurNom:sh.nom||a.vendeurNom||"",vendeurTel:sh.tel||a.vendeurTel||"",acheteur:S.uid,acheteurNom:nm.value.trim(),acheteurTel:tl.value.trim(),acheteurVille:vl.value.trim(),
       qte:n,unite:a.unite||"",prix:Number(a.prix)||0,total:Math.round(n*(Number(a.prix)||0)*100)/100,devise:a.devise||"XOF",statut:"demande",note:nt.value.trim(),creeLe:S.ts(),majLe:S.ts()};
-    go.disabled=true;go.textContent="Envoi de la commande…";m.textContent="";try{const res=await sure("marche_commandes/"+S.newId("marche_commandes"),d);flashT=Date.now()+15000;flash=(res==="lent"?"Réseau lent : la commande part dès que la connexion le permet. ":"")+`Commande envoyée à ${a.vendeurNom||"au vendeur"} : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (${money(d.total,d.devise)}). Le vendeur va vous contacter.`;open=null;mode="mes";render();window.scrollTo(0,0);
+    go.disabled=true;go.textContent="Envoi de la commande…";m.textContent="";try{const res=await placeOrder(a,d);flashT=Date.now()+15000;flash=(res==="lent"?"Réseau lent : la commande part dès que la connexion le permet. ":"")+`Commande envoyée à ${a.vendeurNom||"au vendeur"} : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (${money(d.total,d.devise)}). Le vendeur va vous contacter.`;open=null;mode="mes";render();window.scrollTo(0,0);
       if(ph)window.open("https://wa.me/"+ph+"?text="+encodeURIComponent(`Bonjour ${a.vendeurNom||""}, je viens de commander sur le Marché B2A : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (total ${money(d.total,d.devise)}). ${d.acheteurNom}, ${d.acheteurTel}${d.acheteurVille?", "+d.acheteurVille:""}.${d.note?" "+d.note:""}`),"_blank")}
     catch(e){console.warn(e);go.disabled=false;go.textContent="Envoyer la commande";bad(errTxt(e))}};
   return c}
@@ -209,7 +238,9 @@ function renderSell(Bd){
   /* annonces */
   const C2=el("section","card");Bd.append(C2);const h=el("div","row between");h.append(el("h2","sec","Mes annonces"));const nb=el("button","btn small","+ Nouvelle annonce");nb.type="button";nb.onclick=()=>{editA=null;formOpen=true;render();window.scrollTo(0,0)};h.append(nb);C2.append(h);
   if(!mesAnnonces.length)C2.append(el("p","note","Publiez votre premier produit : il sera visible tout de suite par tous les utilisateurs de l'application."));
-  const G=el("div","m-grid");mesAnnonces.forEach(a=>{const w=el("div","m-own");w.append(cardA(a,true));const r=el("div","row");
+  const G=el("div","m-grid");mesAnnonces.forEach(a=>{const w=el("div","m-own");w.append(cardA(a,true));
+    const rs=recues.filter(c=>c.annonce===a.id&&c.reserve&&(c.statut==="demande"||c.statut==="acceptee")).reduce((p,c)=>p+(Number(c.qte)||0),0);
+    if(rs)w.append(el("small","m-eq",`${fmt(rs)} ${a.unite||""} réservé(s) par des commandes en cours`));const r=el("div","row");
     const e=el("button","btn small ghost","Modifier");e.type="button";e.onclick=()=>{editA=a;formOpen=true;render();window.scrollTo(0,0)};r.append(e);
     if(a.statut==="actif"){const x=el("button","btn small ghost","Retirer");x.type="button";x.onclick=()=>upd("marche_annonces/"+a.id,{statut:"retire",majLe:S.ts()});r.append(x)}
     else{const x=el("button","btn small ghost","Remettre en vente");x.type="button";x.onclick=()=>upd("marche_annonces/"+a.id,{statut:"actif",majLe:S.ts()});r.append(x)}
@@ -364,12 +395,13 @@ function orderCard(c,side){const w=el("div","m-order");const st=ST[c.statut]||ST
   const act=(t,cls,fn)=>{const b=el("button","btn small "+cls,t);b.type="button";b.onclick=async()=>{b.disabled=true;try{await fn()}catch(e){console.warn(e);b.disabled=false}};r.append(b)};
   const set=s=>upd("marche_commandes/"+c.id,{statut:s,majLe:S.ts()});
   if(side==="vendeur"){
-    if(c.statut==="demande"){act("Accepter","",()=>set("acceptee"));act("Refuser","ghost",()=>set("refusee"))}
+    if(c.statut==="demande"){act("Accepter","",()=>set("acceptee"));act("Refuser","ghost",()=>releaseOrder(c,"refusee"))}
     if(c.statut==="acceptee")act("Vendu : livré et payé","",async()=>{const t=taux();const com=Math.round((Number(c.total)||0)*t)/100;
       await upd("marche_commandes/"+c.id,{statut:"vendue",taux:t,commission:com,venduLe:S.ts(),majLe:S.ts()});
-      const a=mesAnnonces.find(x=>x.id===c.annonce);if(a&&a.qte!=null){const left=Math.max(0,(Number(a.qte)||0)-(Number(c.qte)||0));await upd("marche_annonces/"+a.id,{qte:left,statut:left===0?"epuise":a.statut,majLe:S.ts()})}});
-    if(c.statut==="acceptee")act("Annuler","ghost",()=>set("annulee"))}
-  else if(c.statut==="demande")act("Annuler ma commande","ghost",()=>set("annulee"));
+      /* commandes réservées : le stock a déjà baissé à la commande ; anciennes commandes : on le baisse maintenant */
+      const a=mesAnnonces.find(x=>x.id===c.annonce);if(!c.reserve&&a&&a.qte!=null){const left=Math.max(0,(Number(a.qte)||0)-(Number(c.qte)||0));await upd("marche_annonces/"+a.id,{qte:left,statut:left===0?"epuise":a.statut,majLe:S.ts()})}});
+    if(c.statut==="acceptee")act("Annuler","ghost",()=>releaseOrder(c,"annulee"))}
+  else if(c.statut==="demande")act("Annuler ma commande","ghost",()=>releaseOrder(c,"annulee"));
   w.append(r);return w}
 function renderMine(Bd){if(flash&&Date.now()<flashT){Bd.append(el("p","msg good m-flash",flash))}const C=el("section","card");Bd.append(C);C.append(el("h2","sec","Mes commandes"));
   if(!passees.length){C.append(el("p","note","Vous n'avez encore rien commandé. Touchez « Acheter » pour voir les produits en vente."));return}

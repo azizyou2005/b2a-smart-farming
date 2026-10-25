@@ -82,6 +82,8 @@ service cloud.firestore {
     function seller() { return request.auth != null
       && get(/databases/$(database)/documents/marche_vendeurs/$(request.auth.uid)).data.statut == 'actif'; }
     function mcfg() { return get(/databases/$(database)/documents/marche_config/global).data; }
+    function cmdAvant(c) { return get(/databases/$(database)/documents/marche_commandes/$(c)).data; }
+    function cmdApres(c) { return getAfter(/databases/$(database)/documents/marche_commandes/$(c)).data; }
     function tauxB2A() { return exists(/databases/$(database)/documents/marche_config/global) ? mcfg().get('taux', 5) : 5; }
 
     match /marche_config/{id} {
@@ -136,7 +138,27 @@ service cloud.firestore {
         && request.resource.data.vendeur == request.auth.uid
         && request.resource.data.statut in ['actif','epuise','retire']
         && (request.resource.data.get('photo','') == '' || txt(request.resource.data.photo, 400000)));
-      allow delete: if isAdmin() || (request.auth != null && resource.data.vendeur == request.auth.uid);
+      // Stock réservé par l'acheteur : la quantité baisse seulement du nombre commandé dans une NOUVELLE commande
+      // de cet acheteur (écrite dans la même transaction), et revient quand il annule sa demande.
+      allow update: if approved() && resource.data.vendeur != request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['qte','statut','majLe','derniereCommande'])
+        && request.resource.data.qte is number && request.resource.data.qte >= 0
+        && request.resource.data.statut == (request.resource.data.qte <= 0 ? 'epuise' : (resource.data.statut == 'epuise' ? 'actif' : resource.data.statut))
+        && (
+          (!exists(/databases/$(database)/documents/marche_commandes/$(request.resource.data.derniereCommande))
+            && cmdApres(request.resource.data.derniereCommande).annonce == id
+            && cmdApres(request.resource.data.derniereCommande).acheteur == request.auth.uid
+            && cmdApres(request.resource.data.derniereCommande).statut == 'demande'
+            && cmdApres(request.resource.data.derniereCommande).reserve == true
+            && resource.data.statut == 'actif'
+            && request.resource.data.qte == resource.data.qte - cmdApres(request.resource.data.derniereCommande).qte)
+          || (cmdAvant(request.resource.data.derniereCommande).annonce == id
+            && cmdAvant(request.resource.data.derniereCommande).acheteur == request.auth.uid
+            && cmdAvant(request.resource.data.derniereCommande).statut == 'demande'
+            && cmdAvant(request.resource.data.derniereCommande).get('reserve', false) == true
+            && cmdApres(request.resource.data.derniereCommande).statut == 'annulee'
+            && request.resource.data.qte == resource.data.qte + cmdAvant(request.resource.data.derniereCommande).qte)
+        );
     }
     // Commandes : l'acheteur crée la demande ; le vendeur accepte, refuse ou déclare la vente (avec la commission B2A) ;
     // l'acheteur peut annuler tant que la demande n'est pas acceptée.
