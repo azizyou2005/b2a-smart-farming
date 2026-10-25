@@ -70,6 +70,10 @@ jobs:
           npx cap add android
           npx --yes @capacitor/assets@3.0.5 generate --android --iconBackgroundColor "#1b2e4c" --splashBackgroundColor "#000000" || echo "Icône par défaut conservée"
           npx cap sync android
+          # Icône de l'application = logo B2A (fichiers déjà prêts dans android-res/, écrasent l'icône par défaut de Capacitor)
+          rm -f android/app/src/main/res/drawable*/ic_launcher_background.xml android/app/src/main/res/drawable*/ic_launcher_foreground.xml
+          cp -r android-res/. android/app/src/main/res/
+          ls android/app/src/main/res/mipmap-xxxhdpi/
           # Lecture à voix haute (Android 11+) : déclarer l'accès au moteur de voix du téléphone
           M=android/app/src/main/AndroidManifest.xml
           grep -q TTS_SERVICE "$M" || sed -i 's#</manifest>#    <queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>\n</manifest>#' "$M"
