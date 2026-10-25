@@ -19,7 +19,7 @@ const names={};
 
 /* ---------- tabs ---------- */
 const TABS=["tableau","saisie","calendrier","formules","ventes","couvoir","diagnostic"];
-function show(t){TABS.forEach(x=>{$("v-"+x).hidden=x!==t;$("tab-"+x).setAttribute("aria-selected",x===t)});if(t==="formules")setTimeout(()=>{try{renderFormules()}catch(e){}},0);if(t==="couvoir")setTimeout(()=>{try{window.renderCouvoir&&window.renderCouvoir()}catch(e){}},0);if(t==="ventes")setTimeout(()=>{try{fillVLots();renderVentes()}catch(e){}},0);try{history.replaceState(null,"","#"+t)}catch(e){}window.scrollTo(0,0)}
+function show(t){const chg=$("v-"+t)&&$("v-"+t).hidden;TABS.forEach(x=>{$("v-"+x).hidden=x!==t;$("tab-"+x).setAttribute("aria-selected",x===t)});if(t==="formules")setTimeout(()=>{try{renderFormules()}catch(e){}},0);if(t==="couvoir")setTimeout(()=>{try{window.renderCouvoir&&window.renderCouvoir()}catch(e){}},0);if(t==="ventes")setTimeout(()=>{try{fillVLots();renderVentes()}catch(e){}},0);if(chg)try{window.scrollTo(0,0)}catch(e){}try{history.replaceState(null,"","#"+t)}catch(e){}window.scrollTo(0,0)}
 function goHome(){try{formOpen=false;detailOpen=false}catch(e){}$("lotform-card").hidden=true;show("tableau");try{renderLots()}catch(e){}window.scrollTo(0,0)}
 TABS.forEach(t=>$("tab-"+t).onclick=()=>t==="tableau"?goHome():show(t));
 {const lg=document.querySelector(".band .ic");if(lg){lg.style.cursor="pointer";lg.setAttribute("role","button");lg.setAttribute("tabindex","0");lg.setAttribute("aria-label","Retour à l'accueil");lg.onclick=goHome;lg.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();goHome()}}}}
