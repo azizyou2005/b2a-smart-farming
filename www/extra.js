@@ -54,7 +54,11 @@ sheet.innerHTML=`<div class="sheet-in">
     <p class="note">B2A Smart Farming est une application privée, propriété exclusive de B2A-HIGH-TECHNOLOGY-AUTOMATION et de Bayere Abdoul Aziz. Le code, les textes, les guides, le nom, le logo et le slogan B2A sont protégés. Toute copie, revente ou réutilisation sans autorisation écrite est interdite. L'utilisation gratuite de l'application publiée par B2A reste autorisée pour votre propre élevage.</p>
     <p class="note">© 2026 B2A-HIGH-TECHNOLOGY-AUTOMATION · Bayere Abdoul Aziz. Tous droits réservés.</p>
   </section>
-  <p class="note" style="text-align:center">B2A Smart Farming · version gratuite · <a href="https://azizyou2005.github.io/b2a-smart-farming/confidentialite.html" target="_blank" rel="noopener">Confidentialité</a></p>
+  <section class="card" id="x-del"><h3 class="sec">Supprimer mon compte</h3>
+    <p class="note">Demande à B2A de supprimer votre inscription et, si vous vendez sur le Marché, votre boutique, votre pièce d'identité et vos annonces (sous 30 jours). Les commandes conclues et les commissions peuvent être gardées le temps exigé par la loi.</p>
+    <div class="row"><button class="btn small ghost danger" id="x-delbtn" type="button">Supprimer mon compte</button><span class="msg" id="x-delmsg"></span></div>
+  </section>
+  <p class="note" style="text-align:center">B2A Smart Farming · version gratuite · <a href="https://azizyou2005.github.io/b2a-smart-farming/confidentialite.html" target="_blank" rel="noopener">Confidentialité</a> · <a href="https://azizyou2005.github.io/b2a-smart-farming/suppression-compte.html" target="_blank" rel="noopener">Suppression du compte</a></p>
 </div>`;
 document.body.append(sheet);
 let lastFocus=null;
@@ -86,7 +90,7 @@ async function backupNudge(){if(document.documentElement.classList.contains("acc
 setTimeout(()=>backupNudge().catch(()=>{}),2500);
 function renderSet(){
   lastBackup();
-  $("x-nom").value=B.lsGet(B.LS_NAME)||"";
+  $("x-nom").value=B.lsGet("b2a-my-name")||"";
   const st=$("x-sst"),box=$("x-sync");box.innerHTML="";
   if(!B.CFG){st.textContent="Vos données sont enregistrées sur ce téléphone. Le partage entre téléphones n'est pas encore activé pour cette installation.";return}
   const T=B.team;
@@ -113,7 +117,7 @@ function renderSet(){
         cl.onclick=async()=>{if(cl.dataset.c!=="1"){cl.dataset.c="1";cl.textContent="Confirmer : je suis le propriétaire";return}
           cl.disabled=true;try{const fs=firebase.firestore();
             await fs.doc("farms/"+B.farm).set({owner:T.uid,approbation:false,creeLe:firebase.firestore.FieldValue.serverTimestamp()});
-            await fs.doc("farms/"+B.farm+"/members/"+T.uid).set({name:B.lsGet(B.LS_NAME)||"",dev:B.me,role:"proprietaire",statut:"actif",vu:today()},{merge:true});
+            await fs.doc("farms/"+B.farm+"/members/"+T.uid).set({name:B.lsGet("b2a-my-name")||"",dev:B.me,role:"proprietaire",statut:"actif",vu:today()},{merge:true});
             location.reload()}catch(e){cl.disabled=false;cl.textContent="Devenir propriétaire de cette ferme";st.textContent="Échec. Vérifiez la connexion."}};
         box.append(cl)}
       const ms=Object.entries(B.members);if(ms.length&&T.statut!=="retire"){box.append(el("span","label","Membres"));const ul=el("ul","members");ms.forEach(([id,n])=>{const li=el("li",null,(n||"Sans nom")+(id===B.me?" (vous)":""));li.setAttribute("data-notr","");ul.append(li)});box.append(ul)}
@@ -128,7 +132,7 @@ function renderSet(){
         /* le téléphone qui crée la ferme en devient le propriétaire */
         /* si les nouvelles règles Firebase ne sont pas encore publiées, la ferme est créée sans propriétaire (comme avant) */
         try{await fs.doc("farms/"+code).set({owner:u.uid,approbation:false,creeLe:firebase.firestore.FieldValue.serverTimestamp()});
-          await fs.doc("farms/"+code+"/members/"+u.uid).set({name:B.lsGet(B.LS_NAME)||"",dev:B.me,role:"proprietaire",statut:"actif",vu:today(),creeLe:firebase.firestore.FieldValue.serverTimestamp()})}catch(e){}
+          await fs.doc("farms/"+code+"/members/"+u.uid).set({name:B.lsGet("b2a-my-name")||"",dev:B.me,role:"proprietaire",statut:"actif",vu:today(),creeLe:firebase.firestore.FieldValue.serverTimestamp()})}catch(e){}
         for(const n of B.COLS){if(n==="members")continue;const sn=await local.collection(n).get();for(const d of sn.docs)await cloud.doc(n+"/"+d.id).set(d.data())}
         B.lsSet(B.LS_FARM,code);location.reload()}catch(e){c.disabled=false;c.textContent="Créer une ferme et y envoyer mes données";st.textContent="La création a échoué. Vérifiez la connexion."}};
     box.append(c);
@@ -167,6 +171,17 @@ function renderOwner(box){
 addEventListener("b2a-team",()=>{if(!sheet.hidden)renderSet()});
 $("x-nsave").onclick=async()=>{const n=$("x-nom").value.trim();B.lsSet(B.LS_NAME,n||null);$("x-nmsg").textContent="Enregistré.";if(!db||!n)return;
   try{if(db.kind==="cloud"&&B.team.uid)await db.doc("members/"+B.team.uid).update({name:n,vu:today()});else await db.doc("members/"+B.me).set({name:n,vu:today()})}catch(e){}};
+/* demande de suppression du compte (exigence Google Play) : enregistrée pour B2A, sinon e-mail */
+$("x-delbtn").onclick=async()=>{const b=$("x-delbtn"),m=$("x-delmsg");
+  if(b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmer : supprimer mon compte";m.textContent="Pensez à télécharger une sauvegarde avant.";m.className="msg";return}
+  b.disabled=true;let ok=false,uid="";
+  if(B.CFG&&navigator.onLine){try{const u=await B.ensureUser(B.CFG);uid=u.uid;
+    await Promise.race([firebase.firestore().doc("suppressions/"+u.uid).set({demandeLe:firebase.firestore.FieldValue.serverTimestamp(),appareil:B.me,ferme:B.farm||"",nom:B.lsGet("b2a-my-name")||"",statut:"demande"}),
+      new Promise((_,r)=>setTimeout(()=>r(new Error("lent")),10000))]);ok=true}catch(e){console.warn(e)}}
+  if(ok){m.textContent="Demande envoyée. B2A supprime votre compte sous 30 jours.";m.className="msg good";b.textContent="Demande envoyée"}
+  else{const body=`Bonjour B2A, je demande la suppression de mon compte B2A Smart Farming.\nNom : ${B.lsGet("b2a-my-name")||""}\nIdentifiant : ${uid||B.me}`;
+    location.href="mailto:azizyou2005@yahoo.fr?subject="+encodeURIComponent("Suppression de mon compte B2A Smart Farming")+"&body="+encodeURIComponent(body);
+    m.textContent="Envoyez l'e-mail qui vient de s'ouvrir pour terminer la demande.";m.className="msg";b.disabled=false;b.dataset.c="";b.textContent="Supprimer mon compte"}};
 $("x-export").onclick=async()=>{
   if(!db)return;const out={app:"B2A Smart Farming",version:2,exporte:new Date().toISOString()};
   for(const n of B.COLS){const s=await db.collection(n).get();out[n]=s.docs.map(d=>({id:d.id,...d.data()}))}

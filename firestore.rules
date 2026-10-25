@@ -8,6 +8,14 @@ service cloud.firestore {
       && get(/databases/$(database)/documents/inscriptions/$(request.auth.uid)).data.statut == 'approuve'; }
     function txt(v, n) { return v is string && v.size() <= n; }
 
+    // Demandes de suppression du compte (exigence Google Play) : l'utilisateur crée la sienne, seul B2A la lit
+    match /suppressions/{uid} {
+      allow create, update: if request.auth != null && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['demandeLe','appareil','ferme','nom','statut'])
+        && request.resource.data.statut == 'demande' && txt(request.resource.data.nom, 80);
+      allow read, delete: if isAdmin();
+    }
+
     // Inscriptions : une par téléphone (identifiant anonyme Firebase). L'accès est accordé à l'inscription ;
     // le propriétaire peut le retirer (statut 'bloque').
     match /inscriptions/{uid} {

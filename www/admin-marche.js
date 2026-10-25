@@ -37,6 +37,11 @@ firebase.auth().onAuthStateChanged(u=>{offs.forEach(f=>f());offs=[];if(!u||u.isA
   offs.push(db.collection("marche_vendeurs").onSnapshot(s=>{vend=s.docs.map(d=>({id:d.id,...d.data()}));render()},err));
   offs.push(db.collection("marche_commandes").onSnapshot(s=>{cmd=s.docs.map(d=>({id:d.id,...d.data()}));render()},err));
   offs.push(db.collection("marche_pieces").onSnapshot(s=>{pieces={};s.docs.forEach(d=>pieces[d.id]=d.data());render()},err));
+  offs.push(db.collection("suppressions").onSnapshot(s=>{const B=document.getElementById("mk-sup");if(!B)return;B.innerHTML="";
+    if(!s.size){B.textContent="Aucune demande.";return}
+    s.docs.forEach(d=>{const x=d.data(),r=document.createElement("div");r.style.cssText="display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap";
+      const t=document.createElement("span");t.textContent=(x.nom||"(sans nom)")+" · ferme "+(x.ferme||"—")+" · "+(x.demandeLe&&x.demandeLe.toDate?x.demandeLe.toDate().toLocaleDateString("fr-FR"):"")+" · id "+d.id;
+      const b=document.createElement("button");b.className="btn small ghost";b.type="button";b.textContent="Traité (retirer)";b.onclick=()=>db.doc("suppressions/"+d.id).delete();r.append(t,b);B.append(r)})},()=>{}));
   offs.push(db.collection("marche_paiements").onSnapshot(s=>{pay=s.docs.map(d=>({id:d.id,...d.data()}));render()},err))});
 $("mk-save").onclick=async()=>{const t=Number(String($("mk-taux").value).replace(",","."));const m=$("mk-msg");
   if(!(t>=0&&t<=50)){m.textContent="Taux invalide.";m.className="msg err";return}
