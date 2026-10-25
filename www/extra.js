@@ -19,6 +19,7 @@ if(band)band.append(gear);
 const sheet=el("div","sheet");sheet.id="x-set";sheet.hidden=true;sheet.setAttribute("role","dialog");sheet.setAttribute("aria-modal","true");sheet.setAttribute("aria-labelledby","x-set-t");
 sheet.innerHTML=`<div class="sheet-in">
   <div class="row between sheet-head"><button class="back" type="button" id="x-back">‹ Retour</button><h2 class="sec" id="x-set-t">Réglages</h2><button class="btn small" type="button" id="x-close">Fermer</button></div>
+  <section class="card" id="x-acct" hidden><h3 class="sec">Mon compte</h3><div id="x-acbox" style="display:grid;gap:10px"></div></section>
   <section class="card">
     <h3 class="sec">Votre nom</h3>
     <p class="note">Il s'affiche à côté de vos saisies pour que l'équipe sache qui a fait quoi.</p>
@@ -65,7 +66,48 @@ gear.onclick=openSet;$("x-close").onclick=closeSet;$("x-back").onclick=closeSet;
 {const f=document.createElement("button");f.type="button";f.className="btn ghost";f.textContent="Fermer les réglages";f.style.width="100%";f.onclick=closeSet;sheet.querySelector(".sheet-in").append(f)}
 sheet.addEventListener("click",e=>{if(e.target===sheet)closeSet()});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!sheet.hidden)closeSet()});
+/* ---------- Mon compte : protège l'accès et les données contre une désinstallation ---------- */
+async function renderAcct(){const sec=$("x-acct"),A=$("x-acbox");if(!B.CFG){sec.hidden=true;return}sec.hidden=false;A.innerHTML="";
+  let u=null;try{if(navigator.onLine||window.firebase)u=await B.ensureUser(B.CFG)}catch(e){}
+  if(!u){A.append(el("p","note","Connectez-vous à internet pour voir votre compte."));return}
+  if(u.email){
+    const p=el("p","note");p.append(document.createTextNode("Connecté avec "),notrEl(el("b",null,u.email)),document.createTextNode(". Après une réinstallation ou sur un nouveau téléphone, touchez « J'ai déjà un compte » sur l'écran d'inscription pour tout retrouver."));A.append(p);
+    if(!B.farm){A.append(el("p","msg err","Vos données sont encore seulement sur ce téléphone."));A.append(protectBtn("Mettre mes données à l'abri en ligne"))}
+    else A.append(el("p","msg good","Vos données sont enregistrées en ligne dans votre ferme."));
+    const r=el("button","btn small ghost","Changer de mot de passe");r.type="button";const m=el("span","msg");
+    r.onclick=async()=>{try{await firebase.auth().sendPasswordResetEmail(u.email);m.textContent="E-mail envoyé à "+u.email+" (regardez aussi dans les spams).";m.className="msg good"}catch(e){m.textContent="Échec. Vérifiez la connexion.";m.className="msg err"}};
+    const row=el("div","row");row.append(r,m);A.append(row);return}
+  A.append(el("p","msg err","Sans compte, vous perdez votre accès et vos données si vous désinstallez l'application ou changez de téléphone."));
+  A.append(el("p","note","Créez votre compte : vos données sont mises en ligne et vous les retrouvez avec cet e-mail et ce mot de passe."));
+  const g=el("div","grid2");const f1=el("div","field");const l1=el("label",null,"E-mail");l1.htmlFor="x-amail";const mi=el("input");mi.type="email";mi.id="x-amail";mi.autocomplete="email";mi.placeholder="ex. moussa@gmail.com";f1.append(l1,mi);
+  const f2=el("div","field");const l2=el("label",null,"Mot de passe (6 caractères minimum)");l2.htmlFor="x-apw";const pi=el("input");pi.type="password";pi.id="x-apw";pi.autocomplete="new-password";f2.append(l2,pi);g.append(f1,f2);A.append(g);
+  const m=el("p","msg");const b=el("button","btn","Créer mon compte et protéger mes données");b.type="button";A.append(b,m);
+  b.onclick=async()=>{const mail=mi.value.trim().toLowerCase(),pw=pi.value;const bad=x=>{m.textContent=x;m.className="msg err"};
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail))return bad("Indiquez une adresse e-mail valide.");if(pw.length<6)return bad("Choisissez un mot de passe d'au moins 6 caractères.");
+    if(!navigator.onLine)return bad("Il faut internet pour créer le compte.");
+    b.disabled=true;b.textContent="Création du compte…";
+    try{await u.linkWithCredential(firebase.auth.EmailAuthProvider.credential(mail,pw));
+      firebase.firestore().doc("inscriptions/"+u.uid).update({email:mail}).catch(()=>{});
+      if(!B.farm){b.textContent="Mise en ligne de vos données…";await B.createFarm()}else await B.saveFerme(B.farm);
+      location.reload()}
+    catch(e){console.warn(e);b.disabled=false;b.textContent="Créer mon compte et protéger mes données";
+      bad(e&&(e.code==="auth/email-already-in-use"||e.code==="auth/credential-already-in-use")?"Cet e-mail a déjà un compte. Pour l'utiliser sur ce téléphone, désinstallez puis touchez « J'ai déjà un compte », ou choisissez un autre e-mail.":
+        e&&e.code==="auth/invalid-email"?"Adresse e-mail invalide.":e&&e.code==="auth/weak-password"?"Mot de passe trop court.":"La création a échoué. Vérifiez la connexion et réessayez.")}}}
+function protectBtn(lbl){const b=el("button","btn",lbl);b.type="button";b.onclick=async()=>{if(!navigator.onLine){b.textContent="Il faut internet";return}b.disabled=true;b.textContent="Mise en ligne…";
+  try{await B.createFarm();location.reload()}catch(e){b.disabled=false;b.textContent=lbl}};return b}
+const notrEl=e=>{e.setAttribute("data-notr","");return e};
+/* rappel sur l'accueil tant que les données ne sont pas protégées */
+async function homeNudge(){if(!B.CFG||document.documentElement.classList.contains("acces-on"))return;const home=$("home");if(!home||$("x-nudge"))return;
+  let u=null;try{u=await B.ensureUser(B.CFG)}catch(e){return}
+  const need=!u.email||!B.farm;if(!need)return;let until=0;try{until=Number(localStorage.getItem("b2a-nudge-off"))||0}catch(e){}if(Date.now()<until)return;
+  const c=el("section","card");c.id="x-nudge";c.append(el("h2","sec",!u.email?"Protégez vos données":"Mettez vos données à l'abri"));
+  c.append(el("p","note",!u.email?"Sans compte, tout est perdu si l'application est désinstallée. Créez votre compte en 1 minute : vous retrouverez tout avec votre e-mail.":"Vos données sont seulement sur ce téléphone. Mettez-les en ligne pour les retrouver après une réinstallation."));
+  const r=el("div","row");const go=el("button","btn",!u.email?"Créer mon compte":"Mettre à l'abri");go.type="button";go.onclick=()=>{openSet();setTimeout(()=>{const x=$("x-acct");x&&x.scrollIntoView({behavior:"smooth"})},150)};
+  const later=el("button","btn ghost","Plus tard");later.type="button";later.onclick=()=>{try{localStorage.setItem("b2a-nudge-off",String(Date.now()+3*864e5))}catch(e){}c.remove()};r.append(go,later);c.append(r);
+  home.insertBefore(c,home.children[1]||null)}
+setTimeout(()=>homeNudge().catch(()=>{}),2500);
 function renderSet(){
+  renderAcct().catch(()=>{});
   $("x-nom").value=B.lsGet(B.LS_NAME)||"";
   const st=$("x-sst"),box=$("x-sync");box.innerHTML="";
   if(!B.CFG){st.textContent="Vos données sont enregistrées sur ce téléphone. Le partage entre téléphones n'est pas encore activé pour cette installation.";return}
@@ -80,7 +122,7 @@ function renderSet(){
       const cp=el("button","btn small","Copier le code");cp.type="button";cp.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(B.farm).then(()=>cp.textContent="Copié",()=>{})};
       const wa=el("a","btn small ghost","Envoyer par WhatsApp");wa.href="https://wa.me/?text="+encodeURIComponent(`B2A Smart Farming\nhttps://azizyou2005.github.io/b2a-smart-farming/\nRéglages > Rejoindre une ferme > ${B.farm}`);wa.target="_blank";wa.rel="noopener";
       r.append(cp,wa)}
-    const q=el("button","btn small ghost","Quitter la ferme");q.type="button";q.onclick=()=>{if(q.dataset.c!=="1"){q.dataset.c="1";q.textContent="Confirmer : quitter";return}B.lsSet(B.LS_FARM,null);location.reload()};
+    const q=el("button","btn small ghost","Quitter la ferme");q.type="button";q.onclick=()=>{if(q.dataset.c!=="1"){q.dataset.c="1";q.textContent="Confirmer : quitter";return}B.lsSet(B.LS_FARM,null);B.saveFerme(null).finally(()=>location.reload())};
     r.append(q);box.append(r);
     if(T.role==="proprietaire")renderOwner(box);
     else{
@@ -99,18 +141,11 @@ function renderSet(){
     st.textContent="Vos données sont sur ce téléphone. Créez une ferme pour les partager avec votre équipe, ou rejoignez une ferme avec son code.";
     const c=el("button","btn small","Créer une ferme et y envoyer mes données");c.type="button";
     c.onclick=async()=>{if(!navigator.onLine){st.textContent="Il faut internet pour créer la ferme la première fois.";return}
-      c.disabled=true;c.textContent="Création…";const local=B.makeLocal();
-      const code=Array.from({length:10},()=>"ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random()*32)]).join("");
-      try{const cloud=await B.makeCloud(B.CFG,code);const u=await B.ensureUser(B.CFG);const fs=firebase.firestore();
-        /* le téléphone qui crée la ferme en devient le propriétaire */
-        /* si les nouvelles règles Firebase ne sont pas encore publiées, la ferme est créée sans propriétaire (comme avant) */
-        try{await fs.doc("farms/"+code).set({owner:u.uid,approbation:false,creeLe:firebase.firestore.FieldValue.serverTimestamp()});
-          await fs.doc("farms/"+code+"/members/"+u.uid).set({name:B.lsGet(B.LS_NAME)||"",dev:B.me,role:"proprietaire",statut:"actif",vu:today(),creeLe:firebase.firestore.FieldValue.serverTimestamp()})}catch(e){}
-        for(const n of B.COLS){if(n==="members")continue;const sn=await local.collection(n).get();for(const d of sn.docs)await cloud.doc(n+"/"+d.id).set(d.data())}
-        B.lsSet(B.LS_FARM,code);location.reload()}catch(e){c.disabled=false;c.textContent="Créer une ferme et y envoyer mes données";st.textContent="La création a échoué. Vérifiez la connexion."}};
+      c.disabled=true;c.textContent="Création…";
+      try{await B.createFarm();location.reload()}catch(e){c.disabled=false;c.textContent="Créer une ferme et y envoyer mes données";st.textContent="La création a échoué. Vérifiez la connexion."}};
     box.append(c);
     const j=el("div","row");const inp=el("input");inp.type="text";inp.placeholder="Code de la ferme";inp.style.maxWidth="200px";inp.style.textTransform="uppercase";inp.setAttribute("aria-label","Code de la ferme");
-    const jb=el("button","btn small ghost","Rejoindre");jb.type="button";jb.onclick=()=>{const v=inp.value.trim().toUpperCase().replace(/[^A-Z0-9]/g,"");if(v.length!==10){st.textContent="Code invalide.";return}B.lsSet(B.LS_FARM,v);location.reload()};
+    const jb=el("button","btn small ghost","Rejoindre");jb.type="button";jb.onclick=()=>{const v=inp.value.trim().toUpperCase().replace(/[^A-Z0-9]/g,"");if(v.length!==10){st.textContent="Code invalide.";return}B.lsSet(B.LS_FARM,v);B.saveFerme(v).finally(()=>location.reload())};
     j.append(inp,jb);box.append(el("span","label","Rejoindre une ferme"),j);
   }
 }

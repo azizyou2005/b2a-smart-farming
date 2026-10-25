@@ -100,6 +100,20 @@ async function joinFarm(cfg,code){
   if(saved){apply(saved);run().catch(()=>{});return}
   await run();
 }
+/* ---------- ferme en ligne : création et mémorisation dans le compte ---------- */
+/* le code de la ferme est gardé dans l'inscription : après une réinstallation, la connexion au compte retrouve la ferme et ses données */
+async function saveFerme(code){if(!CFG)return;let u;try{u=await ensureUser(CFG)}catch(e){return}
+  /* copie de secours dans le profil du compte (ne dépend pas des règles Firestore) */
+  try{await withTimeout(u.updateProfile({displayName:code?"ferme:"+code:null}),10000)}catch(e){}
+  try{await withTimeout(firebase.firestore().doc("inscriptions/"+u.uid).update({ferme:code||null}),10000)}catch(e){}}
+async function createFarm(){
+  const code=Array.from({length:10},()=>"ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random()*32)]).join("");
+  const local=makeLocal();const cloud=await makeCloud(CFG,code);const u=await ensureUser(CFG);const fs=firebase.firestore();
+  /* le téléphone qui crée la ferme en devient le propriétaire */
+  try{await fs.doc("farms/"+code).set({owner:u.uid,approbation:false,creeLe:firebase.firestore.FieldValue.serverTimestamp()});
+    await fs.doc("farms/"+code+"/members/"+u.uid).set({name:lsGet(LS_NAME)||"",dev:me,role:"proprietaire",statut:"actif",vu:today(),creeLe:firebase.firestore.FieldValue.serverTimestamp()})}catch(e){}
+  for(const n of COLS){if(n==="members")continue;const sn=await local.collection(n).get();for(const d of sn.docs)await cloud.doc(n+"/"+d.id).set(d.data())}
+  lsSet(LS_FARM,code);await saveFerme(code);return code}
 let dbP=null;
 function getDb(){if(!dbP)dbP=(async()=>{
   if(CFG&&farm){try{const db=await makeCloud(CFG,farm);try{await joinFarm(CFG,farm)}catch(e){}return db}catch(e){B2A.cloudFail=true;return makeLocal()}}
@@ -160,7 +174,7 @@ const SAMPLE={
 
 /* ---------- interface commune ---------- */
 window.B2A={me,farm,CFG,IA_URL,COLS,lsGet,lsSet,newId,getDb,makeLocal,makeCloud,loadFirebase,ensureUser,members,team:TEAM,
-  LS_NAME,LS_FARM,
+  LS_NAME,LS_FARM,LS_ME,createFarm,saveFerme,
   ia:()=>({code:iaCode,info:iaInfo}),
   iaVerify:async code=>{const d=await iaCall("/verifier",{code});iaCode=code;iaInfo={nom:d.nom,restant:d.restant};iaSave();return iaInfo},
   iaForget:()=>{iaCode="";iaInfo=null;iaSave()},
