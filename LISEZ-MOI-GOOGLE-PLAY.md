@@ -27,3 +27,9 @@ Gardez toujours une copie de la clé et des mots de passe en lieu sûr, jamais s
 
 En ligne ici (lien à coller dans Play Console) :
 https://azizyou2005.github.io/b2a-smart-farming/confidentialite.html
+
+
+## Mise à jour octobre 2026 : prêt pour la publication
+Tous les textes à copier (fiche, Data safety, accès examinateur, URL de suppression) sont dans `store/FICHE-GOOGLE-PLAY.md`.
+À faire dans la Play Console : Contenu de l'application > Suppression du compte (coller l'URL `suppression-compte.html`), Sécurité des données, Public cible 18+, Classification, puis envoyer le fichier .aab de la dernière Release.
+La demande de suppression faite dans l'app arrive dans la page d'administration (Marché > Demandes de suppression de compte) : à traiter sous 30 jours.
