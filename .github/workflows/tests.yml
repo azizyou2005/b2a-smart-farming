@@ -18,8 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - name: Installer les outils de test
@@ -27,29 +27,29 @@ jobs:
           npm install --prefix tests --no-audit --no-fund
           npx --prefix tests playwright install --with-deps chromium
       - name: Contrôles (syntaxe, versions, fichiers, secrets, règles)
-        run: node tests/static.mjs
+        run: node tests/run.mjs "Contrôles" node tests/static.mjs
       - name: Écrans (code lisible)
-        run: node tests/smoke.mjs
+        run: node tests/run.mjs "Écrans" node tests/smoke.mjs
       - name: Écrans (code compressé, tel qu'il est publié)
         run: |
           cp -r www "$RUNNER_TEMP/publie"
           cd "$RUNNER_TEMP/publie"
           for f in *.js; do "$GITHUB_WORKSPACE/tests/node_modules/.bin/terser" "$f" --compress passes=2 --mangle --comments false -o "$f.min" && mv "$f.min" "$f"; done
           cd "$GITHUB_WORKSPACE"
-          node tests/smoke.mjs "$RUNNER_TEMP/publie"
+          node tests/run.mjs "Écrans (compressé)" node tests/smoke.mjs "$RUNNER_TEMP/publie"
       - name: Traductions (italien, anglais, espagnol)
-        run: node tests/i18n.mjs
+        run: node tests/run.mjs "Traductions" node tests/i18n.mjs
 
   regles:
     name: Règles de sécurité Firebase
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
@@ -57,4 +57,4 @@ jobs:
         run: npm install --prefix tests --no-audit --no-fund
       - name: Tester firestore.rules avec l'émulateur
         working-directory: tests
-        run: npx firebase emulators:exec --only firestore --project demo-b2a "node --test rules.test.mjs"
+        run: node run.mjs "Règles Firebase" npx firebase emulators:exec --only firestore --project demo-b2a \"node --test --test-reporter=spec rules.test.mjs\"
