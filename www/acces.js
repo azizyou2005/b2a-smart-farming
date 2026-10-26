@@ -102,9 +102,43 @@ function login(err){const c=head("Se connecter","Entrez l'e-mail et le mot de pa
     if(!navigator.onLine){ko("Pas de connexion internet.");return}
     fg.disabled=true;
     try{await B.loadFirebase(B.CFG);const a=firebase.auth();a.languageCode=(window.B2A_LANG?window.B2A_LANG():"fr");await a.sendPasswordResetEmail(mail);
-      m.textContent="Un e-mail pour choisir un nouveau mot de passe a été envoyé à "+mail+". Regardez aussi dans les spams.";m.className="msg ok"}
+      m.textContent="Un e-mail pour choisir un nouveau mot de passe a été envoyé à "+mail+". Regardez aussi dans les spams.";m.className="msg good"}
     catch(x){console.warn(x);ko(mailErr(x)||"L'envoi a échoué. Vérifiez l'e-mail et la connexion.")}
     fg.disabled=false}}
+
+/* Réglages : les personnes déjà inscrites sans e-mail peuvent protéger leur compte (même identifiant, rien n'est perdu) */
+B.renderCompte=async(sec,box)=>{if(!sec||!box)return;box.innerHTML="";
+  let u=null;try{u=await Promise.race([B.ensureUser(B.CFG),new Promise((_,r)=>setTimeout(()=>r(0),8000))])}catch(e){u=null}
+  if(!u){sec.hidden=!acc;if(acc)box.append(el("p","note","Connectez-vous à internet pour voir ou protéger votre compte."));return}
+  sec.hidden=false;
+  if(!u.isAnonymous&&u.email){
+    box.append(el("p","note","Votre compte est protégé. Avec cet e-mail et votre mot de passe, vous retrouvez votre accès, votre ferme et votre équipe sur un autre téléphone ou après une réinstallation (bouton « J'ai déjà un compte » à l'inscription)."));
+    const a=el("p","acc-mail",u.email);a.setAttribute("data-notr","");box.append(a);
+    const r=el("div","row");const rs=el("button","btn small ghost","Changer mon mot de passe");rs.type="button";const m=el("span","msg");m.setAttribute("aria-live","polite");
+    rs.onclick=async()=>{if(!navigator.onLine){m.textContent="Pas de connexion internet.";m.className="msg err";return}rs.disabled=true;
+      try{const au=firebase.auth();au.languageCode=(window.B2A_LANG?window.B2A_LANG():"fr");await au.sendPasswordResetEmail(u.email);
+        m.textContent="Un e-mail pour choisir un nouveau mot de passe a été envoyé à "+u.email+". Regardez aussi dans les spams.";m.className="msg good"}
+      catch(x){console.warn(x);m.textContent=mailErr(x)||"L'envoi a échoué. Vérifiez l'e-mail et la connexion.";m.className="msg err"}rs.disabled=false};
+    r.append(rs,m);box.append(r);
+    /* garder l'e-mail et la ferme dans l'inscription (anciens comptes) */
+    firebase.firestore().doc("inscriptions/"+u.uid).get().then(d=>{if(!d.exists)return;const v=d.data(),x={};
+      if(v.email!==u.email)x.email=u.email;if(B.farm&&v.ferme!==B.farm)x.ferme=B.farm;if(Object.keys(x).length)d.ref.update(x).catch(()=>{})}).catch(()=>{});
+    return}
+  box.append(el("p","note","Ajoutez un e-mail et un mot de passe pour retrouver votre accès, votre ferme et votre équipe si vous changez de téléphone ou réinstallez l'application. Rien ne change pour vos données actuelles."));
+  const g=el("div","grid2");const mk=(id,lb,type,ph,ac)=>{const f=el("div","field");const l=el("label",null,lb);l.htmlFor=id;const i=el("input");i.type=type;i.id=id;i.placeholder=ph;i.autocomplete=ac;i.maxLength=100;f.append(l,i);g.append(f);return i};
+  const em=mk("x-cmail","E-mail","email","ex. moussa@gmail.com","email"),pw=mk("x-cpass","Mot de passe","password","6 caractères minimum","new-password");em.inputMode="email";box.append(g);
+  const r=el("div","row");const b=el("button","btn small","Protéger mon compte");b.type="button";const m=el("span","msg");m.setAttribute("aria-live","polite");r.append(b,m);box.append(r);
+  const ko=x=>{m.textContent=x;m.className="msg err"};
+  b.onclick=async()=>{const mail=em.value.trim().toLowerCase(),pass=pw.value;
+    if(!okMail(mail)){ko("Adresse e-mail non valide.");return}
+    if(pass.length<6){ko("Mot de passe trop court : 6 caractères minimum.");return}
+    if(!navigator.onLine){ko("Pas de connexion internet. Connectez-vous puis appuyez à nouveau sur le bouton.");return}
+    b.disabled=true;b.textContent="Envoi…";m.textContent="";
+    try{await u.linkWithCredential(firebase.auth.EmailAuthProvider.credential(mail,pass));
+      const x={email:u.email||mail};if(B.farm)x.ferme=B.farm;
+      await firebase.firestore().doc("inscriptions/"+u.uid).update(x).catch(()=>{});
+      toast("Compte protégé. Gardez bien votre e-mail et votre mot de passe.");B.renderCompte(sec,box)}
+    catch(x){console.warn(x);b.disabled=false;b.textContent="Protéger mon compte";ko(mailErr(x)||"La création du compte e-mail a échoué. Vérifiez la connexion et réessayez.")}}};
 
 /* e-mail au propriétaire (FormSubmit, sans compte) */
 function notify(d,mail){const to=window.B2A_NOTIFY_EMAIL;if(!to)return;

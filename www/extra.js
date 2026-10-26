@@ -24,6 +24,7 @@ sheet.innerHTML=`<div class="sheet-in">
     <p class="note">Il s'affiche à côté de vos saisies pour que l'équipe sache qui a fait quoi.</p>
     <div class="row"><input type="text" id="x-nom" placeholder="ex. Moussa" style="max-width:240px"><button class="btn small" id="x-nsave" type="button">Enregistrer</button><span class="msg" id="x-nmsg"></span></div>
   </section>
+  <section class="card" id="x-compte" hidden><h3 class="sec">Mon compte (e-mail)</h3><div id="x-cbox" style="display:grid;gap:10px"></div></section>
   <section class="card"><h3 class="sec">Partager avec l'équipe</h3><p class="note" id="x-sst"></p><div id="x-sync" style="display:grid;gap:10px"></div></section>
   <section class="card">
     <h3 class="sec">Sauvegarde</h3>
@@ -90,6 +91,7 @@ async function backupNudge(){if(document.documentElement.classList.contains("acc
 setTimeout(()=>backupNudge().catch(()=>{}),2500);
 function renderSet(){
   lastBackup();
+  if(B.renderCompte)B.renderCompte($("x-compte"),$("x-cbox"));
   $("x-nom").value=B.lsGet("b2a-my-name")||"";
   const st=$("x-sst"),box=$("x-sync");box.innerHTML="";
   if(!B.CFG){st.textContent="Vos données sont enregistrées sur ce téléphone. Le partage entre téléphones n'est pas encore activé pour cette installation.";return}
