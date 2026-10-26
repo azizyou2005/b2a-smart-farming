@@ -154,6 +154,19 @@ Le code reste enregistré dans le téléphone. Sans réseau, les boutons IA atte
 
 ---
 
+## Services : vétérinaires et prestataires (inscription payante)
+
+Dans l'application : **Marché > Services**, et le bouton « Trouver un service » sur l'accueil. Les éleveurs trouvent un vétérinaire, un technicien ou un prestataire (transport, labour, provenderie, forage, drone…) et l'appellent ou lui écrivent sur WhatsApp.
+
+Les prestataires remplissent leur fiche, choisissent un abonnement (1, 3 ou 12 mois), paient par Orange Money ou Moov Money au numéro réglé dans la page des utilisateurs (partie Marché), puis envoient la référence de la transaction. Leur fiche reste « en attente » jusqu'à votre validation.
+
+1. **Firestore > Règles** : remplacez tout par le contenu du fichier `firestore.rules` (nouvelles collections `services_pros` et `services_paiements`), puis **Publier**. Sans cela, l'onglet Services affiche « Les services ouvrent très bientôt ».
+2. Page des utilisateurs, partie **Services** : réglez les tarifs (par défaut 2 500 F, 6 000 F et 20 000 F), puis **Enregistrer les tarifs**.
+3. Pour chaque demande : vérifiez dans votre téléphone que la somme est bien arrivée avec la même référence, puis **Valider**. La fiche passe en ligne jusqu'à la date affichée (prolongée à partir de l'ancienne date de fin si l'abonnement est encore en cours). Sinon, indiquez un motif et **Refuser**.
+4. Pour chaque prestataire : **Marquer « Vérifié »** (après contrôle de l'agrément ou de la pièce), **+1 mois offert**, **Suspendre** ou relancer par **WhatsApp**. Les fiches dont la date de fin est passée disparaissent seules de l'application.
+
+---
+
 ## Mettre à jour l'application plus tard
 
 1. Remplacez sur GitHub les fichiers modifiés (en général `www/index.html` et parfois les autres fichiers de `www`).

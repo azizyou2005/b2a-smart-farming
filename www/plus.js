@@ -346,10 +346,11 @@ $("p-csave").onclick=async()=>{const nom=$("p-cnom").value.trim(),tel=$("p-ctel"
 const vetBoxes=new Set();
 function vetBox(){const w=el("div","vetcall");w.setAttribute("data-nospeak","");w.dataset.vet="1";fillVet(w);return w}
 function fillVet(w){w.innerHTML="";const vets=contacts.filter(c=>c.role==="veto");
-  if(!vets.length){w.style.borderColor="var(--line)";w.append(el("p","note","Ajoutez le numéro de votre vétérinaire dans « Mes contacts utiles » (onglet Accueil) pour l'appeler d'ici en un geste."));return}
+  const find=()=>{if(!window.B2A_SERVICES)return;const f=el("button","btn small s-find","Trouver un vétérinaire près de chez moi");f.type="button";f.onclick=()=>window.B2A_SERVICES.open("veto");w.append(f)};
+  if(!vets.length){w.style.borderColor="var(--line)";w.append(el("p","note","Ajoutez le numéro de votre vétérinaire dans « Mes contacts utiles » (onglet Accueil) pour l'appeler d'ici en un geste."));find();return}
   w.style.borderColor="";vets.slice(0,2).forEach(c=>{const nm=el("b",null,c.nom);nm.setAttribute("data-notr","");w.append(nm);const acts=el("div","acts");
     const a1=el("a","btn");a1.href=telHref(c);a1.innerHTML=ICON.tel;a1.append(el("span",null,"Appeler"));
-    const a2=el("a","btn ghost");a2.href=waHref(c);a2.target="_blank";a2.rel="noopener";a2.innerHTML=ICON.wa;a2.append(el("span",null,"WhatsApp"));acts.append(a1,a2);w.append(acts)})}
+    const a2=el("a","btn ghost");a2.href=waHref(c);a2.target="_blank";a2.rel="noopener";a2.innerHTML=ICON.wa;a2.append(el("span",null,"WhatsApp"));acts.append(a1,a2);w.append(acts)});find()}
 function refreshVetBoxes(){vetBoxes.forEach(w=>{if(w.isConnected)fillVet(w);else vetBoxes.delete(w)})}
 function vetObserver(box){if(!box)return;const fix=()=>{if(!box.children.length||box.querySelector(":scope > .vetcall"))return;
   const w=vetBox();vetBoxes.add(w);const sr=box.querySelector(":scope > .spkrow");if(sr)sr.after(w);else box.prepend(w)};

@@ -227,5 +227,36 @@ service cloud.firestore {
       allow read: if isAdmin() || (request.auth != null && resource.data.vendeur == request.auth.uid);
       allow write: if isAdmin();
     }
+
+    // ---------- Services : vétérinaires et prestataires (inscription payante) ----------
+    // Le prestataire crée sa fiche (statut 'attente') et déclare son paiement ; seul B2A met en ligne (statut 'actif' + finLe),
+    // marque « vérifié », suspend ou refuse. Les éleveurs voient seulement les fiches 'actif' (l'application cache celles dont finLe est passée).
+    function svcChamps() { return ['nom','metier','specialites','ville','quartier','zones','tel','wa','horaires','deplace','agrement','desc','photo']; }
+    function svcFiche(d) { return txt(d.nom, 60) && txt(d.metier, 20) && txt(d.get('specialites',''), 100) && txt(d.ville, 60)
+      && txt(d.get('quartier',''), 60) && txt(d.get('zones',''), 100) && txt(d.tel, 30) && txt(d.get('wa',''), 30)
+      && txt(d.get('horaires',''), 60) && d.get('deplace', false) is bool && txt(d.get('agrement',''), 40)
+      && txt(d.get('desc',''), 400) && txt(d.get('photo',''), 200000); }
+    match /services_pros/{uid} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid) || (approved() && resource.data.statut == 'actif');
+      allow create: if approved() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(svcChamps().concat(['statut','creeLe','majLe']))
+        && request.resource.data.statut == 'attente' && svcFiche(request.resource.data);
+      allow update: if isAdmin() || (approved() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(svcChamps().concat(['majLe']))
+        && svcFiche(request.resource.data));
+      allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+    }
+    // Paiements d'abonnement : déclarés par le prestataire (référence Orange Money / Moov Money), validés ou refusés par B2A.
+    match /services_paiements/{id} {
+      allow read: if isAdmin() || (request.auth != null && resource.data.pro == request.auth.uid);
+      allow create: if approved() && request.resource.data.pro == request.auth.uid
+        && exists(/databases/$(database)/documents/services_pros/$(request.auth.uid))
+        && request.resource.data.keys().hasOnly(['pro','nom','formule','mois','montant','ref','telPayeur','statut','creeLe'])
+        && request.resource.data.statut == 'attente'
+        && request.resource.data.formule in ['m1','m3','m12'] && request.resource.data.mois in [1,3,12]
+        && request.resource.data.montant is number && request.resource.data.montant > 0
+        && txt(request.resource.data.ref, 40) && txt(request.resource.data.telPayeur, 30) && txt(request.resource.data.get('nom',''), 60);
+      allow update, delete: if isAdmin();
+    }
   }
 }

@@ -147,7 +147,7 @@ function render(){try{const sh=$("x-set");if(sh&&!sh.hidden)renderSetM()}catch(e
   const Bd=$("m-body");const keepY=window.scrollY;Bd.innerHTML="";
   /* règles Firebase du Marché pas encore publiées, ou accès retiré : message clair au lieu d'erreurs */
   if(noAccess){const c=el("section","card");c.append(el("h2","sec","Marché B2A"),el("p","note","Le Marché ouvre très bientôt. Revenez dans quelques instants."));Bd.append(c);return}
-  if(mode==="acheter")renderBuy(Bd);else if(mode==="vendre")renderSell(Bd);else renderMine(Bd);
+  if(mode==="acheter")renderBuy(Bd);else if(mode==="vendre")renderSell(Bd);else if(mode==="services"&&window.B2A_SERVICES)window.B2A_SERVICES.render(Bd);else renderMine(Bd);
   window.scrollTo(0,keepY)}
 
 /* --- acheter : les acheteurs voient seulement les produits en vente et la fiche publique du vendeur --- */
@@ -450,9 +450,11 @@ document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest(".ge
 /* ---------- 5. onglet ---------- */
 const V=$("v-marche");if(!V)return;
 V.innerHTML=`<section class="card m-head"><div class="row between"><h2 class="sec">Marché B2A</h2><span class="note">Éleveurs et agriculteurs</span></div>
-  <div class="seg3" id="m-seg" role="group" aria-label="Marché"><button type="button" data-m="acheter">Acheter</button><button type="button" data-m="vendre">Vendre</button><button type="button" data-m="mes">Mes commandes</button></div></section>
+  <div class="seg3" id="m-seg" role="group" aria-label="Marché"><button type="button" data-m="acheter">Acheter</button><button type="button" data-m="vendre">Vendre</button><button type="button" data-m="services">Services</button><button type="button" data-m="mes">Mes commandes</button></div></section>
   <div id="m-body" style="display:grid;gap:14px"></div>`;
-$("m-seg").querySelectorAll("button").forEach(b=>b.onclick=()=>{mode=b.dataset.m;open=null;formOpen=false;render();window.scrollTo(0,0)});
+$("m-seg").querySelectorAll("button").forEach(b=>b.onclick=()=>{mode=b.dataset.m;open=null;formOpen=false;if(mode==="services"&&window.B2A_SERVICES)window.B2A_SERVICES.home();render();window.scrollTo(0,0)});
+/* ouvrir le Marché sur un onglet donné (ex. « Services » depuis l'accueil) */
+function setMode(m){mode=m;open=null;openB=null;formOpen=false;const t=$("tab-marche");if(t&&$("v-marche").hidden)t.click();else render();window.scrollTo(0,0)}
 const T=$("tab-marche");if(T)T.addEventListener("click",()=>{listen();setTimeout(render,0)});
 if(!V.hidden){listen();render()}
 /* les commandes reçues s'affichent aussi en pastille, même hors de l'onglet */
@@ -502,5 +504,5 @@ const TR={"Marché":["Market","Mercato","Mercado"],"Marché B2A":["B2A Market","
  "Vendu : livré et payé":["Sold: delivered and paid","Venduto: consegnato e pagato","Vendido: entregado y pagado"],"Aliment":["Feed","Mangime","Pienso"],"Animaux vivants":["Live animals","Animali vivi","Animales vivos"],"Œufs":["Eggs","Uova","Huevos"],"Poussins":["Chicks","Pulcini","Pollitos"],
  "Récoltes (céréales, légumes…)":["Harvests (grain, vegetables…)","Raccolti (cereali, ortaggi…)","Cosechas (cereales, hortalizas…)"],"Plants et semences":["Seedlings and seeds","Piantine e sementi","Plantones y semillas"],"Matériel":["Equipment","Attrezzatura","Material"],"Tout":["All","Tutto","Todo"]};
 {const D=window.B2A_DICT=window.B2A_DICT||{};["en","it","es"].forEach((lg,i)=>{D[lg]=D[lg]||{};for(const k in TR)if(D[lg][k]==null)D[lg][k]=TR[k][i]})}
-window.B2A_MARCHE={render,listen};
+window.B2A_MARCHE={render,listen,setMode};
 })();
