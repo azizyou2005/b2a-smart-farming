@@ -27,7 +27,7 @@ jobs:
       # Numéro de version Android : augmente tout seul à chaque construction (obligatoire pour Google Play)
       VERSION_CODE: ${{ github.run_number }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main          # le site publié vient toujours de main, même quand la branche marche déclenche la publication
           fetch-depth: 0
