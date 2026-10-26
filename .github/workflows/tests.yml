@@ -57,4 +57,6 @@ jobs:
         run: npm install --prefix tests --no-audit --no-fund
       - name: Tester firestore.rules avec l'émulateur
         working-directory: tests
-        run: node run.mjs "Règles Firebase" npx firebase emulators:exec --only firestore --project demo-b2a \"node --test --test-reporter=spec rules.test.mjs\"
+        run: |
+          cp ../firestore.rules firestore.rules
+          node run.mjs "Règles Firebase" npx firebase emulators:exec --only firestore --project demo-b2a \"node --test --test-reporter=spec rules.test.mjs\"
