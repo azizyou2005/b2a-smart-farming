@@ -56,7 +56,7 @@ jobs:
 
       # Capacitor 8 : Node 22 et Java 21, cible Android 16 (API 36) exigée par Google Play depuis le 31/08/2026
       - if: steps.cle.outputs.ok == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
       - if: steps.cle.outputs.ok == 'true'
