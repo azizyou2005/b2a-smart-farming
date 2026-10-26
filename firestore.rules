@@ -27,8 +27,11 @@ service cloud.firestore {
         && txt(request.resource.data.ville, 60) && txt(request.resource.data.pays, 60)
         && txt(request.resource.data.elevage, 60) && txt(request.resource.data.taille, 60);
       // l'utilisateur ne peut changer que sa date de dernière ouverture ; seul le propriétaire peut retirer ou rendre l'accès
+      // + e-mail du compte (facultatif, égal à l'e-mail de connexion) et code de la ferme, pour retrouver la ferme après une réinstallation
       allow update: if isAdmin() || (request.auth != null && request.auth.uid == uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vuLe','version','plateforme']));
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vuLe','version','plateforme','email','ferme'])
+        && (!('email' in request.resource.data) || request.resource.data.email == request.auth.token.email)
+        && (!('ferme' in request.resource.data) || validCode(request.resource.data.ferme)));
       allow delete: if isAdmin();
     }
 
