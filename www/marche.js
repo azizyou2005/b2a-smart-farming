@@ -25,6 +25,8 @@ const pad=n=>String(n).padStart(2,"0");
 const today=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
 const ms=v=>v==null?0:typeof v==="number"?v:v.toMillis?v.toMillis():v.seconds?v.seconds*1000:0;
 const fd=v=>{const t=ms(v);return t?new Date(t).toLocaleDateString("fr-FR",{day:"numeric",month:"short"}):"—"};
+/* image affichée seulement si elle est intégrée (jamais d'adresse web) */
+const okImg=u=>typeof u==="string"&&/^data:image\/(jpeg|png|webp);base64,/.test(u);
 const tel226=t=>{let p=String(t||"").replace(/\D/g,"");if(p.length===8)p="226"+p;return p};
 
 const CATS=[["aliment","Aliment"],["animaux","Animaux vivants"],["oeufs","Œufs"],["poussins","Poussins"],["viande","Viande et volaille abattue"],["lait","Lait et produits laitiers"],
@@ -170,13 +172,13 @@ function renderList(L){L.innerHTML="";const qq=q.trim().toLowerCase(),vv=ville.t
   if(annMore){const b=el("button","btn ghost m-more","Voir plus de produits");b.type="button";b.onclick=()=>{annLim+=30;loadAnnonces()};L.append(b)}}
 /* équivalence indicative dans la monnaie choisie par l'acheteur */
 function equiv(v,k){k=k||"XOF";if(!voirEn||voirEn===k)return document.createTextNode("");return notr(el("small","m-eq","≈ "+money(Math.round(conv(v,k,voirEn)*100)/100,voirEn)+" (indicatif)"))}
-function cardA(a,own){const b=el("button","m-card");b.type="button";const ph=el("div","m-ph");if(a.photo){const im=el("img");im.src=a.photo;im.alt="";im.loading="lazy";ph.append(im)}else ph.append(el("span",null,CN(a.cat).slice(0,1)));
+function cardA(a,own){const b=el("button","m-card");b.type="button";const ph=el("div","m-ph");if(okImg(a.photo)){const im=el("img");im.src=a.photo;im.alt="";im.loading="lazy";ph.append(im)}else ph.append(el("span",null,CN(a.cat).slice(0,1)));
   b.append(ph);const t=el("div","m-tx");t.append(notr(el("b",null,a.titre||"Produit")),el("span","m-price",money(a.prix,a.devise)+" / "+(a.unite||"unité")),equiv(a.prix,a.devise),
     el("small",null,[a.qte!=null?fmt(a.qte)+" disponible(s)":null,a.ville].filter(Boolean).join(" · ")));
   if(!own)t.append(notr(el("small","m-sell",a.vendeurNom||"")));else t.append(el("span","pill s-"+(a.statut==="actif"?"ok":"warn"),a.statut==="actif"?"En vente":a.statut==="epuise"?"Épuisé":"Retiré"));
   b.append(t);b.onclick=()=>{open=a.id;openB=null;mode=own?"vendre":"acheter";render();window.scrollTo(0,0)};return b}
 function detail(a){needShop(a.vendeur);const own=S&&a.vendeur===S.uid;const c=el("div","card m-det");const bk=el("button","back","‹ Retour aux produits");bk.type="button";bk.onclick=()=>{open=null;render()};c.append(bk);
-  if(a.photo){const im=el("img","m-big");im.src=a.photo;im.alt=a.titre||"";c.append(im)}
+  if(okImg(a.photo)){const im=el("img","m-big");im.src=a.photo;im.alt=a.titre||"";c.append(im)}
   c.append(notr(el("h2","sec",a.titre||"Produit")),el("div","m-price big",money(a.prix,a.devise)+" / "+(a.unite||"unité")),equiv(a.prix,a.devise));
   const info=[["Catégorie",CN(a.cat)],["Disponible",a.qte!=null?fmt(a.qte)+" "+(a.unite||""):"—"],["Lieu de retrait",a.ville],["Publié le",fd(a.creeLe)]].filter(x=>x[1]);
   const dl=el("dl","cu-info");info.forEach(([k,v])=>{dl.append(el("dt",null,k));dl.append(notr(el("dd",null,String(v))))});c.append(dl);
@@ -295,7 +297,7 @@ function pieceFields(c,p){p=p||{};const st={type:p.type||"cnib",photo:p.photo||"
   const g=el("div","grid2");c.append(g);const fld=(lab,val,ph,max)=>{const f=el("div","field");const l=el("label",null,lab);const i=el("input");i.type="text";i.id="m-p-"+Math.random().toString(36).slice(2,7);l.htmlFor=i.id;i.value=val||"";if(ph)i.placeholder=ph;i.maxLength=max||40;i.autocomplete="off";f.append(l,i);g.append(f);return [f,i]};
   const [fT,tit]=fld("Nom du titulaire (comme sur la pièce)",p.titulaire,"ex. OUÉDRAOGO Moussa",80);
   const [fC,cn]=fld("Numéro de la CNIB",p.cnib,"ex. B12345678");const [fR,rc]=fld("Numéro RCCM",p.rccm,"ex. BF-OUA-01-2024-B12-00123");const [fI,ifu]=fld("Numéro IFU",p.ifu,"ex. 00123456X");
-  const pw=el("div","m-photo");const pv=el("div","m-ph m-doc");const setPv=()=>{pv.innerHTML="";if(st.photo){const im=el("img");im.src=st.photo;im.alt="";pv.append(im)}else pv.append(el("span",null,"Photo"))};setPv();
+  const pw=el("div","m-photo");const pv=el("div","m-ph m-doc");const setPv=()=>{pv.innerHTML="";if(okImg(st.photo)){const im=el("img");im.src=st.photo;im.alt="";pv.append(im)}else pv.append(el("span",null,"Photo"))};setPv();
   const fi=el("input");fi.type="file";fi.accept="image/*";fi.id="m-p-photo"+Math.random().toString(36).slice(2,6);fi.hidden=true;const fl=el("label","btn small ghost","Photo de la pièce");fl.htmlFor=fi.id;
   const lbl=el("small","note");const r=el("div");r.style.cssText="display:grid;gap:6px";r.append(fl,fi,lbl);pw.append(pv,r);c.append(pw);
   fi.onchange=async()=>{const f=fi.files[0];if(!f)return;try{st.photo=await compress(f,1000,300000);setPv()}catch(e){}fi.value=""};
@@ -376,7 +378,7 @@ function annForm(){const a=editA||{};const c=el("section","card");const bk=el("b
   c.append(g);
   if(ls)ls.onchange=()=>{const l=lots.find(x=>x.id===ls.value);if(!l)return;const p=fromLot(l);ct.value=p.cat;ti.value=p.titre;if(p.prix)pr.value=dv.value==="XOF"||dv.value==="XAF"?p.prix:Math.round(conv(p.prix,"XOF",dv.value)*100)/100;if(!UNITS.includes(p.unite))un.append(new Option(p.unite,p.unite));un.value=p.unite};
   /* photo */
-  let photo=a.photo||"";const pw=el("div","m-photo");const pv=el("div","m-ph");const setPv=()=>{pv.innerHTML="";if(photo){const im=el("img");im.src=photo;im.alt="";pv.append(im)}else pv.append(el("span",null,"Photo"))};setPv();
+  let photo=a.photo||"";const pw=el("div","m-photo");const pv=el("div","m-ph");const setPv=()=>{pv.innerHTML="";if(okImg(photo)){const im=el("img");im.src=photo;im.alt="";pv.append(im)}else pv.append(el("span",null,"Photo"))};setPv();
   const fi=el("input");fi.type="file";fi.accept="image/*";fi.id="m-a-photo";fi.hidden=true;const fl=el("label","btn small ghost","Ajouter une photo");fl.htmlFor="m-a-photo";
   const rm=el("button","btn small ghost","Enlever");rm.type="button";rm.onclick=()=>{photo="";setPv()};
   fi.onchange=async()=>{const f=fi.files[0];if(!f)return;try{photo=await compress(f);setPv()}catch(e){m.textContent="Photo non reconnue.";m.className="msg err"}fi.value=""};

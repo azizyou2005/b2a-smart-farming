@@ -1,0 +1,19 @@
+{
+  "name": "b2a-smart-farming-tests",
+  "private": true,
+  "description": "Tests automatiques de B2A Smart Farming (écrans, traductions, règles Firebase)",
+  "type": "module",
+  "scripts": {
+    "controles": "node static.mjs",
+    "ecrans": "node smoke.mjs",
+    "traductions": "node i18n.mjs",
+    "regles": "firebase emulators:exec --only firestore --project demo-b2a \"node --test rules.test.mjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "6.0.0",
+    "firebase": "13.0.0",
+    "firebase-tools": "15.34.1",
+    "playwright": "1.63.0",
+    "terser": "5.36.0"
+  }
+}

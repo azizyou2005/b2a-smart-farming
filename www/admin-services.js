@@ -6,6 +6,8 @@ if(!window.B2A_FIREBASE||!window.firebase)return;
 const $=id=>document.getElementById(id);
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 const fmt=n=>Number(n||0).toLocaleString("fr-FR",{maximumFractionDigits:0});
+/* image affichée seulement si elle est intégrée (jamais d'adresse web) */
+const okImg=u=>typeof u==="string"&&/^data:image\/(jpeg|png|webp);base64,/.test(u);
 const ms=v=>v==null?0:typeof v==="number"?v:v.toMillis?v.toMillis():0;
 const dd=t=>t?new Date(t).toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"}):"—";
 const tel226=t=>{let p=String(t||"").replace(/\D/g,"");if(p.length===8)p="226"+p;return p};
@@ -73,7 +75,7 @@ function render(){const now=Date.now(),mois=new Date().toISOString().slice(0,7);
   /* prestataires */
   const L2=$("sv-list");L2.innerHTML="";if(!P.length){L2.append(el("p","note","Aucun prestataire inscrit pour l'instant."));return}
   P.sort((a,b)=>(enLigne(b)?1:0)-(enLigne(a)?1:0)||ms(a.finLe)-ms(b.finLe)).forEach(p=>{const c=el("article","u");const h=el("div","sv-h");
-    if(p.photo){const im=el("img","sv-ph");im.src=p.photo;im.alt="";h.append(im)}
+    if(okImg(p.photo)){const im=el("img","sv-ph");im.src=p.photo;im.alt="";h.append(im)}
     const st=enLigne(p)?["En ligne","p-approuve"]:p.statut==="suspendu"?["Suspendue","p-bloque"]:p.statut==="refuse"?["Refusée","p-refuse"]:p.statut==="actif"?["Expirée","p-bloque"]:["En attente","p-attente"];
     const top=el("div","u-top");top.style.flex="1";top.append(el("b",null,(p.nom||"Prestataire")+(p.verifie?" ✓":"")),el("span","pill "+st[1],st[0]));h.append(top);c.append(h);
     c.append(el("small",null,[METIERS[p.metier]||p.metier,p.specialites,[p.quartier,p.ville].filter(Boolean).join(", "),p.tel,p.agrement?"Agrément "+p.agrement:null].filter(Boolean).join(" · ")));

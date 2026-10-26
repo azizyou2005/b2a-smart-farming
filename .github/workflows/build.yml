@@ -14,8 +14,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Tests automatiques (écrans, traductions, règles Firebase) : la publication ne part que s'ils réussissent
+  tests:
+    name: Tests
+    uses: ./.github/workflows/tests.yml
+
   publier:
     name: Site web + APK + AAB Google Play
+    needs: tests
     runs-on: ubuntu-latest
     env:
       # Numéro de version Android : augmente tout seul à chaque construction (obligatoire pour Google Play)

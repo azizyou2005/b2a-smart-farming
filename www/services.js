@@ -19,6 +19,8 @@ const fmt=v=>v==null||!isFinite(v)?"—":Number(v).toLocaleString("fr-FR",{maxim
 const ms=v=>v==null?0:typeof v==="number"?v:v.toMillis?v.toMillis():v.seconds?v.seconds*1000:0;
 const dlong=t=>new Date(t).toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
 const tr=s=>window.__tr?window.__tr(s):s;
+/* image affichée seulement si elle est intégrée (jamais d'adresse web) */
+const okImg=u=>typeof u==="string"&&/^data:image\/(jpeg|png|webp);base64,/.test(u);
 const digits=s=>String(s||"").replace(/\D/g,"");
 /* numéro international : +XXX gardé, 00XXX → XXX, 8 chiffres → Burkina (226) */
 function intl(t){t=String(t||"").trim();if(/^\+/.test(t))return digits(t);let d=digits(t);if(d.startsWith("00"))return d.slice(2);if(d.length===8)return "226"+d;return d}
@@ -97,13 +99,13 @@ function renderList(Bd){
     const ul=el("ul","plain s-tarifs");FORMULES.forEach(([k,m,lab])=>ul.append(el("li",null,`${lab} : ${fmt(prix(k))} F`)));c.append(ul);
     const b=el("button","btn","Proposer mes services");b.type="button";b.onclick=()=>{draft=null;go("form")};c.append(b);Bd.append(c)}}
 function card(p){const b=el("button","m-card s-card");b.type="button";const ph=el("div","m-ph s-ph");
-  if(p.photo){const im=el("img");im.src=p.photo;im.alt="";im.loading="lazy";ph.append(im)}else ph.append(notr(el("span",null,String(p.nom||"?").trim().slice(0,1).toUpperCase())));b.append(ph);
+  if(okImg(p.photo)){const im=el("img");im.src=p.photo;im.alt="";im.loading="lazy";ph.append(im)}else ph.append(notr(el("span",null,String(p.nom||"?").trim().slice(0,1).toUpperCase())));b.append(ph);
   const t=el("div","m-tx");t.append(notr(el("b",null,p.nom||"Prestataire")),el("span","s-met",MN(p.metier)));
   if(p.verifie)t.append(el("span","m-ok","✓ Vérifié par B2A"));
   t.append(notr(el("small",null,[p.quartier,p.ville].filter(Boolean).join(", "))));if(p.deplace)t.append(el("small","s-dep","Se déplace à la ferme"));
   b.append(t);b.onclick=()=>{back=view==="pro"?"pro":"list";openId=p.id;go("detail")};return b}
 function detail(p){const own=S&&p.id===S.uid;const c=el("div","card m-det");const bk=el("button","back","‹ Retour aux services");bk.type="button";bk.onclick=()=>go(back);c.append(bk);
-  const h=el("div","s-head");const ph=el("div","s-av");if(p.photo){const im=el("img");im.src=p.photo;im.alt="";ph.append(im)}else ph.append(notr(el("span",null,String(p.nom||"?").trim().slice(0,1).toUpperCase())));
+  const h=el("div","s-head");const ph=el("div","s-av");if(okImg(p.photo)){const im=el("img");im.src=p.photo;im.alt="";ph.append(im)}else ph.append(notr(el("span",null,String(p.nom||"?").trim().slice(0,1).toUpperCase())));
   const t=el("div");t.append(notr(el("h2","sec",p.nom||"Prestataire")),el("span","s-met",MN(p.metier)));if(p.verifie)t.append(el("span","m-ok","✓ Vérifié par B2A"));h.append(ph,t);c.append(h);
   const info=[["Spécialités",p.specialites],["Lieu",[p.quartier,p.ville].filter(Boolean).join(", ")],["Zones desservies",p.zones],["Horaires",p.horaires],
     ["N° d'agrément",p.agrement],["Déplacement",p.deplace?"Se déplace à la ferme":""]].filter(x=>x[1]);
@@ -171,7 +173,7 @@ function proForm(){const p=draft||{};const c=el("section","card");const bk=el("b
   const dep=el("label","m-check");const dk=el("input");dk.type="checkbox";dk.checked=p.deplace!==false;dep.append(dk,document.createTextNode(" Je me déplace à la ferme"));c.append(dep);
   const syncA=()=>{fa.hidden=!["veto","auxiliaire","pharma"].includes(sm.value)};sm.onchange=syncA;syncA();
   /* photo ou logo */
-  let photo=p.photo||"";const pw=el("div","m-photo");const pv=el("div","m-ph s-ph");const setPv=()=>{pv.innerHTML="";if(photo){const im=el("img");im.src=photo;im.alt="";pv.append(im)}else pv.append(el("span",null,"Photo"));if(rm)rm.hidden=!photo};let rm=null;
+  let photo=p.photo||"";const pw=el("div","m-photo");const pv=el("div","m-ph s-ph");const setPv=()=>{pv.innerHTML="";if(okImg(photo)){const im=el("img");im.src=photo;im.alt="";pv.append(im)}else pv.append(el("span",null,"Photo"));if(rm)rm.hidden=!photo};let rm=null;
   const fi=el("input");fi.type="file";fi.accept="image/*";fi.id="s-f-photo";fi.hidden=true;const fl=el("label","btn small ghost","Photo ou logo (facultatif)");fl.htmlFor=fi.id;
   rm=el("button","btn small ghost","Retirer la photo");rm.type="button";rm.onclick=()=>{photo="";setPv()};setPv();
   const rr=el("div");rr.style.cssText="display:grid;gap:6px;justify-items:start";rr.append(fl,fi,rm);pw.append(pv,rr);c.append(pw);

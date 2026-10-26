@@ -11,6 +11,8 @@ let change={};const rate=k=>Number(change[k])||(CUR[k]||CUR.XOF)[2];
 const money=(v,k)=>{const c=CUR[k]||CUR.XOF;v=Number(v)||0;return fmt(v,c[1]&&Math.round(v)!==v?c[1]:0)+"\u00a0"+c[0]};
 const toF=(v,k)=>(Number(v)||0)*rate(k||"XOF");
 const multi=list=>{const m={};list.forEach(([v,k])=>{k=k||"XOF";m[k]=(m[k]||0)+(Number(v)||0)});const ks=Object.keys(m);return ks.length?ks.map(k=>money(Math.round(m[k]*100)/100,k)).join(" + "):money(0,"XOF")};
+/* image affichée seulement si elle est intégrée (jamais d'adresse web) */
+const okImg=u=>typeof u==="string"&&/^data:image\/(jpeg|png|webp);base64,/.test(u);
 const ms=v=>v==null?0:typeof v==="number"?v:v.toMillis?v.toMillis():0;
 const host=$("u-main");if(!host)return;
 const sec=el("section","card");sec.id="mk-admin";sec.innerHTML=`<h2>Marché B2A : vendeurs et commissions</h2>
@@ -83,7 +85,7 @@ function render(){const sold=cmd.filter(c=>c.statut==="vendue"),due=cmd.filter(c
       pb0.append(el("b",null,`Pièce : ${P.type==="entreprise"?"Entreprise (RCCM / IFU)":"Particulier (CNIB)"} · ${lab}`));
       pb0.append(el("small",null,[P.titulaire,P.cnib?"CNIB "+P.cnib:null,P.rccm?"RCCM "+P.rccm:null,P.ifu?"IFU "+P.ifu:null,ms(P.envoyeLe)?"envoyée le "+new Date(ms(P.envoyeLe)).toLocaleDateString("fr-FR"):null].filter(Boolean).join(" · ")));
       if(P.motif)pb0.append(el("small",null,"Motif du refus : "+P.motif));
-      if(P.photo){const a=el("a");a.href="#";const im=el("img");im.src=P.photo;im.alt="Pièce";a.append(im);a.onclick=e=>{e.preventDefault();const w=window.open();if(w){w.document.title="Pièce";const i=w.document.createElement("img");i.src=P.photo;i.style.maxWidth="100%";w.document.body.append(i)}};pb0.append(a)}
+      if(okImg(P.photo)){const a=el("a");a.href="#";const im=el("img");im.src=P.photo;im.alt="Pièce";a.append(im);a.onclick=e=>{e.preventDefault();const w=window.open();if(w){w.document.title="Pièce";const i=w.document.createElement("img");i.src=P.photo;i.style.maxWidth="100%";w.document.body.append(i)}};pb0.append(a)}
       if(P.statut!=="validee"){const ok=el("button","btn small ok","Valider la pièce");ok.type="button";
         ok.onclick=async()=>{ok.disabled=true;try{await db.doc("marche_pieces/"+v.id).update({statut:"validee",motif:"",verifieLe:firebase.firestore.FieldValue.serverTimestamp()});
           await db.doc("marche_boutiques/"+v.id).set({verifie:true},{merge:true})}catch(e){ok.disabled=false}};pb0.append(ok)}

@@ -7,6 +7,11 @@ service cloud.firestore {
     function approved() { return request.auth != null
       && get(/databases/$(database)/documents/inscriptions/$(request.auth.uid)).data.statut == 'approuve'; }
     function txt(v, n) { return v is string && v.size() <= n; }
+    // Photo : vide, ou image intégrée (JPEG/PNG/WebP en base64) de taille limitée. Jamais d'adresse web
+    // (une image distante permettrait de suivre les personnes qui la regardent).
+    function img(v, n) { return v == '' || (v is string && v.size() <= n
+      && v.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$')); }
+    function devises() { return ['XOF','XAF','EUR','USD','NGN','GHS','GNF','MAD','GBP','CAD']; }
 
     // Demandes de suppression du compte (exigence Google Play) : l'utilisateur crée la sienne, seul B2A la lit
     match /suppressions/{uid} {
@@ -137,21 +142,24 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['type','titulaire','cnib','rccm','ifu','photo','statut','motif','envoyeLe'])
         && request.resource.data.statut == 'attente' && request.resource.data.type in ['cnib','entreprise']
         && txt(request.resource.data.titulaire, 80) && txt(request.resource.data.cnib, 20) && txt(request.resource.data.rccm, 40) && txt(request.resource.data.ifu, 20)
-        && txt(request.resource.data.photo, 400000);
+        && img(request.resource.data.photo, 400000) && request.resource.data.photo != '';
     }
+    function annonceOk(d) { return d.keys().hasOnly(['devise','vendeur','vendeurNom','vendeurTel','ville','cat','titre','desc','prix','unite','qte','photo','statut','creeLe','majLe','derniereCommande'])
+      && d.statut in ['actif','epuise','retire']
+      && txt(d.titre, 80) && txt(d.get('desc',''), 600) && txt(d.get('vendeurNom',''), 60) && txt(d.get('ville',''), 60)
+      && txt(d.get('cat',''), 20) && txt(d.get('unite',''), 30) && d.get('devise','XOF') in devises()
+      && d.prix is number && d.prix > 0 && d.prix < 1000000000000
+      && (d.get('qte', null) == null || (d.qte is number && d.qte >= 0))
+      && img(d.get('photo',''), 400000); }
     match /marche_annonces/{id} {
       allow read: if approved() || isAdmin();
       allow create: if approved() && seller() && request.resource.data.vendeur == request.auth.uid
         && request.resource.data.get('vendeurTel', '') == ''
-        && request.resource.data.statut in ['actif','epuise','retire']
-        && txt(request.resource.data.titre, 80) && txt(request.resource.data.get('desc',''), 600)
-        && request.resource.data.prix is number && request.resource.data.prix > 0
-        && (request.resource.data.get('photo','') == '' || txt(request.resource.data.photo, 400000));
+        && annonceOk(request.resource.data);
       allow update: if isAdmin() || (approved() && seller() && resource.data.vendeur == request.auth.uid
         && request.resource.data.vendeur == request.auth.uid
         && request.resource.data.get('vendeurTel', '') == ''
-        && request.resource.data.statut in ['actif','epuise','retire']
-        && (request.resource.data.get('photo','') == '' || txt(request.resource.data.photo, 400000)));
+        && annonceOk(request.resource.data));
       // Stock réservé par l'acheteur : la quantité baisse seulement du nombre commandé dans une NOUVELLE commande
       // de cet acheteur (écrite dans la même transaction), et revient quand il annule sa demande.
       allow update: if approved() && resource.data.vendeur != request.auth.uid
@@ -184,6 +192,12 @@ service cloud.firestore {
       allow read: if isAdmin() || (request.auth != null && (resource.data.acheteur == request.auth.uid || resource.data.vendeur == request.auth.uid));
       allow create: if approved() && request.resource.data.acheteur == request.auth.uid && request.resource.data.statut == 'demande'
         && request.resource.data.total is number
+        // le prix et le vendeur viennent de l'annonce : l'acheteur ne peut pas les changer
+        && request.resource.data.vendeur == get(/databases/$(database)/documents/marche_annonces/$(request.resource.data.annonce)).data.vendeur
+        && request.resource.data.prix == get(/databases/$(database)/documents/marche_annonces/$(request.resource.data.annonce)).data.prix
+        && request.resource.data.qte is number && request.resource.data.qte > 0
+        && request.resource.data.total >= request.resource.data.qte * request.resource.data.prix - 0.011
+        && request.resource.data.total <= request.resource.data.qte * request.resource.data.prix + 0.011
         && !request.resource.data.keys().hasAny(['acheteurNom','acheteurTel','note','commission','accepteLe','commAnnulee'])
         && request.resource.data.get('vendeurTel', '') == '';
       allow update: if isAdmin()
@@ -235,7 +249,7 @@ service cloud.firestore {
     function svcFiche(d) { return txt(d.nom, 60) && txt(d.metier, 20) && txt(d.get('specialites',''), 100) && txt(d.ville, 60)
       && txt(d.get('quartier',''), 60) && txt(d.get('zones',''), 100) && txt(d.tel, 30) && txt(d.get('wa',''), 30)
       && txt(d.get('horaires',''), 60) && d.get('deplace', false) is bool && txt(d.get('agrement',''), 40)
-      && txt(d.get('desc',''), 400) && txt(d.get('photo',''), 200000); }
+      && txt(d.get('desc',''), 400) && img(d.get('photo',''), 200000); }
     match /services_pros/{uid} {
       allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid) || (approved() && resource.data.statut == 'actif');
       allow create: if approved() && request.auth.uid == uid
@@ -257,6 +271,18 @@ service cloud.firestore {
         && request.resource.data.montant is number && request.resource.data.montant > 0
         && txt(request.resource.data.ref, 40) && txt(request.resource.data.telPayeur, 30) && txt(request.resource.data.get('nom',''), 60);
       allow update, delete: if isAdmin();
+    }
+
+    // ---------- Erreurs de l'application ----------
+    // Chaque téléphone peut signaler une erreur technique (message court, sans données de la ferme) ; seul B2A les lit et les efface.
+    match /erreurs/{id} {
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['msg','src','pile','version','plateforme','langue','ecran','nb','creeLe'])
+        && txt(request.resource.data.msg, 300) && txt(request.resource.data.get('src',''), 200) && txt(request.resource.data.get('pile',''), 1500)
+        && txt(request.resource.data.get('version',''), 20) && txt(request.resource.data.get('plateforme',''), 30)
+        && txt(request.resource.data.get('langue',''), 5) && txt(request.resource.data.get('ecran',''), 30)
+        && request.resource.data.get('nb', 1) is int && request.resource.data.get('nb', 1) <= 100;
+      allow read, delete: if isAdmin();
     }
   }
 }
