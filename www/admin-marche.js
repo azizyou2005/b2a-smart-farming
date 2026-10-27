@@ -40,7 +40,7 @@ firebase.auth().onAuthStateChanged(u=>{offs.forEach(f=>f());offs=[];if(!u||u.isA
   offs.push(db.collection("marche_vendeurs").onSnapshot(s=>{vend=s.docs.map(d=>({id:d.id,...d.data()}));render()},err));
   offs.push(db.collection("marche_commandes").onSnapshot(s=>{cmd=s.docs.map(d=>({id:d.id,...d.data()}));render()},err));
   offs.push(db.collection("marche_pieces").onSnapshot(s=>{pieces={};s.docs.forEach(d=>pieces[d.id]=d.data());render()},err));
-  offs.push(db.collection("suppressions").onSnapshot(s=>{const B=document.getElementById("mk-sup");if(!B)return;B.innerHTML="";
+  offs.push(db.collection("suppressions").onSnapshot(s=>{note("suppr",{n:s.size});const B=document.getElementById("mk-sup");if(!B)return;B.innerHTML="";
     if(!s.size){B.textContent="Aucune demande.";return}
     s.docs.forEach(d=>{const x=d.data(),r=document.createElement("div");r.style.cssText="display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap";
       const t=document.createElement("span");t.textContent=(x.nom||"(sans nom)")+" · ferme "+(x.ferme||"—")+" · "+(x.demandeLe&&x.demandeLe.toDate?x.demandeLe.toDate().toLocaleDateString("fr-FR"):"")+" · id "+d.id;
@@ -54,6 +54,7 @@ $("mk-save").onclick=async()=>{const t=Number(String($("mk-taux").value).replace
 function renderRates(){const R=$("mk-rates");if(!R)return;R.innerHTML="";Object.entries(CUR).forEach(([k,c])=>{if(k==="XOF"||k==="XAF")return;const f=el("div","field");const l=el("label",null,`1 ${c[0]} (${k}) =`);
   const i=el("input");i.type="number";i.step="any";i.min="0";i.id="mk-r-"+k;l.htmlFor=i.id;i.dataset.k=k;i.value=rate(k);if(k==="EUR")i.disabled=true;f.append(l,i,el("small",null,"FCFA"));R.append(f)})}
 renderRates();
+const note=(k,d)=>{(window.__adm=window.__adm||{})[k]=d;document.dispatchEvent(new CustomEvent("b2a-admin",{detail:{k,d}}))};
 function kpi(l,v,s,c){const k=el("div","kpi"+(c?" "+c:""));k.append(el("span",null,l),el("b",null,v));if(s)k.append(el("small",null,s));return k}
 /* commission due dès l'acceptation de la commande par le vendeur ; B2A peut l'annuler en cas de litige */
 const comDue=c=>Number(c.commission)>0&&!c.commAnnulee;
@@ -62,6 +63,8 @@ function render(){const sold=cmd.filter(c=>c.statut==="vendue"),due=cmd.filter(c
     kpi("Ventes conclues",fmt(tot)+" F",fmt(sold.length)+" vente(s) · converties en FCFA"),kpi("Commissions dues",fmt(com)+" F",multi(due.map(c=>[c.commission,c.devise]))+" · "+due.length+" commande(s) acceptée(s)"),kpi("Commissions encaissées",fmt(paid)+" F","reste ≈ "+fmt(Math.max(0,com-paid))+" F",com-paid>0.5?"warn":null),
     kpi("Pièces à vérifier",fmt(Object.values(pieces).filter(p=>p.statut==="attente").length),"CNIB, RCCM / IFU",Object.values(pieces).some(p=>p.statut==="attente")?"warn":null),
     kpi("Commandes en cours",fmt(cmd.filter(c=>c.statut==="demande"||c.statut==="acceptee").length),"demandées ou acceptées"));
+  {const resteV=vend.filter(v=>{const c0=due.filter(c=>c.vendeur===v.id).reduce((p,c)=>p+toF(c.commission,c.devise),0),p0=pay.filter(x=>x.vendeur===v.id).reduce((p,x)=>p+toF(x.montant,x.devise),0);return c0-p0>0.5}).length;
+   note("marche",{pieces:Object.values(pieces).filter(p=>p.statut==="attente").length,vendeurs:vend.filter(v=>v.statut==="actif").length,reste:Math.max(0,com-paid),resteV,encours:cmd.filter(c=>c.statut==="demande"||c.statut==="acceptee").length})}
   const L=$("mk-list");L.innerHTML="";if(!vend.length){L.append(el("p","empty","Aucun vendeur pour l'instant."));return}
   vend.map(v=>{const s=sold.filter(c=>c.vendeur===v.id),dv0=due.filter(c=>c.vendeur===v.id);const c2=dv0.reduce((p,c)=>p+toF(c.commission,c.devise),0);const pv=pay.filter(x=>x.vendeur===v.id);const p2=pv.reduce((p,x)=>p+toF(x.montant,x.devise),0);
     /* monnaie principale du vendeur : celle de ses ventes les plus nombreuses */

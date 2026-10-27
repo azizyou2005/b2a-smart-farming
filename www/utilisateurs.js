@@ -27,6 +27,7 @@ auth.onAuthStateChanged(u=>{const isMail=u&&!u.isAnonymous;$("u-login").hidden=i
 document.querySelectorAll("#u-filter .chip").forEach(b=>b.onclick=()=>{filter=b.dataset.f;render()});
 $("u-q").addEventListener("input",()=>render());
 
+const note=(k,d)=>{(window.__adm=window.__adm||{})[k]=d;document.dispatchEvent(new CustomEvent("b2a-admin",{detail:{k,d}}))};
 function kpi(l,v,s,c){const k=el("div","kpi"+(c?" "+c:""));k.append(el("span",null,l),el("b",null,v));if(s)k.append(el("small",null,s));return k}
 function render(){
   const by=s=>users.filter(u=>u.statut===s).length;
@@ -38,6 +39,7 @@ function render(){
     kpi("Nouveaux 7 jours",fmt(new7),"inscriptions récentes"),
     kpi("Actifs 7 jours",fmt(a7),"ont ouvert l'app"),kpi("Actifs 30 jours",fmt(a30),"ont ouvert l'app"),
     kpi("Accès retiré",fmt(by("refuse")+by("bloque"))));
+  note("users",{total:users.length,acces:acc.length,new7,a7,a30});
   document.querySelectorAll("#u-filter .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===filter));
   const q=$("u-q").value.trim().toLowerCase();
   let list=users.filter(u=>filter==="tous"||(filter==="refuse"?u.statut==="refuse"||u.statut==="bloque":u.statut===filter));

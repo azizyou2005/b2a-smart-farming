@@ -45,6 +45,7 @@ firebase.auth().onAuthStateChanged(u=>{offs.forEach(f=>f());offs=[];if(!u||u.isA
   offs.push(db.collection("services_paiements").onSnapshot(s=>{pays=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));render()},err))});
 $("sv-save").onclick=async()=>{const m=$("sv-msg");const v={};for(const k of ["m1","m3","m12"]){const n=Number($("sv-"+k).value);if(!(n>0)){m.textContent="Tarif invalide.";m.className="msg err";return}v["svc"+k.toUpperCase()]=n}
   try{await db.doc("marche_config/global").set(v,{merge:true});m.textContent="Tarifs enregistrés. Ils s'affichent tout de suite dans l'application.";m.className="msg"}catch(e){m.textContent="Échec de l'enregistrement.";m.className="msg err"}};
+const note=(k,d)=>{(window.__adm=window.__adm||{})[k]=d;document.dispatchEvent(new CustomEvent("b2a-admin",{detail:{k,d}}))};
 function kpi(l,v,s,c){const k=el("div","kpi"+(c?" "+c:""));k.append(el("span",null,l),el("b",null,v));if(s)k.append(el("small",null,s));return k}
 const enLigne=p=>p.statut==="actif"&&ms(p.finLe)>Date.now();
 
@@ -55,6 +56,7 @@ function render(){const now=Date.now(),mois=new Date().toISOString().slice(0,7);
     kpi("Encaissé ce mois",fmt(val.filter(x=>new Date(ms(x.valideLe)||ms(x.creeLe)).toISOString().slice(0,7)===mois).reduce((s,x)=>s+(Number(x.montant)||0),0))+" F"),
     kpi("Encaissé au total",fmt(val.reduce((s,x)=>s+(Number(x.montant)||0),0))+" F",fmt(val.length)+" abonnement(s)"),
     kpi("Finissent sous 7 jours",fmt(soon.length),"à relancer",soon.length?"warn":null));
+  note("services",{att:att.length,soon:soon.length,online:P.filter(enLigne).length,mois:val.filter(x=>new Date(ms(x.valideLe)||ms(x.creeLe)).toISOString().slice(0,7)===mois).reduce((s,x)=>s+(Number(x.montant)||0),0)});
   /* paiements en attente */
   const L1=$("sv-pay");L1.innerHTML="";if(!att.length)L1.append(el("p","note","Aucun paiement à vérifier."));
   att.forEach(x=>{const p=pros[x.pro]||{};const c=el("article","u");const top=el("div","u-top");top.append(el("b",null,(p.nom||x.nom||"Prestataire")+" · "+(METIERS[p.metier]||"")),el("span","pill p-attente","À vérifier"));c.append(top);

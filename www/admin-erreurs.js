@@ -14,9 +14,10 @@ const css=el("style");css.textContent=`#er-admin .er{display:grid;gap:4px}#er-ad
 const db=firebase.firestore();let docs=[],off=null;
 firebase.auth().onAuthStateChanged(u=>{if(off){off();off=null}if(!u||u.isAnonymous)return;
   off=db.collection("erreurs").orderBy("creeLe","desc").limit(300).onSnapshot(s=>{docs=s.docs;render()},()=>{$("er-sum").textContent="Lecture impossible : publiez les règles Firestore (firestore.rules).";})});
+const note=(k,d)=>{(window.__adm=window.__adm||{})[k]=d;document.dispatchEvent(new CustomEvent("b2a-admin",{detail:{k,d}}))};
 function render(){const L=$("er-list");L.innerHTML="";const g={};
   docs.forEach(d=>{const x=d.data();const k=(x.msg||"")+"|"+(x.src||"");const o=g[k]=g[k]||{x,n:0,last:0,vers:new Set(),plats:new Set()};o.n+=Number(x.nb)||1;o.last=Math.max(o.last,ms(x.creeLe));if(x.version)o.vers.add(x.version);if(x.plateforme)o.plats.add(x.plateforme)});
-  const list=Object.values(g).sort((a,b)=>b.last-a.last);$("er-sum").textContent=docs.length?`${list.length} erreur(s) différente(s), ${docs.length} signalement(s) (300 derniers).`:"Aucune erreur signalée.";$("er-clear").hidden=!docs.length;
+  const list=Object.values(g).sort((a,b)=>b.last-a.last);note("erreurs",{distinct:list.length,total:docs.length,last:list[0]?list[0].last:0});$("er-sum").textContent=docs.length?`${list.length} erreur(s) différente(s), ${docs.length} signalement(s) (300 derniers).`:"Aucune erreur signalée.";$("er-clear").hidden=!docs.length;
   list.slice(0,60).forEach(o=>{const c=el("article","u er");const top=el("div","u-top");top.append(el("b",null,o.x.msg||"(sans message)"),el("span","pill p-attente","× "+o.n));c.append(top);
     c.append(el("small",null,[o.x.src,[...o.vers].join(", "),[...o.plats].join(", "),o.last?"dernière le "+new Date(o.last).toLocaleString("fr-FR",{dateStyle:"short",timeStyle:"short"}):""].filter(Boolean).join(" · ")));
     if(o.x.pile)c.append(el("code",null,o.x.pile));L.append(c)})}
