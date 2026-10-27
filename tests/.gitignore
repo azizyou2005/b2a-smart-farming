@@ -1,3 +1,4 @@
 node_modules/
 # copie faite par le test (l'original est à la racine)
 firestore.rules
+*.png
