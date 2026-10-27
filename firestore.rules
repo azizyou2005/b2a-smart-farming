@@ -11,6 +11,9 @@ service cloud.firestore {
     // (une image distante permettrait de suivre les personnes qui la regardent).
     function img(v, n) { return v == '' || (v is string && v.size() <= n
       && v.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$')); }
+    // Position facultative : { lat, lon } en degrés (arrondie à ≈ 2 km par l'application quand elle est publique)
+    function geoOk(g) { return g == null || (g is map && g.keys().hasOnly(['lat','lon']) && g.lat is number && g.lon is number
+      && g.lat >= -90 && g.lat <= 90 && g.lon >= -180 && g.lon <= 180); }
     function devises() { return ['XOF','XAF','EUR','USD','NGN','GHS','GNF','MAD','GBP','CAD']; }
 
     // Demandes de suppression du compte (exigence Google Play) : l'utilisateur crée la sienne, seul B2A la lit
@@ -114,7 +117,8 @@ service cloud.firestore {
         && request.resource.data.statut == 'actif' && request.resource.data.taux == tauxB2A()
         && txt(request.resource.data.nom, 60) && txt(request.resource.data.tel, 30) && txt(request.resource.data.ville, 60);
       allow update: if isAdmin() || (approved() && request.auth.uid == uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nom','tel','ville','cgu','cguLe'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nom','tel','ville','cgu','cguLe','pos'])
+        && geoOk(request.resource.data.get('pos', null))
         && txt(request.resource.data.nom, 60) && txt(request.resource.data.tel, 30) && txt(request.resource.data.ville, 60));
       allow delete: if isAdmin();
     }
@@ -125,7 +129,8 @@ service cloud.firestore {
       // le badge « verifie » est posé seulement par B2A (isAdmin) après contrôle de la pièce
       allow write: if isAdmin();
       allow create, update: if approved() && request.auth.uid == uid && seller()
-        && request.resource.data.keys().hasOnly(['nom','activite','ville','quartier','tel','horaires','desc','majLe','verifie'])
+        && request.resource.data.keys().hasOnly(['nom','activite','ville','quartier','tel','horaires','desc','majLe','verifie','geo'])
+        && geoOk(request.resource.data.get('geo', null))
         && request.resource.data.get('verifie', false) == (resource == null ? false : resource.data.get('verifie', false))
         && request.resource.data.get('tel', '') == ''   // pas de téléphone public : il est donné au client après acceptation
         && txt(request.resource.data.nom, 60) && txt(request.resource.data.get('activite',''), 60) && txt(request.resource.data.ville, 60)
@@ -144,13 +149,13 @@ service cloud.firestore {
         && txt(request.resource.data.titulaire, 80) && txt(request.resource.data.cnib, 20) && txt(request.resource.data.rccm, 40) && txt(request.resource.data.ifu, 20)
         && img(request.resource.data.photo, 400000) && request.resource.data.photo != '';
     }
-    function annonceOk(d) { return d.keys().hasOnly(['devise','vendeur','vendeurNom','vendeurTel','ville','cat','titre','desc','prix','unite','qte','photo','statut','creeLe','majLe','derniereCommande'])
+    function annonceOk(d) { return d.keys().hasOnly(['devise','vendeur','vendeurNom','vendeurTel','ville','cat','titre','desc','prix','unite','qte','photo','statut','creeLe','majLe','derniereCommande','geo'])
       && d.statut in ['actif','epuise','retire']
       && txt(d.titre, 80) && txt(d.get('desc',''), 600) && txt(d.get('vendeurNom',''), 60) && txt(d.get('ville',''), 60)
       && txt(d.get('cat',''), 20) && txt(d.get('unite',''), 30) && d.get('devise','XOF') in devises()
       && d.prix is number && d.prix > 0 && d.prix < 1000000000000
       && (d.get('qte', null) == null || (d.qte is number && d.qte >= 0))
-      && img(d.get('photo',''), 400000); }
+      && img(d.get('photo',''), 400000) && geoOk(d.get('geo', null)); }
     match /marche_annonces/{id} {
       allow read: if approved() || isAdmin();
       allow create: if approved() && seller() && request.resource.data.vendeur == request.auth.uid
@@ -202,9 +207,11 @@ service cloud.firestore {
         && request.resource.data.get('vendeurTel', '') == '';
       allow update: if isAdmin()
         || (request.auth != null && resource.data.vendeur == request.auth.uid
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut','taux','commission','venduLe','accepteLe','vendeurTel','majLe'])
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut','taux','commission','venduLe','accepteLe','vendeurTel','vendeurPos','majLe'])
             // le téléphone du vendeur n'est donné au client qu'à l'acceptation
-            && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['vendeurTel']) || request.resource.data.statut == 'acceptee')
+            // le téléphone et la position exacte du vendeur ne sont donnés qu'à l'acceptation
+            && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['vendeurTel','vendeurPos']) || request.resource.data.statut == 'acceptee')
+            && geoOk(request.resource.data.get('vendeurPos', null))
             && request.resource.data.statut in ['acceptee','refusee','vendue','annulee']
             // acceptation : seulement depuis une demande, avec la commission au taux du vendeur
             && (request.resource.data.statut != 'acceptee' || resource.data.statut == 'acceptee'
@@ -245,11 +252,12 @@ service cloud.firestore {
     // ---------- Services : vétérinaires et prestataires (inscription payante) ----------
     // Le prestataire crée sa fiche (statut 'attente') et déclare son paiement ; seul B2A met en ligne (statut 'actif' + finLe),
     // marque « vérifié », suspend ou refuse. Les éleveurs voient seulement les fiches 'actif' (l'application cache celles dont finLe est passée).
-    function svcChamps() { return ['nom','metier','specialites','ville','quartier','zones','tel','wa','horaires','deplace','agrement','desc','photo']; }
+    function svcChamps() { return ['nom','metier','specialites','ville','quartier','zones','tel','wa','horaires','deplace','agrement','desc','photo','geo','geoExacte']; }
     function svcFiche(d) { return txt(d.nom, 60) && txt(d.metier, 20) && txt(d.get('specialites',''), 100) && txt(d.ville, 60)
       && txt(d.get('quartier',''), 60) && txt(d.get('zones',''), 100) && txt(d.tel, 30) && txt(d.get('wa',''), 30)
       && txt(d.get('horaires',''), 60) && d.get('deplace', false) is bool && txt(d.get('agrement',''), 40)
-      && txt(d.get('desc',''), 400) && img(d.get('photo',''), 200000); }
+      && txt(d.get('desc',''), 400) && img(d.get('photo',''), 200000)
+      && geoOk(d.get('geo', null)) && d.get('geoExacte', false) is bool; }
     match /services_pros/{uid} {
       allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid) || (approved() && resource.data.statut == 'actif');
       allow create: if approved() && request.auth.uid == uid

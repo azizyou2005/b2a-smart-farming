@@ -47,9 +47,10 @@ Collecte, chiffrée en transit (HTTPS), suppression possible sur demande (URL ci
 - Photos : pièce d'identité du vendeur (CNIB/RCCM/IFU), photos d'annonces, photo IA (analyse)
 - Identifiants : identifiant anonyme Firebase de l'appareil
 - Activité de l'app : données de gestion de l'exploitation (lots, saisies, ventes), saisies par l'utilisateur
-- Pas de localisation, pas de contacts, pas de données financières (cartes/banque), pas de publicité, pas de vente de données.
+- Position (facultative, seulement quand l'utilisateur touche un bouton) : position approximative et position précise. Vendeurs du Marché et prestataires des Services : collectée et partagée avec les autres utilisateurs (arrondie à ≈ 2 km ; exacte seulement pour l'acheteur dont la commande est acceptée, ou si le prestataire choisit de la montrer) ; finalité : fonctionnalité de l'app. Acheteurs : utilisée dans le téléphone pour calculer les distances, non collectée.
+- Pas de contacts, pas de données financières (cartes/banque), pas de publicité, pas de vente de données.
 - Partage : Firebase (Google) comme sous-traitant d'hébergement ; Photo IA : service d'analyse d'image.
 - Fonctionnalités : l'utilisateur peut demander la suppression (dans l'app : Réglages > Supprimer mon compte).
 
 ## Permissions déclarées
-Notifications (rappels), Internet, appareil photo/galerie (photos). SCHEDULE_EXACT_ALARM retirée.
+Notifications (rappels), Internet, appareil photo/galerie (photos), position approximative et précise au premier plan seulement (ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION ; jamais en arrière-plan). SCHEDULE_EXACT_ALARM retirée.

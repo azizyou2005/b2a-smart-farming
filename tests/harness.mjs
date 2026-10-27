@@ -11,7 +11,7 @@ const SEED = readFileSync(join(HERE, "donnees-exemple.js"), "utf8");
 const TYPES = { js: "text/javascript", html: "text/html", json: "application/json", png: "image/png", css: "text/css", svg: "image/svg+xml" };
 
 // Prestataire d'exemple pour l'annuaire des Services
-const SERVICES = `{"services_pros":{"p1":{"nom":"Dr Test","metier":"veto","ville":"Ouagadougou","tel":"70123456","statut":"actif","finLe":Date.now()+9e9,"verifie":true,"deplace":true,"specialites":"volailles","zones":"Ouaga","horaires":"7 h–18 h","agrement":"1"}}}`;
+const SERVICES = `{"services_pros":{"p1":{"nom":"Dr Test","metier":"veto","ville":"Ouagadougou","tel":"70123456","statut":"actif","finLe":Date.now()+9e9,"verifie":true,"deplace":true,"specialites":"volailles","zones":"Ouaga","horaires":"7 h–18 h","agrement":"1","geo":{"lat":12.36,"lon":-1.53},"geoExacte":true}}}`;
 
 /** Lance le navigateur. PW_CHROMIUM permet d'utiliser un Chromium déjà installé. */
 export async function launch() {
@@ -24,12 +24,13 @@ export async function launch() {
  */
 export async function openApp(browser, opts = {}) {
   const { lang = "fr", dir = join(ROOT, "www"), width = 400, height = 860, patchI18n = "", seed = true } = opts;
-  const ctx = await browser.newContext({ viewport: { width, height }, acceptDownloads: true });
+  // position simulée : Ouagadougou (pour « Près de moi » et les distances)
+  const ctx = await browser.newContext({ viewport: { width, height }, acceptDownloads: true, permissions: ["geolocation"], geolocation: { latitude: 12.3714, longitude: -1.5197 } });
   await ctx.route("**/*", async route => {
     const url = route.request().url();
     if (url.includes("config.js")) return route.fulfill({ body: "window.B2A_FIREBASE=null;window.B2A_IA_URL=null;window.B2A_NOTIFY_EMAIL=null;", contentType: "text/javascript" });
-    if (!url.startsWith("http://app/")) return route.abort(); // aucun accès à internet pendant les tests
-    const path = url.slice("http://app/".length).split("?")[0] || "index.html";
+    if (!url.startsWith("https://app/")) return route.abort(); // aucun accès à internet pendant les tests
+    const path = url.slice("https://app/".length).split("?")[0] || "index.html";
     try {
       let body = readFileSync(join(dir, path));
       if (path === "i18n.js" && patchI18n) {
@@ -49,7 +50,7 @@ export async function openApp(browser, opts = {}) {
   const errors = [];
   page.on("pageerror", e => errors.push(String(e && e.stack || e)));
   page.on("console", m => { if (m.type() === "error" && !/Failed to load resource/.test(m.text())) errors.push("console: " + m.text()); });
-  await page.goto("http://app/index.html");
+  await page.goto("https://app/index.html");
   await page.waitForTimeout(1500);
   return { page, errors, ctx };
 }

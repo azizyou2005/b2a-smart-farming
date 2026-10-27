@@ -57,6 +57,10 @@ test("marché : seul un vendeur actif publie, avec une photo intégrée (jamais 
   await assertFails(as("vendeur").doc("marche_annonces/z").set(annonce({ prix: -5 })));
   await assertFails(as("vendeur").doc("marche_annonces/z").set(annonce({ champInconnu: 1 })));
   await assertFails(as("vendeur").doc("marche_annonces/z").set(annonce({ devise: "BTC" })));
+  // position arrondie autorisée, position mal formée refusée
+  await assertSucceeds(as("vendeur").doc("marche_annonces/g").set(annonce({ geo: { lat: 12.36, lon: -1.52 } })));
+  await assertFails(as("vendeur").doc("marche_annonces/h").set(annonce({ geo: { lat: 200, lon: -1.52 } })));
+  await assertFails(as("vendeur").doc("marche_annonces/h").set(annonce({ geo: { lat: 12.3, lon: -1.5, adresse: "x" } })));
 });
 
 test("marché : l'acheteur ne peut pas changer le prix ni le vendeur d'une commande", async () => {
@@ -71,7 +75,9 @@ test("marché : l'acheteur ne peut pas changer le prix ni le vendeur d'une comma
   await assertFails(db.doc("marche_commandes/c6").set(cmd({ commission: 0 })));
   // le vendeur accepte avec la commission au bon taux, pas en dessous
   await assertFails(as("vendeur").doc("marche_commandes/c1").update({ statut: "acceptee", commission: 1, accepteLe: 1 }));
-  await assertSucceeds(as("vendeur").doc("marche_commandes/c1").update({ statut: "acceptee", commission: 250, accepteLe: 1 }));
+  // la position exacte du vendeur n'est donnée qu'à l'acceptation
+  await assertFails(as("vendeur").doc("marche_commandes/c1").update({ vendeurPos: { lat: 12.37123, lon: -1.51987 } }));
+  await assertSucceeds(as("vendeur").doc("marche_commandes/c1").update({ statut: "acceptee", commission: 250, accepteLe: 1, vendeurPos: { lat: 12.37123, lon: -1.51987 } }));
   await assertFails(as("bob").doc("marche_commandes/c1").get());
 });
 
@@ -81,6 +87,9 @@ test("marché : la pièce d'identité reste privée", async () => {
   await assertFails(as("alice").doc("marche_pieces/vendeur").get());
   await assertSucceeds(as("x", ADMIN).doc("marche_pieces/vendeur").get());
   await assertFails(as("vendeur").doc("marche_pieces/vendeur").update({ statut: "validee" }));
+  // la position exacte du vendeur est dans sa fiche privée, illisible par les autres
+  await assertSucceeds(as("vendeur").doc("marche_vendeurs/vendeur").update({ pos: { lat: 12.37123, lon: -1.51987 } }));
+  await assertFails(as("alice").doc("marche_vendeurs/vendeur").get());
 });
 
 test("services : fiche en attente, mise en ligne seulement par B2A", async () => {
@@ -98,6 +107,9 @@ test("services : fiche en attente, mise en ligne seulement par B2A", async () =>
   await assertFails(pro.doc("services_pros/pro").update({ statut: "actif" }));
   await assertFails(pro.doc("services_pros/pro").update({ verifie: true }));
   await assertSucceeds(pro.doc("services_pros/pro").update({ ville: "Koudougou", majLe: 1 }));
+  await assertSucceeds(pro.doc("services_pros/pro").update({ geo: { lat: 12.36, lon: -1.52 }, geoExacte: true, majLe: 2 }));
+  await assertFails(pro.doc("services_pros/pro").update({ geo: { lat: "12", lon: -1.52 }, majLe: 3 }));
+  await assertFails(pro.doc("services_pros/pro").update({ geoExacte: "oui", majLe: 3 }));
   // paiement déclaré, validé par B2A
   const pay = { pro: "pro", nom: "Dr Test", formule: "m3", mois: 3, montant: 6000, ref: "CI2410.1530", telPayeur: "70123456", statut: "attente" };
   await assertSucceeds(pro.doc("services_paiements/p1").set(pay));

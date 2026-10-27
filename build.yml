@@ -90,6 +90,9 @@ jobs:
           grep -q 'xmlns:tools' "$M" || sed -i 's#<manifest #<manifest xmlns:tools="http://schemas.android.com/tools" #' "$M"
           grep -q 'SCHEDULE_EXACT_ALARM" tools:node' "$M" || sed -i 's#</manifest>#    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove" />\n</manifest>#' "$M"
           grep -n "EXACT_ALARM\|xmlns:tools" "$M" || true
+          # Position facultative (Marché et Services : distance et itinéraire), au premier plan seulement ; le GPS n'est pas obligatoire
+          grep -q ACCESS_FINE_LOCATION "$M" || sed -i 's#</manifest>#    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />\n    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />\n    <uses-feature android:name="android.hardware.location.gps" android:required="false" />\n</manifest>#' "$M"
+          grep -n "LOCATION\|location.gps" "$M" || true
           VERSION_NAME=$(node -p "require('./package.json').version")
           sed -i -E "s/versionCode [0-9]+/versionCode ${VERSION_CODE}/; s/versionName \"[^\"]*\"/versionName \"${VERSION_NAME}\"/" android/app/build.gradle
           grep -E "versionCode|versionName|targetSdk|compileSdk" android/app/build.gradle android/variables.gradle || true

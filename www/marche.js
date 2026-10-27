@@ -94,7 +94,8 @@ const errTxt=e=>{const c=e&&e.code||"";if(c==="stock")return e.left>0?`Il n'en r
 
 /* ---------- 2. état ---------- */
 let noAccess=false,cfg={...DEF},me=null,piece=null,cguOpen=false,pieceOpen=false,boutiques={},openB=null,ficheOpen=false,annonces=[],mesAnnonces=[],recues=[],passees=[],paiements=[];
-let flashT=0,flash="",mode="acheter",cat="",q="",ville="",open=null,editA=null,formOpen=false,started=false;
+let flashT=0,flash="",mode="acheter",cat="",q="",ville="",open=null,editA=null,formOpen=false,started=false,near=false;
+const GEO=()=>window.B2A_GEO;
 const subs=[];
 function listen(){if(started)return;started=true;
   store().then(s=>{
@@ -161,12 +162,17 @@ function renderBuy(Bd){
   const f=el("section","card m-filters");const s=el("input");s.type="search";s.placeholder="Rechercher : œufs, maïs, poussins…";s.value=q;s.setAttribute("aria-label","Rechercher");
   s.oninput=()=>{q=s.value;renderList(L)};const v=el("input");v.type="search";v.placeholder="Ville";v.value=ville;v.setAttribute("aria-label","Ville");v.style.maxWidth="160px";v.oninput=()=>{ville=v.value;renderList(L)};
   const r=el("div","row");r.append(s,v);f.append(r);
+  if(GEO()){const nb=el("button","chip m-near","📍 Près de moi");nb.type="button";nb.setAttribute("aria-pressed",near);const nm=el("small","note");if(near)nm.textContent="Trié du plus proche au plus loin (distances à vol d'oiseau).";
+    nb.onclick=async()=>{if(near){near=false;nb.setAttribute("aria-pressed","false");nm.textContent="";renderList(L);return}nm.className="note";nm.textContent="Recherche de votre position…";
+      try{await GEO().here();near=true;nb.setAttribute("aria-pressed","true");nm.textContent="Trié du plus proche au plus loin (distances à vol d'oiseau).";renderList(L)}catch(e){nm.className="msg err";nm.textContent=GEO().errMsg(e)}};
+    const nr=el("div","row");nr.append(nb,nm);f.append(nr)}
   const eqR=el("div","row m-eqsel");const eqL=el("label",null,"Voir aussi les prix en");const eqS=el("select");eqS.id="m-voir";eqL.htmlFor=eqS.id;eqS.append(new Option("— monnaie du vendeur seulement —",""));
   Object.entries(CUR).forEach(([k,c])=>eqS.append(new Option(`${c[0]} (${c[1]})`,k)));eqS.value=voirEn;eqS.onchange=()=>{voirEn=eqS.value;B.lsSet("b2a-m-voir",voirEn||null);renderList(L)};eqR.append(eqL,eqS);f.append(eqR);
   const ch=el("div","m-chips");[["","Tout"],...CATS].forEach(([k,n])=>{const b=el("button","chip",n);b.type="button";b.setAttribute("aria-pressed",cat===k);b.onclick=()=>{cat=k;ch.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b));renderList(L)};ch.append(b)});
   f.append(ch);const L=el("div","m-grid");f.append(L);Bd.append(f);renderList(L)}
 function renderList(L){L.innerHTML="";const qq=q.trim().toLowerCase(),vv=ville.trim().toLowerCase();
   const list=enVente().filter(a=>(!cat||a.cat===cat)&&(!qq||[a.titre,a.desc,CN(a.cat),a.vendeurNom].join(" ").toLowerCase().includes(qq))&&(!vv||String(a.ville||"").toLowerCase().includes(vv)));
+  if(near&&GEO()){const me0=GEO().mine();const dd=a=>{const d=GEO().dist(me0,a.geo);return d==null?1e9:d};list.sort((a,b)=>dd(a)-dd(b))}
   if(!list.length){const e=el("div","empty");e.append(el("strong",null,annonces.length?"Aucun produit ne correspond":"Aucun produit en vente pour l'instant"),el("span",null,annonces.length?"Changez la recherche ou la catégorie.":"Les annonces des éleveurs et agriculteurs apparaîtront ici."));L.append(e);return}
   list.forEach(a=>L.append(cardA(a)));
   if(annMore){const b=el("button","btn ghost m-more","Voir plus de produits");b.type="button";b.onclick=()=>{annLim+=30;loadAnnonces()};L.append(b)}}
@@ -175,6 +181,7 @@ function equiv(v,k){k=k||"XOF";if(!voirEn||voirEn===k)return document.createText
 function cardA(a,own){const b=el("button","m-card");b.type="button";const ph=el("div","m-ph");if(okImg(a.photo)){const im=el("img");im.src=a.photo;im.alt="";im.loading="lazy";ph.append(im)}else ph.append(el("span",null,CN(a.cat).slice(0,1)));
   b.append(ph);const t=el("div","m-tx");t.append(notr(el("b",null,a.titre||"Produit")),el("span","m-price",money(a.prix,a.devise)+" / "+(a.unite||"unité")),equiv(a.prix,a.devise),
     el("small",null,[a.qte!=null?fmt(a.qte)+" disponible(s)":null,a.ville].filter(Boolean).join(" · ")));
+  {const gd=GEO()&&!own?GEO().dist(GEO().mine(),a.geo):null;if(gd!=null)t.append(el("small","m-dist","📍 "+GEO().fmtKm(gd)))}
   if(!own)t.append(notr(el("small","m-sell",a.vendeurNom||"")));else t.append(el("span","pill s-"+(a.statut==="actif"?"ok":"warn"),a.statut==="actif"?"En vente":a.statut==="epuise"?"Épuisé":"Retiré"));
   b.append(t);b.onclick=()=>{open=a.id;openB=null;mode=own?"vendre":"acheter";render();window.scrollTo(0,0)};return b}
 function detail(a){needShop(a.vendeur);const own=S&&a.vendeur===S.uid;const c=el("div","card m-det");const bk=el("button","back","‹ Retour aux produits");bk.type="button";bk.onclick=()=>{open=null;render()};c.append(bk);
@@ -259,22 +266,33 @@ function renderSell(Bd){
   C3.append(sellerBox(S.uid,boutiques[S.uid]||{nom:me.nom,ville:me.ville},null,false,true));
   const pv=el("p","msg good m-priv","Vos lots, saisies, effectifs, aliment, ventes, factures, dépenses et commissions restent privés : aucun acheteur ne peut les voir.");C3.append(pv);
 }
+/* position de la boutique (facultative) : exacte dans la fiche privée du vendeur, arrondie (≈ 2 km) dans la fiche publique */
+function posBlock(c,st){if(!GEO())return;const w=el("div","m-pos");w.append(el("h3","sec","Position (facultatif)"));
+  const info=el("p","note");const msg=el("p","msg");const r=el("div","row");const use=el("button","btn small ghost","Utiliser ma position");use.type="button";const rm=el("button","btn small ghost","Retirer la position");rm.type="button";
+  const sync=()=>{info.textContent=GEO().valid(st.pos)?"Position enregistrée.":"Aucune position enregistrée.";rm.hidden=!GEO().valid(st.pos)};
+  use.onclick=async()=>{msg.className="note";msg.textContent="Recherche de votre position…";try{st.pos=await GEO().here();msg.textContent="";sync()}catch(e){msg.className="msg err";msg.textContent=GEO().errMsg(e)}};
+  rm.onclick=()=>{st.pos=null;sync()};r.append(use,rm);
+  w.append(info,r,msg,el("small","note","Les acheteurs voient seulement une distance approximative (environ 2 km près). Votre position exacte est donnée à l'acheteur quand vous acceptez sa commande, pour l'itinéraire."));sync();c.append(w)}
 function ficheForm(){const b={...(boutiques[S.uid]||{nom:me.nom,ville:me.ville}),tel:me.tel};const c=el("section","card");const bk=el("button","back","‹ Annuler");bk.type="button";bk.onclick=()=>{ficheOpen=false;render()};c.append(bk);
   c.append(el("h2","sec","Ma fiche entreprise"),el("p","note","Informations publiques, visibles par les acheteurs (sauf le téléphone). N'y mettez ni numéro de téléphone ni autre contact : ils sont donnés au client après acceptation de sa commande."));
   const g=el("div","grid2");const fld=(lab,val,ph,max,type)=>{const f=el("div","field");const l=el("label",null,lab);const i=el("input");i.type=type||"text";i.id="m-f-"+Math.random().toString(36).slice(2,7);l.htmlFor=i.id;i.value=val||"";if(ph)i.placeholder=ph;i.maxLength=max||60;f.append(l,i);g.append(f);return i};
   const n=fld("Nom de l'entreprise",b.nom,"ex. B2A Élevage Bayere"),ac=fld("Activité",b.activite,"ex. Élevage de poules pondeuses"),t=fld("Téléphone / WhatsApp (privé : donné au client après acceptation)",b.tel,"ex. 70 12 34 56",30,"tel"),
     v=fld("Ville",b.ville,"ex. Ouagadougou"),qu=fld("Quartier ou village (facultatif)",b.quartier,"ex. Kouli"),ho=fld("Horaires (facultatif)",b.horaires,"ex. Lundi–samedi, 7 h–18 h");
   const fd2=el("div","field");const ld=el("label",null,"Présentation (facultatif)");const ds=el("textarea");ds.id="m-f-desc";ld.htmlFor=ds.id;ds.rows=3;ds.maxLength=400;ds.value=b.desc||"";ds.placeholder="ex. Œufs frais chaque jour, livraison à Ouagadougou";fd2.append(ld,ds);g.append(fd2);c.append(g);
+  const pst={pos:me&&me.pos||null};posBlock(c,pst);
   const m=el("p","msg");const sv=el("button","btn","Enregistrer ma fiche");sv.type="button";c.append(sv,m);
   sv.onclick=async()=>{const bad=x=>{m.textContent=x;m.className="msg err"};if(!n.value.trim())return bad("Indiquez le nom.");if(String(t.value).replace(/\D/g,"").length<8)return bad("Indiquez le téléphone.");if(!v.value.trim())return bad("Indiquez la ville.");
-    sv.disabled=true;try{await saveShop({nom:n.value.trim(),activite:ac.value.trim(),tel:t.value.trim(),ville:v.value.trim(),quartier:qu.value.trim(),horaires:ho.value.trim(),desc:ds.value.trim()});ficheOpen=false;render()}
+    sv.disabled=true;try{await saveShop({nom:n.value.trim(),activite:ac.value.trim(),tel:t.value.trim(),ville:v.value.trim(),quartier:qu.value.trim(),horaires:ho.value.trim(),desc:ds.value.trim(),pos:pst.pos});ficheOpen=false;render()}
     catch(e){console.warn(e);sv.disabled=false;bad("Échec de l'enregistrement. Vérifiez la connexion.")}};return c}
-async function saveShop(d){const tel=d.tel;d={...d};delete d.tel;
+async function saveShop(d){const tel=d.tel;const hasPos="pos" in d;const pos=hasPos&&GEO()&&GEO().valid(d.pos)?GEO().precise(d.pos):null;d={...d};delete d.tel;delete d.pos;
+  /* position exacte : fiche privée du vendeur ; position arrondie : fiche publique et annonces */
+  if(hasPos){await upd("marche_vendeurs/"+S.uid,{pos});if(S.kind==="local")me={...me,pos};d.geo=pos?GEO().coarse(pos):null}
   /* le téléphone reste privé (fiche vendeur) ; la fiche publique n'en contient pas */
   if(tel&&me&&tel!==me.tel){await upd("marche_vendeurs/"+S.uid,{tel});if(S.kind==="local")me={...me,tel}}
   const body={...d,tel:"",majLe:S.ts()};await put("marche_boutiques/"+S.uid,body,{merge:true});if(S.kind==="local"){boutiques[S.uid]={...(boutiques[S.uid]||{}),...body}}
   /* garder le nom à jour sur les annonces (et retirer les anciens numéros publics) */
-  for(const a of mesAnnonces){if(a.vendeurNom!==d.nom||a.vendeurTel)await upd("marche_annonces/"+a.id,{vendeurNom:d.nom,vendeurTel:"",majLe:S.ts()})}}
+  for(const a of mesAnnonces){const geoChg=hasPos&&JSON.stringify(a.geo||null)!==JSON.stringify(d.geo||null);
+    if(a.vendeurNom!==d.nom||a.vendeurTel||geoChg)await upd("marche_annonces/"+a.id,hasPos?{vendeurNom:d.nom,vendeurTel:"",geo:d.geo||null,majLe:S.ts()}:{vendeurNom:d.nom,vendeurTel:"",majLe:S.ts()})}}
 /* ancienne version : téléphone public sur la fiche ou les annonces → on l'enlève une fois */
 let cleaned=false;function cleanPublicTel(){if(cleaned||!S||!isSeller())return;const b=boutiques[S.uid];if(!b)return;cleaned=true;
   if(b.tel||mesAnnonces.some(a=>a.vendeurTel))saveShop({nom:b.nom||me.nom,activite:b.activite||"",ville:b.ville||me.ville||"",quartier:b.quartier||"",horaires:b.horaires||"",desc:b.desc||""}).catch(()=>{cleaned=false})}
@@ -386,7 +404,7 @@ function annForm(){const a=editA||{};const c=el("section","card");const bk=el("b
   const m=el("p","msg");const sv=el("button","btn",editA?"Enregistrer":"Publier l'annonce");sv.type="button";c.append(sv,m);
   sv.onclick=async()=>{const bad=x=>{m.textContent=x;m.className="msg err"};const p=N(pr.value),q2=N(qt.value);
     if(!ti.value.trim())return bad("Indiquez un titre.");if(!(p>0))return bad("Indiquez le prix.");if(q2!=null&&q2<0)return bad("Quantité invalide.");
-    B.lsSet("b2a-m-devise",dv.value);const bq=boutiques[S.uid]||me;const d={devise:dv.value,vendeur:S.uid,vendeurNom:bq.nom||me.nom||"",vendeurTel:"",ville:vi.value.trim(),cat:ct.value,titre:ti.value.trim(),desc:ds.value.trim(),prix:p,unite:un.value,qte:q2,photo,
+    B.lsSet("b2a-m-devise",dv.value);const bq=boutiques[S.uid]||me;const d={devise:dv.value,vendeur:S.uid,vendeurNom:bq.nom||me.nom||"",vendeurTel:"",ville:vi.value.trim(),cat:ct.value,titre:ti.value.trim(),desc:ds.value.trim(),prix:p,unite:un.value,qte:q2,photo,geo:((boutiques[S.uid]||{}).geo)||null,
       statut:q2===0?"epuise":(editA?editA.statut==="retire"?"retire":"actif":"actif"),majLe:S.ts()};
     if(!editA)d.creeLe=S.ts();sv.disabled=true;
     try{const id=editA?editA.id:S.newId("marche_annonces");await (editA?upd("marche_annonces/"+id,d):put("marche_annonces/"+id,d));formOpen=false;editA=null;render()}
@@ -413,12 +431,13 @@ function orderCard(c,side){const w=el("div","m-order");const st=ST[c.statut]||ST
       else w.append(el("small",null,k===false?"Coordonnées du client indisponibles.":"Chargement des coordonnées du client…"))}}
   else{const ok=c.statut==="acceptee"||c.statut==="vendue";w.append(notr(el("small",null,[c.vendeurNom,ok?c.vendeurTel:null].filter(Boolean).join(" · ")+" · "+fd(c.creeLe))));
     if(ok)ph=tel226(c.vendeurTel);else if(c.statut==="demande")w.append(el("small","m-lock","📞 Le contact du vendeur s'affiche ici dès qu'il accepte votre commande."))}
+  if(side!=="vendeur"&&(c.statut==="acceptee"||c.statut==="vendue")&&GEO()&&GEO().valid(c.vendeurPos)){const it=el("a","btn small ghost","Itinéraire vers le vendeur");it.href=GEO().route(c.vendeurPos);it.target="_blank";it.rel="noopener";r.append(it)}
   if(ph){const wa=el("a","btn small ghost","WhatsApp");wa.href="https://wa.me/"+ph;wa.target="_blank";wa.rel="noopener";const tl=el("a","btn small ghost","Appeler");tl.href="tel:+"+ph;r.append(wa,tl)}
   const act=(t,cls,fn,confirmTxt)=>{const b=el("button","btn small "+cls,t);b.type="button";b.onclick=async()=>{if(confirmTxt&&b.dataset.c!=="1"){b.dataset.c="1";b.textContent=confirmTxt;return}b.disabled=true;try{await fn()}catch(e){console.warn(e);b.disabled=false;b.textContent=t}};r.append(b)};
   if(side==="vendeur"){
     if(c.statut==="demande"){
       act("Accepter la commande","",async()=>{const t=taux();const com=Math.round((Number(c.total)||0)*t)/100;
-        await upd("marche_commandes/"+c.id,{statut:"acceptee",taux:t,commission:com,accepteLe:S.ts(),vendeurTel:(me&&me.tel)||"",majLe:S.ts()})},"Confirmer : j'accepte cette commande");
+        await upd("marche_commandes/"+c.id,{statut:"acceptee",taux:t,commission:com,accepteLe:S.ts(),vendeurTel:(me&&me.tel)||"",vendeurPos:(me&&GEO()&&GEO().valid(me.pos))?me.pos:null,majLe:S.ts()})},"Confirmer : j'accepte cette commande");
       act("Refuser","ghost",()=>releaseOrder(c,"refusee"));
       w.append(el("small","note","Accepter confirme la vente et vous donne les coordonnées du client (commission B2A : voir Réglages)."))}
     if(c.statut==="acceptee"){
@@ -487,7 +506,7 @@ a.btn{text-decoration:none}.m-flash{background:var(--surface);padding:12px 14px;
 .m-cgu-hint{color:var(--muted)}.m-cgu-hint.ok{color:#1e7b34}.m-check.off{opacity:.55}.m-doc{aspect-ratio:3/2}
 .m-eq{color:var(--muted)}.m-eqsel{align-items:center;gap:8px}.m-eqsel label{font-size:13px;color:var(--muted)}.m-eqsel select{flex:1;min-width:0;max-width:260px}
 .m-more{grid-column:1/-1;justify-self:center}
-.m-lock{color:var(--muted)}
+.m-lock{color:var(--muted)}.m-dist{color:var(--green-ink,#3b7520);font-weight:600}.m-near[aria-pressed="true"]{background:var(--navy,#1b2e4c);color:#fff;border-color:transparent}.m-pos{display:grid;gap:8px;padding-top:6px;border-top:1px solid var(--line)}.m-pos h3{margin:0}
 .m-hist{display:grid;gap:10px;margin-top:10px}
 .m-note{color:var(--muted);font-style:italic}
 .m-photo{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center}.m-photo .m-ph{border-radius:12px}

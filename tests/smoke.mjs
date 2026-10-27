@@ -19,6 +19,20 @@ try {
     await page.waitForTimeout(800);
     const cards = await page.locator(".s-card").count();
     if (cards < 1) fails.push(`${lang} : l'annuaire des Services n'affiche aucun prestataire`);
+    // « Près de moi » : distance affichée sur la fiche du prestataire
+    await page.locator("#m-body .m-near").first().click().catch(() => {});
+    await page.waitForTimeout(1500);
+    const dists = await page.locator(".s-card .m-dist").count();
+    if (dists < 1) fails.push(`${lang} : « Près de moi » n'affiche pas la distance des prestataires`);
+    await page.locator(".s-card").first().click().catch(() => {});
+    await page.waitForTimeout(500);
+    const route = await page.locator("#m-body a:has-text('Itinéraire'), #m-body a:has-text('Directions'), #m-body a:has-text('Itinerario'), #m-body a:has-text('Cómo llegar')").count();
+    if (route < 1) fails.push(`${lang} : pas de bouton Itinéraire pour un prestataire à position exacte`);
+    // Marché : « Près de moi » sans erreur
+    await page.evaluate(() => window.B2A_MARCHE.setMode("acheter"));
+    await page.waitForTimeout(500);
+    await page.locator("#m-body .m-near").first().click().catch(() => fails.push(`${lang} : bouton « Près de moi » absent du Marché`));
+    await page.waitForTimeout(1000);
     if (lang === "fr") {
       // export PDF du lot
       await page.evaluate(() => document.getElementById("tab-tableau").click());

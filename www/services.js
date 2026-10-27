@@ -47,7 +47,8 @@ async function store(){if(S)return S;
 function sure(pr){if(!S||S.kind!=="cloud"||!navigator.onLine)return quick(pr);return Promise.race([pr.then(()=>"ok"),new Promise(r=>setTimeout(()=>r("lent"),12000))])}
 
 let cfg={...DEF},pros=[],mine=null,mesPaie=[],started=false,noAccess=false,failed=false;
-let view="list",back="list",openId=null,cat="",q="",ville="",formule="m3",draft=null,flash="",flashT=0;
+let view="list",back="list",openId=null,cat="",q="",ville="",formule="m3",draft=null,flash="",flashT=0,near=false;
+const GEO=()=>window.B2A_GEO;
 function listen(){if(started)return;started=true;
   store().then(s=>{
     const err=e=>{console.warn("services",e);if(e&&e.code==="permission-denied"&&!noAccess){noAccess=true;redraw(true)}};
@@ -80,6 +81,10 @@ function renderList(Bd){
   const f=el("section","card m-filters");const s=el("input");s.type="search";s.placeholder="Rechercher : vétérinaire, vaccination, labour…";s.value=q;s.setAttribute("aria-label","Rechercher");
   const v=el("input");v.type="search";v.placeholder="Ville";v.value=ville;v.setAttribute("aria-label","Ville");v.style.flex="1 1 120px";
   const r=el("div","row");r.append(s,v);f.append(r);
+  if(GEO()){const nb=el("button","chip m-near","📍 Près de moi");nb.type="button";nb.setAttribute("aria-pressed",near);const nm=el("small","note");if(near)nm.textContent="Trié du plus proche au plus loin (distances à vol d'oiseau).";
+    nb.onclick=async()=>{if(near){near=false;nb.setAttribute("aria-pressed","false");nm.textContent="";list();return}nm.className="note";nm.textContent="Recherche de votre position…";
+      try{await GEO().here();near=true;nb.setAttribute("aria-pressed","true");nm.className="note";nm.textContent="Trié du plus proche au plus loin (distances à vol d'oiseau).";list()}catch(e){nm.className="msg err";nm.textContent=GEO().errMsg(e)}};
+    const nr=el("div","row");nr.append(nb,nm);f.append(nr)}
   const present=new Set(visibles().map(p=>p.metier));
   const ch=el("div","m-chips");[["","Tout"],...METIERS.filter(m=>present.has(m[0])||m[0]==="veto")].forEach(([k,n])=>{const b=el("button","chip",n);b.type="button";b.setAttribute("aria-pressed",cat===k);
     b.onclick=()=>{cat=k;ch.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b));list()};ch.append(b)});f.append(ch);
@@ -89,6 +94,7 @@ function renderList(Bd){
     const res=visibles().filter(p=>(!cat||p.metier===cat)&&(!qq||[p.nom,MN(p.metier),tr(MN(p.metier)),p.specialites,p.desc,p.zones].join(" ").toLowerCase().includes(qq))
       &&(!vv||[p.ville,p.quartier,p.zones].join(" ").toLowerCase().includes(vv)))
       .sort((a,b)=>(b.verifie?1:0)-(a.verifie?1:0)||(a.metier==="veto"?0:1)-(b.metier==="veto"?0:1)||String(a.nom||"").localeCompare(String(b.nom||"")));
+    if(near&&GEO()){const me0=GEO().mine();const dd=p=>{const d=GEO().dist(me0,p.geo);return d==null?1e9:d};res.sort((a,b)=>dd(a)-dd(b))}
     if(!res.length){const e=el("div","empty");e.append(el("strong",null,visibles().length?"Aucun prestataire ne correspond":"Aucun prestataire inscrit pour l'instant"),
       el("span",null,visibles().length?"Changez la recherche, la ville ou le métier.":"Les vétérinaires et prestataires inscrits apparaîtront ici."));L.append(e);return}
     res.forEach(p=>L.append(card(p)))}
@@ -103,17 +109,19 @@ function card(p){const b=el("button","m-card s-card");b.type="button";const ph=e
   const t=el("div","m-tx");t.append(notr(el("b",null,p.nom||"Prestataire")),el("span","s-met",MN(p.metier)));
   if(p.verifie)t.append(el("span","m-ok","✓ Vérifié par B2A"));
   t.append(notr(el("small",null,[p.quartier,p.ville].filter(Boolean).join(", "))));if(p.deplace)t.append(el("small","s-dep","Se déplace à la ferme"));
+  {const gd=GEO()?GEO().dist(GEO().mine(),p.geo):null;if(gd!=null)t.append(el("small","m-dist","📍 "+GEO().fmtKm(gd)))}
   b.append(t);b.onclick=()=>{back=view==="pro"?"pro":"list";openId=p.id;go("detail")};return b}
 function detail(p){const own=S&&p.id===S.uid;const c=el("div","card m-det");const bk=el("button","back","‹ Retour aux services");bk.type="button";bk.onclick=()=>go(back);c.append(bk);
   const h=el("div","s-head");const ph=el("div","s-av");if(okImg(p.photo)){const im=el("img");im.src=p.photo;im.alt="";ph.append(im)}else ph.append(notr(el("span",null,String(p.nom||"?").trim().slice(0,1).toUpperCase())));
   const t=el("div");t.append(notr(el("h2","sec",p.nom||"Prestataire")),el("span","s-met",MN(p.metier)));if(p.verifie)t.append(el("span","m-ok","✓ Vérifié par B2A"));h.append(ph,t);c.append(h);
   const info=[["Spécialités",p.specialites],["Lieu",[p.quartier,p.ville].filter(Boolean).join(", ")],["Zones desservies",p.zones],["Horaires",p.horaires],
-    ["N° d'agrément",p.agrement],["Déplacement",p.deplace?"Se déplace à la ferme":""]].filter(x=>x[1]);
-  const dl=el("dl","cu-info");info.forEach(([k,v])=>{dl.append(el("dt",null,k));const dd=el("dd",null,String(v));if(k!=="Déplacement")notr(dd);dl.append(dd)});c.append(dl);
+    ["N° d'agrément",p.agrement],["Déplacement",p.deplace?"Se déplace à la ferme":""],
+    ["Distance",GEO()&&GEO().dist(GEO().mine(),p.geo)!=null?GEO().fmtKm(GEO().dist(GEO().mine(),p.geo))+(p.geoExacte?"":" · "+tr("Position approximative")):""]].filter(x=>x[1]);
+  const dl=el("dl","cu-info");info.forEach(([k,v])=>{dl.append(el("dt",null,k));const dd=el("dd",null,String(v));if(k!=="Déplacement"&&k!=="Distance")notr(dd);dl.append(dd)});c.append(dl);
   if(p.desc)c.append(notr(el("p",null,p.desc)));
   const msg=tr("Bonjour, j'ai trouvé votre fiche sur B2A Smart Farming. J'ai besoin de vos services.");
   const r=el("div","row s-acts");const a1=el("a","btn","Appeler");a1.href="tel:+"+intl(p.tel);const a2=el("a","btn ghost","WhatsApp");a2.href="https://wa.me/"+intl(p.wa||p.tel)+"?text="+encodeURIComponent(msg);a2.target="_blank";a2.rel="noopener";
-  r.append(a1,a2);c.append(r);
+  r.append(a1,a2);if(p.geoExacte&&GEO()&&GEO().valid(p.geo)){const a3=el("a","btn ghost","Itinéraire");a3.href=GEO().route(p.geo);a3.target="_blank";a3.rel="noopener";r.append(a3)}c.append(r);
   c.append(el("p","note","B2A met en relation : convenez du prix, du rendez-vous et du paiement directement avec le prestataire."));
   if(own)c.append(el("p","note","C'est votre fiche. Modifiez-la dans « Mon espace prestataire »."));
   return c}
@@ -170,7 +178,15 @@ function proForm(){const p=draft||{};const c=el("section","card");const bk=el("b
   const [fa,agr]=fld("N° d'agrément ou d'inscription à l'Ordre (facultatif)",p.agrement,"ex. 123/MRAH",40);
   const fd=el("div","field");const ld=el("label",null,"Présentation (facultatif)");const ds=el("textarea");ds.id="s-f-desc";ld.htmlFor=ds.id;ds.rows=3;ds.maxLength=400;ds.value=p.desc||"";
   ds.placeholder="ex. Vaccination, déparasitage, soins et suivi des élevages. Intervention rapide.";fd.append(ld,ds);g.append(fd);
-  const dep=el("label","m-check");const dk=el("input");dk.type="checkbox";dk.checked=p.deplace!==false;dep.append(dk,document.createTextNode(" Je me déplace à la ferme"));c.append(dep);
+  /* position facultative : exacte si le prestataire le choisit (cabinet, boutique), sinon arrondie à ≈ 2 km */
+  let gpos=GEO()&&GEO().valid(p.geo)?p.geo:null;let gex=null;
+  const posBox=el("div","m-pos");if(GEO()){posBox.append(el("h3","sec","Position (facultatif)"));const info=el("p","note"),msg=el("p","msg"),rr0=el("div","row");
+    const use=el("button","btn small ghost","Utiliser ma position");use.type="button";const rmv=el("button","btn small ghost","Retirer la position");rmv.type="button";
+    const lb=el("label","m-check");gex=el("input");gex.type="checkbox";gex.checked=!!p.geoExacte;lb.append(gex,document.createTextNode(" Montrer ma position exacte (cabinet, boutique, atelier)"));
+    const sync=()=>{info.textContent=gpos?"Position enregistrée.":"Aucune position enregistrée.";rmv.hidden=!gpos;lb.hidden=!gpos};
+    use.onclick=async()=>{msg.className="note";msg.textContent="Recherche de votre position…";try{gpos=await GEO().here();msg.textContent="";sync()}catch(e){msg.className="msg err";msg.textContent=GEO().errMsg(e)}};
+    rmv.onclick=()=>{gpos=null;sync()};rr0.append(use,rmv);posBox.append(info,rr0,msg,lb,el("small","note","Sinon, les éleveurs voient seulement une distance approximative (environ 2 km près)."));sync()}
+  const dep=el("label","m-check");const dk=el("input");dk.type="checkbox";dk.checked=p.deplace!==false;dep.append(dk,document.createTextNode(" Je me déplace à la ferme"));c.append(dep,posBox);
   const syncA=()=>{fa.hidden=!["veto","auxiliaire","pharma"].includes(sm.value)};sm.onchange=syncA;syncA();
   /* photo ou logo */
   let photo=p.photo||"";const pw=el("div","m-photo");const pv=el("div","m-ph s-ph");const setPv=()=>{pv.innerHTML="";if(okImg(photo)){const im=el("img");im.src=photo;im.alt="";pv.append(im)}else pv.append(el("span",null,"Photo"));if(rm)rm.hidden=!photo};let rm=null;
@@ -182,7 +198,8 @@ function proForm(){const p=draft||{};const c=el("section","card");const bk=el("b
   sv.onclick=async()=>{const bad=x=>{m.textContent=x;m.className="msg err"};
     if(!nom.value.trim())return bad("Indiquez votre nom.");if(digits(tel.value).length<8)return bad("Indiquez votre numéro de téléphone.");if(!vil.value.trim())return bad("Indiquez votre ville.");
     const d={nom:nom.value.trim(),metier:sm.value,specialites:spe.value.trim(),tel:tel.value.trim(),wa:wa.value.trim(),ville:vil.value.trim(),quartier:qua.value.trim(),zones:zon.value.trim(),
-      horaires:hor.value.trim(),agrement:fa.hidden?"":agr.value.trim(),desc:ds.value.trim(),deplace:dk.checked,photo};
+      horaires:hor.value.trim(),agrement:fa.hidden?"":agr.value.trim(),desc:ds.value.trim(),deplace:dk.checked,photo,
+      geo:gpos?(gex&&gex.checked?GEO().precise(gpos):GEO().coarse(gpos)):null,geoExacte:!!(gpos&&gex&&gex.checked)};
     B.lsSet("b2a-m-tel",d.tel);B.lsSet("b2a-m-ville",d.ville);
     if(!mine){draft=d;go("pay");return}
     sv.disabled=true;try{const r=await sure(S.doc("services_pros/"+S.uid).update({...d,majLe:S.ts()}));if(S.kind==="local")mine={...mine,...d};flashT=Date.now()+15000;flash=r==="lent"?"Réseau lent : la fiche sera enregistrée dès que la connexion le permet.":"Fiche enregistrée.";draft=null;go("pro")}
