@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.googleapis.com https://www.gstatic.com; frame-src https://*.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>B2A · Utilisateurs</title>
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout : bandeau blanc avec logo, puis chiffres clés, filtres et liste des personnes sur fond bleu B2A */
+:root{
+  --page:#1b2e4c; --surface:#ffffff; --soft:#f2f4f8; --ink:#132036; --muted:#5b6577; --line:#dce1ea;
+  --navy:#1b2e4c; --green:#72ac48; --gold:#deab50; --page-muted:#c3cee0;
+  --ok:#3b7520; --warn:#9a6a10; --bad:#b3372a; --ok-bg:#e8f3de; --warn-bg:#fbf1dc; --bad-bg:#f8e1dc;
+  --display:"Archivo",ui-sans-serif,system-ui,sans-serif; --body:"Source Sans 3",ui-sans-serif,system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--surface:#101b2e;--soft:#16243b;--ink:#e8edf5;--muted:#93a0b8;--line:#23314b;
+  --ok:#8ccb60;--warn:#e8b860;--bad:#f08a7a;--ok-bg:#1b2f1d;--warn-bg:#33290f;--bad-bg:#3a1d1a;color-scheme:dark}}
+:root[data-theme="dark"]{--surface:#101b2e;--soft:#16243b;--ink:#e8edf5;--muted:#93a0b8;--line:#23314b;
+  --ok:#8ccb60;--warn:#e8b860;--bad:#f08a7a;--ok-bg:#1b2f1d;--warn-bg:#33290f;--bad-bg:#3a1d1a;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page);color:var(--ink);font:16px/1.5 var(--body)}
+[hidden]{display:none!important}
+.band{background:#fff;border-bottom:1px solid #dfe3ea}
+.band-in{max-width:900px;margin:0 auto;padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:12px}
+.band img{width:44px;height:44px;border-radius:11px}
+.band b{display:block;font:800 18px/1.1 var(--display);color:#1b2e4c}.band small{color:#7a8396;font-size:13px}
+.band .out{margin-left:auto}
+.wrap{max-width:900px;margin:0 auto;padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:12px;min-width:0;box-shadow:0 8px 22px rgb(0 0 0/.16)}
+h1{font:800 clamp(22px,5vw,28px)/1.15 var(--display);color:#fff;margin:0;text-wrap:balance}
+h2{font:700 19px/1.2 var(--display);margin:0}
+.lead{color:var(--page-muted);margin:4px 0 0}
+.note{color:var(--muted);font-size:14px;margin:0}
+.field{display:grid;gap:6px}.field label{font-weight:600;font-size:14px}
+input,select{width:100%;font:16px var(--body);padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:var(--ink)}
+.btn{border:0;border-radius:10px;padding:11px 16px;font:700 15px var(--body);cursor:pointer;background:var(--navy);color:#fff}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.ok{background:var(--ok);color:#fff}.btn.bad{background:transparent;color:var(--bad);border:1px solid var(--bad)}
+.btn.small{padding:7px 11px;font-size:14px}
+.btn:disabled{opacity:.5}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.msg{font-size:14px;color:var(--muted)}.msg.err{color:var(--bad)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:2px;min-width:0}
+.kpi span{font:600 11px var(--body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.kpi b{font:800 28px/1.1 var(--display);font-variant-numeric:tabular-nums}
+.kpi small{color:var(--muted);font-size:13px}
+.kpi.warn b{color:var(--warn)}.kpi.ok b{color:var(--ok)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid rgb(255 255 255/.25);background:transparent;color:#fff;border-radius:999px;padding:7px 14px;font:600 14px var(--body);cursor:pointer}
+.chip[aria-pressed="true"]{background:#fff;color:var(--navy);border-color:#fff}
+.list{display:grid;gap:10px}
+.u{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:8px;min-width:0}
+.u-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.u-top b{font:700 17px var(--display);overflow-wrap:anywhere}
+.u small{color:var(--muted);font-size:14px;overflow-wrap:anywhere}
+.pill{font:700 12px var(--body);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.p-attente{background:var(--warn-bg);color:var(--warn)}.p-approuve{background:var(--ok-bg);color:var(--ok)}.p-refuse,.p-bloque{background:var(--bad-bg);color:var(--bad)}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.empty{color:var(--page-muted);text-align:center;padding:20px}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid var(--line)}td.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.foot{color:var(--page-muted);text-align:center;font-size:13px}
+</style>
+</head>
+<body>
+<header class="band"><div class="band-in"><img src="icons/icon-192.png" alt="Logo B2A"><div><b>B2A Smart Farming</b><small>Gestion des utilisateurs</small></div>
+  <button class="btn small ghost out" id="u-out" type="button" hidden>Se déconnecter</button></div></header>
+<main class="wrap">
+  <div><h1>Utilisateurs de l'application</h1><p class="lead">Chaque personne s'inscrit pour ouvrir l'application. Vous pouvez lui retirer l'accès à tout moment.</p></div>
+
+  <section class="card" id="u-login">
+    <h2>Connexion du propriétaire</h2>
+    <p class="note">Réservé au compte de B2A-HIGH-TECHNOLOGY-AUTOMATION créé dans Firebase (Authentication, méthode E-mail / mot de passe).</p>
+    <div class="field"><label for="u-mail">E-mail</label><input type="email" id="u-mail" autocomplete="username"></div>
+    <div class="field"><label for="u-pass">Mot de passe</label><input type="password" id="u-pass" autocomplete="current-password"></div>
+    <button class="btn" id="u-go" type="button">Se connecter</button>
+    <span class="msg" id="u-lmsg" aria-live="polite"></span>
+  </section>
+
+  <div id="u-main" hidden>
+    <div class="wrap" style="padding:0">
+      <div class="kpis" id="u-kpis"></div>
+      <div class="chips" id="u-filter">
+        <button class="chip" type="button" data-f="approuve" aria-pressed="true">Avec accès</button>
+        <button class="chip" type="button" data-f="refuse" aria-pressed="false">Accès retiré</button>
+        <button class="chip" type="button" data-f="tous" aria-pressed="false">Tous</button>
+      </div>
+      <div class="field"><label for="u-q" style="color:#fff">Rechercher</label><input type="text" id="u-q" placeholder="Nom, ville, pays, élevage"></div>
+      <div class="list" id="u-list"></div>
+      <section class="card"><h2>Utilisateurs par pays</h2><div class="tablewrap"><table id="u-pays"></table></div></section>
+    </div>
+  </div>
+  <p class="foot">© 2026 B2A-HIGH-TECHNOLOGY-AUTOMATION · Bayere Abdoul Aziz</p>
+</main>
+<script src="config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="utilisateurs.js"></script>
+<script src="admin-marche.js"></script>
+</body>
+</html>

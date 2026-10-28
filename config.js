@@ -1,0 +1,1 @@
+window.B2A_FIREBASE={apiKey:"AIzaSyD6vKcdBn_SQ-z6SzxCu9A5igDw5hHvwRs",authDomain:"b2a-smart-farming.firebaseapp.com",projectId:"b2a-smart-farming",storageBucket:"b2a-smart-farming.firebasestorage.app",messagingSenderId:"9797420984",appId:"1:9797420984:web:1843c4054c43a899c9714d"},window.B2A_IA_URL=null,window.B2A_NOTIFY_EMAIL="azizyou2005@yahoo.fr";
