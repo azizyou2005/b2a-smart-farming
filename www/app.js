@@ -801,9 +801,22 @@ async function pdfFacture(f){const E=ent(),t=facTotals(f);const SEP=(window.B2A_
   await pdfSave(P,`B2A-${f.num}-${slug(f.client.nom)}.pdf`)}
 
 /* ---------- lots list ---------- */
+/* lots clôturés : visibles pour pouvoir les rouvrir ou les supprimer (ils comptent encore dans le bilan) */
+function renderClosed(){const L=$("lots");if(!L||!db)return;const cl=lots.filter(l=>l.actif===false);if(!cl.length)return;
+  const D=el("details","closedlots");D.style.marginTop="10px";D.append(el("summary",null,"Lots clôturés ("+cl.length+")"));
+  D.append(el("p","note","Ils comptent encore dans le bilan de l'année. Supprimez un lot créé par erreur ou pour un essai."));
+  cl.forEach(l=>{const r=el("div","row between");r.style.cssText="padding:8px 0;border-top:1px solid var(--line, rgba(127,127,127,.25));gap:8px";
+    const t=el("div");const nm=el("b",null,l.nom||l.espece||"Lot");nm.setAttribute("data-notr","");
+    const sm=el("small",null,[l.espece,fmt(Number(l.effectif)||0)+" sujets",l.arrivee?fdate(l.arrivee):null].filter(Boolean).join(" · "));sm.style.display="block";t.append(nm,sm);
+    const bx=el("div","row");bx.style.gap="6px";const ro=el("button","btn small ghost","Rouvrir");ro.type="button";const del=el("button","btn small ghost danger","Supprimer");del.type="button";
+    ro.onclick=async()=>{try{await db.doc("lots/"+l.id).update({actif:true})}catch(e){alert(errText(e))}};
+    del.onclick=async()=>{if(del.dataset.c!=="1"){del.dataset.c="1";del.textContent="Confirmer la suppression";return}
+      try{await db.doc("lots/"+l.id).delete()}catch(e){del.dataset.c="";del.textContent="Supprimer";alert(errText(e))}};
+    bx.append(ro,del);r.append(t,bx);D.append(r)});
+  L.append(D)}
 function renderLots(){
   try{dispatchEvent(new CustomEvent("b2a-data"))}catch(e){}
-  const L=$("lots");L.innerHTML="";const act=lots.filter(l=>l.actif!==false);
+  const L=$("lots");L.innerHTML="";const act=lots.filter(l=>l.actif!==false);queueMicrotask(renderClosed);
   if(!act.length){const e=el("div","empty");e.append(el("strong",null,db?"Aucun lot pour l'instant":"Chargement…"));
     if(db)e.append(el("span",null,"Créez votre premier lot (ex. vos pondeuses ISA Brown) pour suivre la ponte, la mortalité et l'aliment."));
     L.append(e);$("lotdetail").hidden=true;$("home").hidden=false;detailOpen=false;fillLotSelects();renderGlobalAlerts();return;}
