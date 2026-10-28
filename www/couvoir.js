@@ -13,6 +13,11 @@ const T={
 "Espèce":["Species","Specie","Especie"],
 "Nombre d'œufs mis":["Eggs set","Uova messe","Huevos puestos"],
 "Date de mise en incubation":["Setting date","Data di messa in incubazione","Fecha de puesta en incubación"],
+"D'où viennent les œufs ?":["Where do the eggs come from?","Da dove vengono le uova?","¿De dónde vienen los huevos?"],
+"Choisir…":["Choose…","Scegli…","Elegir…"],
+"De mes poules (ma ferme)":["From my hens (my farm)","Dalle mie galline (la mia fattoria)","De mis gallinas (mi granja)"],
+"Achetés ou donnés":["Bought or given","Acquistate o regalate","Comprados o regalados"],
+"Sert au bilan annuel : les œufs de vos poules ne sont pas comptés comme un achat.":["Used for the annual balance: eggs from your own hens are not counted as a purchase.","Serve al bilancio annuale: le uova delle tue galline non sono contate come un acquisto.","Sirve para el balance anual: los huevos de tus gallinas no se cuentan como una compra."],
 "Origine des œufs (facultatif)":["Egg source (optional)","Origine delle uova (facoltativo)","Origen de los huevos (opcional)"],
 "Prix d'un œuf (FCFA, facultatif)":["Price per egg (FCFA, optional)","Prezzo per uovo (FCFA, facoltativo)","Precio por huevo (FCFA, opcional)"],
 "Enregistrer la couvée":["Save batch","Salva covata","Guardar incubación"],
@@ -355,7 +360,7 @@ function fillBSelects(sel){const M=$("cv-bmach");M.innerHTML="";machines.filter(
 function openBForm(b){if(!machines.length){$("cv-newmach").click();return}
   editB=b||null;fillBSelects(b&&b.couveuseId);$("cv-btitle").textContent=b?"Modifier la couvée":"Nouvelle couvée";
   $("cv-bmach").value=b?b.couveuseId:(machines.find(m=>m.etat!=="panne")||machines[0]).id;$("cv-besp").value=b?b.espece:"poule";
-  $("cv-boeufs").value=b?b.oeufs:"";$("cv-bdate").value=b?b.debut:today();$("cv-borig").value=b?b.origine||"":"";$("cv-bcout").value=b&&b.coutOeuf!=null?b.coutOeuf:"";
+  $("cv-boeufs").value=b?b.oeufs:"";$("cv-bdate").value=b?b.debut:today();$("cv-borig").value=b?b.origine||"":"";$("cv-bprop").value=b&&b.oeufsPropres!=null?(b.oeufsPropres?"1":"0"):"";$("cv-bcout").value=b&&b.coutOeuf!=null?b.coutOeuf:"";
   $("cv-bmsg").textContent="";$("cv-bdetail").hidden=true;$("cv-mform").hidden=true;$("cv-bform").hidden=false;bCheck();$("cv-bform").scrollIntoView({behavior:"smooth",block:"start"})}
 function closeBForm(){$("cv-bform").hidden=true;editB=null;if(openB)renderDetail()}
 function bCheck(){const B=$("cv-bcheck");B.innerHTML="";const m=mach($("cv-bmach").value);if(!m)return;const s=SP[$("cv-besp").value]||SP.poule;
@@ -372,7 +377,7 @@ $("cv-bsave").onclick=async()=>{const msg=$("cv-bmsg");const n=N($("cv-boeufs").
   if(!n||n<1){msg.textContent="Indiquez le nombre d'œufs mis.";msg.className="msg err";return}
   if(!d){msg.textContent="Indiquez la date de mise en incubation.";msg.className="msg err";return}
   if(!db||!canWrite){msg.textContent="Accès en lecture seule : enregistrement impossible.";msg.className="msg err";return}
-  const body={couveuseId:mid,espece:$("cv-besp").value,oeufs:Math.round(n),debut:d,origine:$("cv-borig").value.trim(),coutOeuf:N($("cv-bcout").value),
+  const body={couveuseId:mid,espece:$("cv-besp").value,oeufs:Math.round(n),debut:d,origine:$("cv-borig").value.trim(),oeufsPropres:$("cv-bprop").value===""?null:$("cv-bprop").value==="1",coutOeuf:N($("cv-bcout").value),
     statut:editB?editB.statut||"encours":"encours",createdAt:editB?editB.createdAt||Date.now():Date.now()};
   $("cv-bsave").disabled=true;
   try{if(editB)await db.doc("couvees/"+editB.id).update(body);else{const ref=db.collection("couvees").doc();await ref.set(body);openB=ref.id}

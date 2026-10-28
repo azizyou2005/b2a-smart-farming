@@ -106,13 +106,10 @@ function compute(Y){
       if(x.prod==="poussins"){poussFact+=amt;poussPaye+=amt*pr;return}
       const g=lot?grpOf(lot):(PROD_GRP[x.prod]||AUTRES);G(g).v+=amt;if(/^(oeufs|oeufs_plateau|lait)$/.test(x.prod||""))facProd.add(g)})});
   /* espèce sans facture cette année : ventes d'œufs ou de lait estimées depuis les saisies (prix du lot) */
+  const est={};/* œufs/lait estimés par espèce : {q, v} */
   (A.saisies()||[]).forEach(s=>{if(yearOf(s.date)!==Y)return;const l=byId[s.lotId];if(!l||facProd.has(grpOf(l)))return;
-    const q=N(s.oeufs),pv=Number(l.prixOeuf)||0;if(q&&pv&&(A.isLayer(l)||(A.isDairy&&A.isDairy(l)))){G(grpOf(l)).v+=q*pv;nb++}});
-  /* couvoir : coûts des couvées et poussins encaissés (toutes espèces couvées) */
-  let couvEnc=0;const C=window.B2A_COUV;
-  if(C)(C.batches()||[]).forEach(b=>{if(yearOf(b.debut)!==Y)return;nb++;let s=null;try{s=C.sale(b)}catch(e){}
-    if(!s)return;G(COUV).d+=s.c.total||0;if(s.reel!=null)couvEnc+=s.reel});
-  G(COUV).v+=Math.max(poussFact,couvEnc);if(couvEnc>poussFact)enc+=couvEnc-poussPaye;
+    const q=N(s.oeufs),pv=Number(l.prixOeuf)||0;if(q&&pv&&(A.isLayer(l)||(A.isDairy&&A.isDairy(l)))){const g=grpOf(l);G(g).v+=q*pv;nb++;
+      if(A.isLayer(l)){const e=est[g]||(est[g]={q:0,v:0});e.q+=q;e.v+=q*pv}}});
   /* dépenses : cahier de caisse */
   /* catégories déjà notées dans la caisse, par espèce ; une dépense sans lot couvre toutes les espèces */
   const cats={};const has=(c,g)=>!!(cats[c]&&(cats[c].has(g)||cats[c].has(COMMUN)));
@@ -122,6 +119,18 @@ function compute(Y){
   (A.saisies()||[]).forEach(s=>{if(yearOf(s.date)!==Y)return;const l=byId[s.lotId];if(!l||has("aliment",grpOf(l)))return;const kg=N(s.alimentKg),pa=Number(l.prixAliment)||0;
     if(kg>0&&pa>0)G(grpOf(l)).d+=kg*pa});
   lots.forEach(l=>{if(yearOf(l.arrivee)!==Y||(A.isCrop&&A.isCrop(l))||has("animaux",grpOf(l)))return;const v=(Number(l.prixSujet)||0)*(Number(l.effectif)||0);if(v>0){G(grpOf(l)).d+=v;nb++}});
+  /* couvoir : coûts des couvées et poussins encaissés (toutes espèces couvées)
+     - électricité des couveuses : déjà dans la caisse si « Eau et électricité » y est notée
+     - œufs de ses propres poules : simple transfert interne, ni vente d'œufs ni achat pour le couvoir */
+  let couvEnc=0,ownPoule=0;const C=window.B2A_COUV,elecCaisse=!!cats.energie;
+  if(C)(C.batches()||[]).forEach(b=>{if(yearOf(b.debut)!==Y)return;nb++;let s=null;try{s=C.sale(b)}catch(e){}
+    if(!s)return;const c=s.c||{};const own=b.oeufsPropres===true||(b.oeufsPropres==null&&/\b(mes|mon|ma|nos|notre)\b|ferme|maison|propre/i.test(b.origine||""));
+    G(COUV).d+=(own?0:c.oeufs||0)+(elecCaisse?0:c.elec||0)+(c.frais||0);
+    if(own&&(b.espece||"poule")==="poule")ownPoule+=Number(b.oeufs)||0;
+    if(s.reel!=null)couvEnc+=s.reel});
+  G(COUV).v+=Math.max(poussFact,couvEnc);if(couvEnc>poussFact)enc+=couvEnc-poussPaye;
+  /* les œufs mis en couveuse n'ont pas été vendus : on les retire des ventes d'œufs estimées */
+  Object.keys(est).forEach(g=>{if(ownPoule<=0)return;const e=est[g],q=Math.min(e.q,ownPoule);if(q>0){acts[g].v-=q*e.v/e.q;ownPoule-=q}});
   /* amortissements */
   const du=duree();let amort=0;
   const am=(inv,y0,d)=>{d=d||du;if(inv>0&&y0&&Y>=y0&&Y<y0+d)amort+=inv/d};
