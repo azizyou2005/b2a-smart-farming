@@ -38,7 +38,7 @@ dash.innerHTML=`<section class="card an-todo"><h2>À faire</h2><div id="an-todo-
   <section class="card"><h2>Chiffres clés</h2><div class="kpis" id="an-kpis"></div></section>
   <section class="card"><h2>Raccourcis</h2><div class="an-links" id="an-links"></div></section>`;
 const links=[["Ouvrir l'application","https://azizyou2005.github.io/b2a-smart-farming/"],["Codes d'accès IA","admin.html"],["Règles Firebase","https://console.firebase.google.com/project/b2a-smart-farming/firestore/rules"],
-  ["Données Firebase","https://console.firebase.google.com/project/b2a-smart-farming/firestore/data"],["Tests et publications (GitHub)","https://github.com/azizyou2005/b2a-smart-farming/actions"],["Google Play Console","https://play.google.com/console"]];
+  ["Données Firebase","https://console.firebase.google.com/project/b2a-smart-farming/firestore/data"],["Tests et publications (GitHub)","https://github.com/azizyou2005/b2a-smart-farming/actions"],["Google Play Console","https://play.google.com/console"],["App Store Connect (Apple)","https://appstoreconnect.apple.com"]];
 const LK=document.getElementById("an-links");links.forEach(([t,h])=>{const a=el("a","btn small ghost",t);a.href=h;if(/^https/.test(h)){a.target="_blank";a.rel="noopener"}LK.append(a)});
 function kpi(l,v,s,c){const k=el("div","kpi"+(c?" "+c:""));k.append(el("span",null,l),el("b",null,v));if(s)k.append(el("small",null,s));return k}
 function render(){
