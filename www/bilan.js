@@ -11,6 +11,9 @@ const T={
 "Aliment estimé (saisies)":["Estimated feed (records)","Mangime stimato (registrazioni)","Alimento estimado (registros)"],
 "Couvoir (œufs, électricité, frais)":["Hatchery (eggs, electricity, costs)","Incubatoio (uova, elettricità, spese)","Incubadora (huevos, electricidad, gastos)"],
 "Amortissement":["Depreciation","Ammortamento","Amortización"],
+"Achat des animaux non compté : le prix d'achat par animal est vide dans la fiche du lot.":["Animal purchase not counted: the purchase price per animal is empty in the batch record.","Acquisto degli animali non contato: il prezzo d'acquisto per animale è vuoto nella scheda del lotto.","Compra de animales no contada: el precio de compra por animal está vacío en la ficha del lote."],
+"Achat des animaux compté en {0}, l'année d'arrivée du lot.":["Animal purchase counted in {0}, the year the batch arrived.","Acquisto degli animali contato nel {0}, l'anno di arrivo del lotto.","Compra de animales contada en {0}, el año de llegada del lote."],
+"Charges du mois (fiche du lot)":["Monthly costs (batch record)","Spese mensili (scheda del lotto)","Gastos mensuales (ficha del lote)"],
 "Caisse : Aliment":["Cash book: Feed","Cassa: Mangime","Caja: Alimento"],
 "Caisse : Animaux (poussins, achats)":["Cash book: Animals (chicks, purchases)","Cassa: Animali (pulcini, acquisti)","Caja: Animales (pollitos, compras)"],
 "Caisse : Vaccins et médicaments":["Cash book: Vaccines and medicines","Cassa: Vaccini e farmaci","Caja: Vacunas y medicamentos"],
@@ -154,16 +157,36 @@ function compute(Y){
   G(COUV).v+=Math.max(poussFact,couvEnc);if(couvEnc>poussFact)enc+=couvEnc-poussPaye;
   /* les œufs mis en couveuse n'ont pas été vendus : on les retire des ventes d'œufs estimées */
   Object.keys(est).forEach(g=>{if(ownPoule<=0)return;const e=est[g],q=Math.min(e.q,ownPoule);if(q>0){acts[g].v-=q*e.v/e.q;ownPoule-=q}});
-  /* amortissements */
-  const du=duree();let amort=0;
-  const am=(inv,y0,d,who)=>{d=d||du;if(inv>0&&y0&&Y>=y0&&Y<y0+d){amort+=inv/d;add("Amortissement",who,fmt(inv)+" F ÷ "+d,inv/d)}};
+  /* charges du mois (fiche du lot) : comptées pour la période de l'année où le lot est en place,
+     sauf si des charges de ce lot sont déjà notées dans la caisse (main-d'œuvre, eau, transport…) */
+  const DAY=864e5,pd=x=>{const d=new Date(String(x||"").slice(0,10)+"T12:00");return isNaN(d)?null:d};
+  const y0d=new Date(Y,0,1,12),y1d=new Date(Y+1,0,1,12),nowD=new Date(),endY=nowD<y1d?nowD:y1d;
+  const days=(a,b)=>Math.max(0,(b-a)/DAY);
+  const CHG=["mo","energie","transport","materiel","sante","autre"];
+  lots.forEach(l=>{const cm=Number(l.chargesMois)||0,a=pd(l.arrivee);if(cm<=0||!a||l.actif===false||(A.isCrop&&A.isCrop(l)))return;
+    const g=grpOf(l);if(CHG.some(c=>has(c,g)))return;const from=a>y0d?a:y0d,nd=days(from,endY);if(!nd)return;
+    const v=cm*nd/30.4;G(g).d+=v;add("Charges du mois (fiche du lot)",lotName(l),fmt(cm)+" F × "+A.fmt(nd/30.4,1)+" mois",v)});
+  /* achat des animaux : dire pourquoi il n'est pas compté, pour chaque lot en cours */
+  const notes=[];
+  lots.forEach(l=>{if(l.actif===false||(A.isCrop&&A.isCrop(l)))return;const v=(Number(l.prixSujet)||0)*(Number(l.effectif)||0),g=grpOf(l);
+    if(has("animaux",g))return;
+    if(!v)notes.push([lotName(l),"Achat des animaux non compté : le prix d'achat par animal est vide dans la fiche du lot."]);
+    else if(yearOf(l.arrivee)!==Y)notes.push([lotName(l),`Achat des animaux compté en ${yearOf(l.arrivee)||0}, l'année d'arrivée du lot.`])});
+  /* amortissements, au prorata des jours : l'investissement est réparti sur sa durée à partir de sa date de départ.
+     Année en cours : seulement jusqu'à aujourd'hui (la projection prend l'année entière). */
+  const du=duree();let amort=0,amortYear=0;
+  const am=(inv,start,d,who)=>{d=d||du;if(!(inv>0)||!start)return;const end=new Date(start.getTime());end.setFullYear(end.getFullYear()+d);
+    const perDay=inv/days(start,end),a1=start>y0d?start:y0d,b1=end<endY?end:endY,b2=end<y1d?end:y1d;
+    const v=perDay*days(a1,b1),vy=perDay*days(a1,b2);if(vy<=0)return;amort+=v;amortYear+=vy;
+    if(v>0)add("Amortissement",who,fmt(inv)+" F ÷ "+d+" ans · "+fmt(Math.round(days(a1,b1)))+" jours en "+Y,v)};
   /* même durée que dans la rentabilité du lot quand elle y est indiquée */
-  lots.forEach(l=>{const dl=N(l.dureeInvest);am(Number(l.investissement)||0,yearOf(l.arrivee),dl>0?Math.max(1,Math.round(dl)):null,lotName(l))});am(N(R.invest)||0,Math.round(N(R.investAn)||0),null,"Réglages du bilan");
+  lots.forEach(l=>{const dl=N(l.dureeInvest);am(Number(l.investissement)||0,pd(l.arrivee),dl>0?Math.max(1,Math.round(dl)):null,lotName(l))});
+  {const ya=Math.round(N(R.invest)?N(R.investAn)||0:0);if(ya)am(N(R.invest)||0,new Date(ya,0,1,12),null,"Réglages du bilan")}
   const rows=order.filter(g=>acts[g].v||acts[g].d).map(g=>[g,acts[g]]);
   const ca=rows.reduce((p,[,a])=>p+a.v,0),dep=rows.reduce((p,[,a])=>p+a.d,0);
   const marge=ca-dep,avant=marge-amort,imp=avant>0?avant*taux()/100:0;
   det.sort((a,b)=>b.amt-a.amt);
-  return {rows,ca,dep,marge,amort,avant,imp,net:avant-imp,enc,det,empty:!nb&&!amort};
+  return {rows,ca,dep,marge,amort,amortYear,avant,imp,net:avant-imp,enc,det,notes,empty:!nb&&!amort};
 }
 
 /* ================= affichage ================= */
@@ -193,15 +216,15 @@ function render(){
   sum.push({label:"Bénéfice net",value:money(S.net),sign:S.net,bold:true});
   W.append(list(sum));
   /* détail : chaque ligne qui compose les dépenses, de la plus grosse à la plus petite */
-  if(S.det.length){const D=el("details","box");D.append(el("summary",null,"D'où viennent les dépenses"));
+  if(S.det.length||S.notes.length){const D=el("details","box");D.append(el("summary",null,"D'où viennent les dépenses"));
     D.append(el("p","note","Chaque montant compté dans les dépenses, du plus gros au plus petit. Les lignes estimées sont calculées depuis la fiche du lot, car elles ne sont pas notées dans la caisse."));
     const ul=el("ul","dlist");S.det.forEach(r=>{const li=el("li");li.style.cssText="display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px";
       li.append(el("span",null,r.label),el("b",null,money(-r.amt)));
       const sm=el("small",null,[r.who,r.calc].filter(Boolean).join(" · "));sm.style.flexBasis="100%";sm.setAttribute("data-notr","");li.append(sm);ul.append(li)});
-    D.append(ul);W.append(D)}
+    D.append(ul);S.notes.forEach(([w,t])=>{const p=el("p","note");const b=el("b",null,w);b.setAttribute("data-notr","");p.append(b,document.createElement("br"),el("span",null,t));D.append(p)});W.append(D)}
   /* projection sur l'année en cours */
   if(year===cy){const now=new Date(),d0=new Date(cy,0,1);const doy=Math.floor((now-d0)/864e5)+1;
-    if(doy>=30&&doy<355){const k=365/doy;const avant=S.marge*k-S.amort,net=avant-(avant>0?avant*taux()/100:0);
+    if(doy>=30&&doy<355){const k=365/doy;const avant=S.marge*k-S.amortYear,net=avant-(avant>0?avant*taux()/100:0);
       const P=$("b-proj");P.append(el("span","label","Si le rythme continue jusqu'à la fin de l'année"));
       const tl=el("div","tiles");tl.style.gridTemplateColumns="repeat(2,minmax(0,1fr))";
       [["Chiffre d'affaires prévu",short(S.ca*k),null],["Bénéfice net prévu",short(net),net>=0?"ok":"bad"]].forEach(([l,v,c])=>{const t=el("div","tile"+(c?" "+c:""));t.append(el("span",null,l),el("b",null,v));tl.append(t)});
