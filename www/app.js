@@ -371,7 +371,9 @@ function rationG(key,w,fo){
   if(FAKE_ESP[key]&&w!=null){try{const g=stdFeed({espece:FAKE_ESP[key]},w);if(g>0)return g}catch(e){}}
   return (fo&&fo.g)||((formAt(key,w==null?0:w)||{}).g)||0}
 function formulaForLot(l,s){const key=spKey(l);if(!FORM[key])return null;const fa=feedAge(l,s);const fo=formAt(key,fa);
-  const ra=ration(l,s);const daily=s.gpj7!=null&&s.gpj7>0?s.alive*s.gpj7/1000:(ra?ra.kg:s.alive*stdFeed(l,s.ageW)/1000);
+  const ra=ration(l,s);let daily=s.gpj7!=null&&s.gpj7>0?s.alive*s.gpj7/1000:(ra?ra.kg:s.alive*stdFeed(l,s.ageW)/1000);
+  /* lot en retard de poids : la quantité à fabriquer suit la ration de rattrapage, jamais moins */
+  if(ra&&ra.f>1)daily=Math.max(daily,ra.kg);
   return {key,titre:fo.t,fo,f:fo.f,daily,week:Math.ceil(daily*7/5)*5}}
 function nutri(f){let pb=0,em=0,ca=0,lys=0,met=0,t=0;for(const[k,v]of Object.entries(f)){const i=ING[k];t+=v;if(!i)continue;pb+=v*i.pb/100;em+=v*i.em/100;ca+=v*i.ca/100;lys+=v*(i.lys||0)/100;met+=v*(i.met||0)/100}return {pb,em,ca,lys,met,t}}
 const pFab=()=>Math.max(0,Number(prixIng._fab??14)||0); // fabrication + sacs vides, F par kg (SAPRA : 500 F/sac de 50 kg + 200 F le sac)
