@@ -8,7 +8,7 @@ const B=window.B2A;if(!B||!B.CFG)return;
 const LS="b2a-err-q",MAX=5,QMAX=10;let sent=0;const seen={};
 const load=()=>{try{return JSON.parse(localStorage.getItem(LS)||"[]")}catch(e){return []}};
 const save=q=>{try{q.length?localStorage.setItem(LS,JSON.stringify(q.slice(-QMAX))):localStorage.removeItem(LS)}catch(e){}};
-const ver=()=>{const s=document.querySelector('script[src*="app.js"]');const m=s&&/[?&]v=(\d+)/.exec(s.src);return m?"v"+m[1]:""};
+const ver=()=>{const s=document.querySelector('script[src*="app.js"]');const m=s&&/[?&]v=([\d.]+)/.exec(s.src);return m?"v"+m[1]:""};
 const plat=()=>{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()?"android (apk)":/iphone|ipad/i.test(navigator.userAgent)?"iphone (web)":/android/i.test(navigator.userAgent)?"android (web)":"ordinateur (web)"};
 /* on retire les adresses complètes (seul le nom du fichier compte) et tout ce qui ressemble à un numéro de téléphone ou un e-mail */
 const clean=(s,n)=>String(s||"").replace(/https?:\/\/[^\s)'"]*\/([^\/\s)'"?]+)(\?[^\s)'"]*)?/g,"$1").replace(/[\w.+-]+@[\w-]+\.[\w.]+/g,"[e-mail]").replace(/\+?\d[\d  ]{7,}\d/g,"[nombre]").slice(0,n);

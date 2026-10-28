@@ -170,7 +170,7 @@ Les prestataires remplissent leur fiche, choisissent un abonnement (1, 3 ou 12 m
 ## Mettre à jour l'application plus tard
 
 1. Remplacez sur GitHub les fichiers modifiés (en général `www/index.html` et parfois les autres fichiers de `www`).
-2. Dans `www/sw.js`, augmentez le numéro de version : `const CACHE = "b2a-v2";` devient `"b2a-v3"`, puis `"b2a-v4"`, etc.
+2. Augmentez le numéro de version, toujours sous la forme 60.1, 60.2, 60.3… (après 60.9 vient 60.10) : le même numéro dans `www/version.json` (`{"v":"60.2"}`), dans les `?v=60.2` de `www/index.html` et dans `www/sw.js` (`const CACHE = "b2a-v60.2";`).
 3. GitHub reconstruit le site et l'APK. Les téléphones reçoivent la nouvelle version à la prochaine ouverture avec internet. Les données des utilisateurs restent sur leur téléphone.
 4. Pour l'APK, les utilisateurs installent le nouveau fichier par-dessus l'ancien. Ne supprimez jamais le secret `ANDROID_KEYSTORE_B64` sur GitHub, et gardez une copie du dossier `cle-secrete` en lieu sûr (clé USB, Drive privé) : c'est cette clé qui permet l'installation par-dessus sans perdre les données.
 

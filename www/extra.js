@@ -306,8 +306,11 @@ if("serviceWorker" in navigator&&!window.Capacitor&&(location.protocol==="https:
 if(window.Capacitor&&navigator.onLine){
   Promise.all([fetch("version.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null),
     fetch("https://azizyou2005.github.io/b2a-smart-farming/version.json",{cache:"no-store"}).then(r=>r.ok?r.json():null)]).then(([loc,v])=>{
-    const APP_VERSION=Number(loc&&loc.v)||26;
-    if(!v||!(Number(v.v)>APP_VERSION)||document.getElementById("x-upd"))return;
+    /* numéros du type 60.1, 60.2 … 60.10 : comparés morceau par morceau (60.10 est plus récent que 60.9) */
+    const parts=x=>String(x==null?"":x).split(".").map(n=>parseInt(n,10)||0);
+    const newer=(a,b)=>{const A=parts(a),B=parts(b);for(let i=0;i<Math.max(A.length,B.length);i++){if((A[i]||0)!==(B[i]||0))return (A[i]||0)>(B[i]||0)}return false};
+    const APP_VERSION=(loc&&loc.v)||26;
+    if(!v||!newer(v.v,APP_VERSION)||document.getElementById("x-upd"))return;
     const d=document.createElement("div");d.id="x-upd";d.setAttribute("role","status");
     d.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:60;background:#1b2e4c;color:#fff;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgb(0 0 0/.3);font:600 14px/1.35 'Source Sans 3',sans-serif";
     const t=document.createElement("span");t.style.flex="1";t.textContent="Une nouvelle version de l'application est disponible.";

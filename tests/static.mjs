@@ -14,13 +14,14 @@ for (const f of readdirSync(WWW).filter(f => f.endsWith(".js"))) {
   try { new vm.Script(readFileSync(join(WWW, f), "utf8"), { filename: f }); } catch (e) { fails.push(`Syntaxe : ${f} : ${e.message}`); }
 }
 // 2. versions : version.json = ?v= dans index.html = cache du service worker
-const v = JSON.parse(readFileSync(join(WWW, "version.json"), "utf8")).v;
+const v = String(JSON.parse(readFileSync(join(WWW, "version.json"), "utf8")).v);
+ok(/^\d+(\.\d+)?$/.test(v), `version.json : ${v} n'est pas un numéro de version (ex. 60.1)`);
 const index = readFileSync(join(WWW, "index.html"), "utf8");
 const sw = readFileSync(join(WWW, "sw.js"), "utf8");
-const scripts = [...index.matchAll(/<script src="([^"?]+)\?v=(\d+)"/g)];
+const scripts = [...index.matchAll(/<script src="([^"?]+)\?v=([\d.]+)"/g)];
 ok(scripts.length > 5, "index.html : scripts introuvables");
 for (const [, src, ver] of scripts) {
-  ok(Number(ver) === v, `index.html : ${src}?v=${ver} alors que version.json dit ${v}`);
+  ok(ver === v, `index.html : ${src}?v=${ver} alors que version.json dit ${v}`);
   ok(existsSync(join(WWW, src)), `index.html charge ${src}, fichier absent`);
   ok(src === "config.js" || sw.includes(`"${src}"`), `sw.js : ${src} n'est pas gardé pour le hors connexion`);
 }
