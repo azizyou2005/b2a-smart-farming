@@ -98,16 +98,15 @@ function compute(Y){
   const order=[...new Set(lots.map(grpOf))];[COUV,AUTRES,COMMUN].forEach(g=>{if(!order.includes(g))order.push(g)});
   const acts={};const G=g=>acts[g]||(acts[g]={v:0,d:0},order.includes(g)||order.splice(order.length-3,0,g),acts[g]);
   order.forEach(g=>acts[g]={v:0,d:0});
-  let enc=0,poussFact=0,poussPaye=0,nb=0;
+  let enc=0,poussFact=0,poussPaye=0,nb=0;const facProd=new Set();
   /* ventes : factures de l'année */
   (A.factures()||[]).forEach(f=>{if(yearOf(f.date)!==Y)return;const t=A.facTotals(f);nb++;enc+=t.paye||0;
     const ratio=t.sous?t.total/t.sous:0,pr=t.total?(t.paye||0)/t.total:0;const lot=f.lotId&&byId[f.lotId];
     (f.lignes||[]).forEach(x=>{const amt=(Number(x.qte)||0)*(Number(x.pu)||0)*ratio;
       if(x.prod==="poussins"){poussFact+=amt;poussPaye+=amt*pr;return}
-      G(lot?grpOf(lot):(PROD_GRP[x.prod]||AUTRES)).v+=amt})});
+      const g=lot?grpOf(lot):(PROD_GRP[x.prod]||AUTRES);G(g).v+=amt;if(/^(oeufs|oeufs_plateau|lait)$/.test(x.prod||""))facProd.add(g)})});
   /* espèce sans facture cette année : ventes d'œufs ou de lait estimées depuis les saisies (prix du lot) */
-  const facGrp=new Set(order.filter(g=>acts[g].v>0));
-  (A.saisies()||[]).forEach(s=>{if(yearOf(s.date)!==Y)return;const l=byId[s.lotId];if(!l||facGrp.has(grpOf(l)))return;
+  (A.saisies()||[]).forEach(s=>{if(yearOf(s.date)!==Y)return;const l=byId[s.lotId];if(!l||facProd.has(grpOf(l)))return;
     const q=N(s.oeufs),pv=Number(l.prixOeuf)||0;if(q&&pv&&(A.isLayer(l)||(A.isDairy&&A.isDairy(l)))){G(grpOf(l)).v+=q*pv;nb++}});
   /* couvoir : coûts des couvées et poussins encaissés (toutes espèces couvées) */
   let couvEnc=0;const C=window.B2A_COUV;
@@ -115,13 +114,14 @@ function compute(Y){
     if(!s)return;G(COUV).d+=s.c.total||0;if(s.reel!=null)couvEnc+=s.reel});
   G(COUV).v+=Math.max(poussFact,couvEnc);if(couvEnc>poussFact)enc+=couvEnc-poussPaye;
   /* dépenses : cahier de caisse */
-  const cats=new Set();
-  depenses.forEach(d=>{if(yearOf(d.date)!==Y)return;nb++;cats.add(d.cat);const l=d.lotId&&byId[d.lotId];
-    G(l?grpOf(l):COMMUN).d+=Number(d.montant)||0});
+  /* catégories déjà notées dans la caisse, par espèce ; une dépense sans lot couvre toutes les espèces */
+  const cats={};const has=(c,g)=>!!(cats[c]&&(cats[c].has(g)||cats[c].has(COMMUN)));
+  depenses.forEach(d=>{if(yearOf(d.date)!==Y)return;nb++;const l=d.lotId&&byId[d.lotId],g=l?grpOf(l):COMMUN;
+    (cats[d.cat]||(cats[d.cat]=new Set())).add(g);G(g).d+=Number(d.montant)||0});
   /* dépenses estimées depuis les lots quand elles ne sont pas dans la caisse */
-  if(!cats.has("aliment"))(A.saisies()||[]).forEach(s=>{if(yearOf(s.date)!==Y)return;const l=byId[s.lotId];const kg=N(s.alimentKg),pa=l?Number(l.prixAliment)||0:0;
-    if(l&&kg&&pa)G(grpOf(l)).d+=kg*pa});
-  if(!cats.has("animaux"))lots.forEach(l=>{if(yearOf(l.arrivee)!==Y||(A.isCrop&&A.isCrop(l)))return;const v=(Number(l.prixSujet)||0)*(Number(l.effectif)||0);if(v){G(grpOf(l)).d+=v;nb++}});
+  (A.saisies()||[]).forEach(s=>{if(yearOf(s.date)!==Y)return;const l=byId[s.lotId];if(!l||has("aliment",grpOf(l)))return;const kg=N(s.alimentKg),pa=Number(l.prixAliment)||0;
+    if(kg>0&&pa>0)G(grpOf(l)).d+=kg*pa});
+  lots.forEach(l=>{if(yearOf(l.arrivee)!==Y||(A.isCrop&&A.isCrop(l))||has("animaux",grpOf(l)))return;const v=(Number(l.prixSujet)||0)*(Number(l.effectif)||0);if(v>0){G(grpOf(l)).d+=v;nb++}});
   /* amortissements */
   const du=duree();let amort=0;
   const am=(inv,y0,d)=>{d=d||du;if(inv>0&&y0&&Y>=y0&&Y<y0+d)amort+=inv/d};
