@@ -43,6 +43,13 @@ sheet.innerHTML=`<div class="sheet-in">
     <div class="row"><button class="btn small" id="x-install" type="button" hidden>Installer maintenant</button>
       <button class="btn small ghost" id="x-apk" type="button">Télécharger l'application Android (APK)</button></div>
     <span class="msg" id="x-amsg" aria-live="polite"></span>
+    <div class="x-ios" id="x-ios"><b>iPhone et iPad (Apple)</b>
+      <span>L'application n'est pas encore sur l'App Store. Installez-la en raccourci, c'est la même application :</span>
+      <ol><li>Ouvrez le lien de l'application dans Safari (pas dans WhatsApp ni Chrome).</li>
+      <li>Touchez le bouton Partager (carré avec une flèche vers le haut), en bas de l'écran.</li>
+      <li>Descendez et touchez “Sur l'écran d'accueil”, puis “Ajouter”.</li>
+      <li>Lancez l'application avec son icône sur l'écran d'accueil.</li></ol>
+      <div class="row"><button class="btn small ghost" id="x-ioscopy" type="button">Copier le lien pour Safari</button><span class="msg" id="x-iosmsg" aria-live="polite"></span></div></div>
   </section>
   <section class="card owner" id="x-owner">
     <h3 class="sec">Propriétaire de l'application</h3>
@@ -202,6 +209,13 @@ $("x-import").onchange=async e=>{const f=e.target.files[0];if(!f||!db)return;
 let installEvt=null;addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;$("x-install").hidden=false});
 $("x-install").onclick=async()=>{if(!installEvt)return;installEvt.prompt();await installEvt.userChoice;installEvt=null;$("x-install").hidden=true};
 if(window.Capacitor)$("x-inst").hidden=true;
+/* iPhone : raccourci Safari (pas encore d'App Store) ; bloc mis en avant sur iPhone/iPad */
+(function(){const box=$("x-ios");if(!box)return;
+  const ua=navigator.userAgent||"",ios=/iPhone|iPad|iPod/i.test(ua)||(/Macintosh/i.test(ua)&&"ontouchend" in document);
+  if(ios){box.classList.add("on");const sec=$("x-inst");sec&&sec.insertBefore(box,sec.querySelector(".note"))}
+  const URL_APP="https://azizyou2005.github.io/b2a-smart-farming/";
+  $("x-ioscopy").onclick=async()=>{const m=$("x-iosmsg");m.className="msg";
+    try{await navigator.clipboard.writeText(URL_APP);m.className="msg good";m.textContent="Lien copié : collez-le dans Safari."}catch(e){window.prompt("",URL_APP)}}})();
 /* APK : on vérifie d'abord que le fichier existe, et on ne quitte jamais l'application */
 const APK="b2a-smart-farming.apk";
 $("x-apk").onclick=async()=>{const b=$("x-apk"),m=$("x-amsg");m.className="msg";
