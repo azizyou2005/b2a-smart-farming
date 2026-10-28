@@ -547,6 +547,7 @@ async function pdfRun(btn,fn){const t=btn.textContent;btn.disabled=true;btn.text
   finally{btn.disabled=false}}
 const money=v=>(v<0?"- ":"")+fmt(Math.abs(v))+" F";
 const fdLong=iso=>new Date(iso+"T12:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"});
+function invLabel(v){return v.ratio>=1?"Investissement de départ":`Investissement : part de ce lot (${fmt(v.years,1)} an sur ${fmt(v.du)} ans d'utilisation, total ${fmt(v.total)} F)`}
 function bilanLines(l,s,f,base){const lines=[];const recO=f.rec+base.fut.oeufs,eggsAll=f.eggs+base.eggs;
   if(isLayer(l))lines.push([`Ventes d'œufs (${fmt(eggsAll)} œufs, ${fmt(eggsAll/30)} plateaux à ${fmt(Number(l.prixOeuf)||0)} F)`,recO,""]);
   if(isDairy(l))lines.push([`Ventes de lait (${fmt(eggsAll)} litres à ${fmt(Number(l.prixOeuf)||0)} F)`,recO,""]);
@@ -554,7 +555,7 @@ function bilanLines(l,s,f,base){const lines=[];const recO=f.rec+base.fut.oeufs,e
   const totR=recO+base.fut.reforme;lines.push(["Total recettes",totR,"b"]);
   const alKg=f.feedKg+base.fut.alimentKg,alF=f.dep.aliment+base.fut.aliment;
   lines.push([`Aliment (≈ ${fmt(alKg/1000,1)} t à ${fmt(Number(l.prixAliment)||0)} F/kg)`,-alF,""]);
-  if(f.dep.invest)lines.push(["Investissement de départ",-f.dep.invest,""]);
+  if(f.dep.invest)lines.push([invLabel(f.inv),-f.dep.invest,""]);
   if(f.dep.achat)lines.push([`Achat des sujets (${fmt(Number(l.effectif))} × ${fmt(Number(l.prixSujet)||0)} F)`,-f.dep.achat,""]);
   const chT=f.dep.charges+base.fut.charges;if(chT)lines.push([`Charges (${fmt(Number(l.chargesMois)||0)} F × ${fmt((base.end-(Number(l.ageArrivee)||0))*7/30.4)} mois)`,-chT,""]);
   const net=totR-alF-f.dep.invest-f.dep.achat-chT;lines.push(["Bénéfice net du cycle",net,"b"]);
@@ -900,20 +901,33 @@ function prodSummary(l,s){
   if(isDairy(l))return `Lait moyen 7 j : ${fmt(s.lait7,2)} L/tête/jour (standard ≈ ${fmt(sp(l).lait,1)} L).`;
   const sw=stdWeight(l,s.ageW);return `Poids moyen : ${fmtW(l,s.poids)} (standard à cet âge ≈ ${sw!=null?fmtW(l,sw*1000):"—"})${s.gmq!=null?`, gain moyen ${fmtW(l,s.gmq)}/jour`:""}.`;
 }
+/* investissement (bâtiment, matériel) : il sert à plusieurs lots, donc ce lot n'en porte que sa part
+   = durée du lot ÷ durée d'utilisation (5 ans par défaut, comme le bilan de l'année) */
+const INV_DUREE=5;
+function investShare(l){const total=Number(l.investissement)||0;const du=N(l.dureeInvest)!=null&&N(l.dureeInvest)>0?N(l.dureeInvest):INV_DUREE;
+  const end=Number(l.ageFin)||defaultEnd(l);const years=Math.max(0,(end-(Number(l.ageArrivee)||0))*7/365.25);
+  const ratio=total?Math.min(1,years/du):0;return {total,du,years,ratio,part:Math.round(total*ratio)}}
 function finance(l,s){
   const pa=Number(l.prixAliment)||0,pv=Number(l.prixOeuf)||0;
   const daysSince=l.arrivee?Math.max(0,daysBetween(l.arrivee,today())):0;
   const feedKg=(Number(l.alimentAvant)||0)+s.rows.reduce((p,r)=>p+(r.aliment||0),0),eggs=(Number(l.oeufsAvant)||0)+s.rows.reduce((p,r)=>p+(r.oeufs||0),0);
-  const dep={achat:(Number(l.prixSujet)||0)*(Number(l.effectif)||0),invest:Number(l.investissement)||0,aliment:feedKg*pa,charges:(Number(l.chargesMois)||0)*daysSince/30.4};
+  const inv=investShare(l);
+  const dep={achat:(Number(l.prixSujet)||0)*(Number(l.effectif)||0),invest:inv.part,aliment:feedKg*pa,charges:(Number(l.chargesMois)||0)*daysSince/30.4};
   const depTot=dep.achat+dep.invest+dep.aliment+dep.charges,rec=hasProd(l)?eggs*pv:0;
   const missing=[];if(!pa)missing.push("prix de l'aliment");if(hasProd(l)&&!pv)missing.push(isDairy(l)?"prix du litre de lait":"prix de l'œuf");if(!l.prixFin&&!l.prixKg&&!isLayer(l))missing.push("prix de vente en fin de cycle (par tête ou au kg)");
-  return {dep,depTot,rec,solde:rec-depTot,eggs,feedKg,missing};
+  return {dep,depTot,rec,solde:rec-depTot,eggs,feedKg,missing,inv,daysSince};
 }
+/* mortalité des 4 dernières semaines saisies (% par semaine), null s'il y a moins de 7 saisies */
+function recentMort(s){const R=s.rows.filter(r=>daysBetween(r.date,today())<28);if(R.length<7)return null;
+  const d=R.reduce((p,r)=>p+r.morts,0),bw=R.reduce((p,r)=>p+r.start,0)/7;return bw>0?d/bw:null}
 function project(l,s,f,factor,paAlt){
   const P=sp(l),pa=paAlt||Number(l.prixAliment)||0,pv=Number(l.prixOeuf)||0,ch=(Number(l.chargesMois)||0)/4.345;
   const end=Number(l.ageFin)||defaultEnd(l),a0=s.ageW;
-  let m=l.mortPrev!=null&&l.mortPrev!==""?Number(l.mortPrev)/100:(P.mort||0.1)/100;
-  if(s.rows.length>=7&&s.alive>0)m=Math.min(0.01,Math.max(0.0005,s.morts7/s.alive));
+  /* mortalité : les 4 prochaines semaines suivent la mortalité réelle des 4 dernières semaines (plafonnée à 1 %/sem.),
+     ensuite le taux normal (saisi dans le lot, sinon celui de l'espèce). Un mauvais jour ne pèse donc plus sur tout le cycle. */
+  const mNorm=l.mortPrev!=null&&l.mortPrev!==""?Number(l.mortPrev)/100:(P.mort||0.1)/100;
+  const mr=s.alive>0?recentMort(s):null;const mRecent=mr==null?mNorm:Math.min(0.01,Math.max(0.0005,mr));const m=mRecent;
+  const r0=f.daysSince!=null?f.daysSince%7:0;
   let k=1;if(isLayer(l)&&s.ponte7!=null&&stdPonte(a0)>=30)k=Math.min(1.15,Math.max(0.5,s.ponte7/stdPonte(a0)));
   if(isDairy(l)&&s.lait7!=null&&P.lait)k=Math.min(1.6,Math.max(0.3,s.lait7/P.lait));
   let kw=1;if(s.poids!=null&&s.poidsDate&&daysBetween(s.poidsDate,today())<=30){const aW=(Number(l.ageArrivee)||0)+(l.arrivee?daysBetween(l.arrivee,s.poidsDate)/7:0);const sw=stdWeight(l,aW);if(sw)kw=Math.min(1.3,Math.max(0.6,s.poids/1000/sw))}
@@ -921,13 +935,15 @@ function project(l,s,f,factor,paAlt){
   let birds=s.alive,solde=f.solde,eggs=0,be=f.solde>=0?0:null;const pts=[{w:0,solde}];
   const fut={oeufs:0,aliment:0,alimentKg:0,charges:0,reforme:0};let wEnd=null;
   for(let i=1;a0+i<=end;i++){const w=a0+i;
+    /* 1re semaine : seulement les jours pas encore comptés dans les dépenses à ce jour */
+    const fr=i===1?(7-r0)/7:1;const mw=i<=4?mRecent:mNorm;
     const g=(w>=18&&s.ageW>=18&&s.gpj7!=null&&isPoultry(l)&&!isBroiler(l))?s.gpj7:(s.gpj7!=null&&!isPoultry(l)?s.gpj7:stdFeed(l,w));
-    let e=0;if(isLayer(l))e=birds*Math.min(98,stdPonte(w)*k*factor)/100*7;else if(isDairy(l))e=birds*P.lait*k*factor*7;eggs+=e;
-    const kg=birds*g*7/1000;fut.oeufs+=e*pv;fut.alimentKg+=kg;fut.aliment+=kg*pa;fut.charges+=ch;
-    solde+=e*pv-kg*pa-ch;birds*=(1-m);
+    let e=0;if(isLayer(l))e=birds*Math.min(98,stdPonte(w)*k*factor)/100*7*fr;else if(isDairy(l))e=birds*P.lait*k*factor*7*fr;eggs+=e;
+    const kg=birds*g*7/1000*fr;fut.oeufs+=e*pv;fut.alimentKg+=kg;fut.aliment+=kg*pa;fut.charges+=ch*fr;
+    solde+=e*pv-kg*pa-ch*fr;birds*=(1-mw*fr);
     if(a0+i+1>end){wEnd=(stdWeight(l,w)||0)*kw*sf;const unit=Number(l.prixKg)?wEnd*Number(l.prixKg):(Number(l.prixFin)||0)*sf;const r=birds*unit;fut.reforme+=r;solde+=r}
     pts.push({w:i,solde});if(be==null&&solde>=0)be=i;}
-  return {pts,be,final:solde,eggs,birds,end,m,k,kw,wEnd,fut,weeks:Math.max(0,end-a0)};
+  return {pts,be,final:solde,eggs,birds,end,m,mNorm,mRecent,k,kw,wEnd,fut,weeks:Math.max(0,end-a0)};
 }
 const addDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return d};
 const fdl=d=>d.toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
@@ -997,7 +1013,7 @@ function renderFinance(D,l,s){
   const f=finance(l,s);renderRealSales(D,l,f);D.append(el("h3","sec","Prévisions"));
   if(f.missing.length){const p=el("p","msg err","Pour calculer le bénéfice, ajoutez : "+f.missing.join(", ")+" (bouton Modifier).");D.append(p);if(!Number(l.prixAliment))return}
   const K=el("div","kpis");
-  K.append(kpi("Dépenses à ce jour",fmt(f.depTot)+" F",`achat ${fmt(f.dep.achat)} · aliment ${fmt(f.dep.aliment)} · charges ${fmt(f.dep.charges)}`+(f.dep.invest?` · invest. ${fmt(f.dep.invest)}`:"")));
+  K.append(kpi("Dépenses à ce jour",fmt(f.depTot)+" F",`achat ${fmt(f.dep.achat)} · aliment ${fmt(f.dep.aliment)} · charges ${fmt(f.dep.charges)}`+(f.dep.invest?` · invest. (part du lot) ${fmt(f.dep.invest)}`:"")));
   K.append(kpi("Recettes à ce jour",fmt(f.rec)+" F",hasProd(l)?fmt(f.eggs)+" "+prodUnit(l)+" vendus":"vente en fin de cycle"));
   K.append(kpi("Solde actuel",(f.solde<0?"−":"")+fmt(Math.abs(f.solde))+" F",f.solde<0?"capital encore à récupérer":"bénéfice cumulé",f.solde<0?"down":"up"));
   const base=project(l,s,f,1),low=project(l,s,f,0.9),high=project(l,s,f,1.05);
@@ -1011,19 +1027,7 @@ function renderFinance(D,l,s){
   D.append(el("h3","sec","Bilan prévu du cycle complet"));
   const bt=el("div","tablewrap"),tt=el("table","data");const bb=el("tbody");
   const money=v=>(v<0?"− ":"")+fmt(Math.abs(v))+" F";
-  const lines=[];
-  const recO=f.rec+base.fut.oeufs,eggsAll=f.eggs+base.eggs;
-  if(isLayer(l))lines.push([`Ventes d'œufs (${fmt(eggsAll)} œufs, ${fmt(eggsAll/30)} plateaux à ${fmt(Number(l.prixOeuf)||0)} F)`,recO,""]);
-  if(isDairy(l))lines.push([`Ventes de lait (${fmt(eggsAll)} litres à ${fmt(Number(l.prixOeuf)||0)} F)`,recO,""]);
-  lines.push([Number(l.prixKg)&&base.wEnd?`${sp(l).sale} (${fmt(base.birds)} × ${fmt(base.wEnd,base.wEnd<10?2:0)} kg à ${fmt(Number(l.prixKg))} F/kg)`:`${sp(l).sale} (${fmt(base.birds)} × ${fmt(Number(l.prixFin)||0)} F)`,base.fut.reforme,""]);
-  const totR=recO+base.fut.reforme;lines.push(["Total recettes",totR,"b"]);
-  const alKg=f.feedKg+base.fut.alimentKg,alF=f.dep.aliment+base.fut.aliment;
-  lines.push([`Aliment (≈ ${fmt(alKg/1000,1)} t à ${fmt(Number(l.prixAliment)||0)} F/kg)`,-alF,""]);
-  if(f.dep.invest)lines.push(["Investissement de départ",-f.dep.invest,""]);
-  if(f.dep.achat)lines.push([`Achat des sujets (${fmt(Number(l.effectif))} × ${fmt(Number(l.prixSujet)||0)} F)`,-f.dep.achat,""]);
-  const chT=f.dep.charges+base.fut.charges;if(chT)lines.push([`Charges (${fmt(Number(l.chargesMois)||0)} F × ${fmt((base.end-(Number(l.ageArrivee)||0))*7/30.4)} mois)`,-chT,""]);
-  const net=totR-alF-f.dep.invest-f.dep.achat-chT;lines.push(["Bénéfice net du cycle",net,"b"]);
-  if(f.dep.invest)lines.push(["Bénéfice sans compter l'investissement",net+f.dep.invest,""]);
+  const {lines,alF,chT}=bilanLines(l,s,f,base);
   lines.forEach(([lbl,v,b])=>{const tr=el("tr");const a=el("td",null,lbl),c=el("td","n",money(v));if(b){a.style.fontWeight="700";c.style.fontWeight="700";tr.style.background="var(--bg)"}
     if(lbl.startsWith("Bénéfice net"))c.style.color=v<0?"var(--bad)":"var(--ok)";tr.append(a,c);bb.append(tr)});
   tt.append(bb);bt.append(tt);D.append(bt);
@@ -1037,7 +1041,9 @@ D.append(el("p","note",`L'aliment représente ${fmt(alF/(alF+f.dep.invest+f.dep.
   if(Number(l.prixAlimentAlt))sc.push([`Aliment maison à ${fmt(Number(l.prixAlimentAlt))} F/kg`,project(l,s,f,1,Number(l.prixAlimentAlt))]);
   sc.forEach(([n,p])=>{const tr=el("tr");if(p===base)tr.style.fontWeight="700";const c=el("td","n",money(p.final));c.style.color=p.final<0?"var(--bad)":"var(--ok)";tr.append(el("td",null,n),el("td",null,beText(p)),c);tb.append(tr)});
   t.append(tb);w.append(t);D.append(w);
-  D.append(el("p","note",`Hypothèses : ${isLayer(l)?`courbe de ponte type ajustée à votre ponte réelle (×${fmt(base.k,2)}), tous les œufs vendus, `:isDairy(l)?`lait ≈ ${fmt(sp(l).lait*base.k,1)} L/tête/jour, tout le lait vendu, `:`courbe de croissance type${base.kw!==1?` ajustée à vos pesées (×${fmt(base.kw,2)})`:""}, `}${Number(l.prixKg)?"vente au poids, ":""}mortalité ${fmt(base.m*100,2)} %/semaine, aliment ${s.gpj7!=null?"selon vos saisies":"selon les besoins types de l'espèce"}, charges mensuelles constantes. L'aliment maison ne s'applique qu'à l'aliment restant à acheter.`));
+  D.append(el("p","note",`Hypothèses : ${isLayer(l)?`courbe de ponte type ajustée à votre ponte réelle (×${fmt(base.k,2)}), tous les œufs vendus, `:isDairy(l)?`lait ≈ ${fmt(sp(l).lait*base.k,1)} L/tête/jour, tout le lait vendu, `:`courbe de croissance type${base.kw!==1?` ajustée à vos pesées (×${fmt(base.kw,2)})`:""}, `}${Number(l.prixKg)?"vente au poids, ":""}mortalité ${fmt(base.mNorm*100,2)} %/semaine, aliment ${s.gpj7!=null?"selon vos saisies":"selon les besoins types de l'espèce"}, charges mensuelles constantes. L'aliment maison ne s'applique qu'à l'aliment restant à acheter.`));
+  if(base.mRecent!==base.mNorm)D.append(el("p","note",`Les 4 prochaines semaines suivent la mortalité réelle de vos saisies : ${fmt(base.mRecent*100,2)} %/semaine.`));
+  if(f.inv.total&&f.inv.ratio<1)D.append(el("p","note",`Investissement réparti sur ${fmt(f.inv.du)} ans d'utilisation : ce lot en porte ${fmt(f.inv.part)} F sur ${fmt(f.inv.total)} F.`));
   if(window.B2A&&!(window.B2A.IA_URL&&window.B2A.ia().info))return;
   const box=el("div","card");box.style.background="var(--bg)";
   const hd=el("div","row between");hd.append(el("strong",null,"Analyse et prévisions par l'IA"));
@@ -1070,7 +1076,7 @@ LOT : ${l.nom} — ${l.espece}, ${l.race||"race non précisée"}, arrivé le ${l
 Effectif : ${s.alive} vivants sur ${l.effectif} (morts 7 j : ${s.morts7}).
 ${prodSummary(l,s)}
 Aliment : ${s.gpj7!=null?fmt(s.gpj7)+" g/sujet/jour":"non saisi"} ; prix ${l.prixAliment||"?"} FCFA/kg.
-Prix : produit (œuf ou litre) ${l.prixOeuf||"-"} FCFA, vente au kg vif ${l.prixKg||"-"} FCFA, achat ${l.prixSujet||"-"} FCFA/sujet, vente fin de cycle ${l.prixFin||"-"} FCFA/sujet, charges ${l.chargesMois||0} FCFA/mois, investissement ${l.investissement||0} FCFA.
+Prix : produit (œuf ou litre) ${l.prixOeuf||"-"} FCFA, vente au kg vif ${l.prixKg||"-"} FCFA, achat ${l.prixSujet||"-"} FCFA/sujet, vente fin de cycle ${l.prixFin||"-"} FCFA/sujet, charges ${l.chargesMois||0} FCFA/mois, investissement ${l.investissement||0} FCFA (part comptée pour ce lot : ${fmt(f.inv.part)} FCFA, réparti sur ${fmt(f.inv.du)} ans).
 À ce jour : dépenses ${fmt(f.depTot)} FCFA, recettes ${fmt(f.rec)} FCFA, solde ${fmt(f.solde)} FCFA.
 Projection de l'app : début du bénéfice ${beText(base)} (prudent : ${beText(low)}, favorable : ${beText(high)}), résultat fin de cycle ${fmt(base.final)} FCFA.
 Alertes : ${s.alerts.map(a=>a[1]).join(" ")||"aucune"}
@@ -1186,7 +1192,7 @@ function openLotForm(l){if(l&&isCrop(l)&&CC()){CC().form(l);return}editLot=l||nu
   $("l-nom").value=l?l.nom||"":"";$("l-espece").value=l?l.espece||"Poules pondeuses":"Poules pondeuses";$("l-race").value=l?l.race||"":"";
   $("l-effectif").value=l?l.effectif??"":"";$("l-arrivee").value=l?l.arrivee||"":today();$("l-age").value=l?l.ageArrivee??0:0;
   $("l-paliment").value=l?l.prixAliment??"":"";$("l-pkg").value=l?l.prixKg??"":"";$("l-pvente").value=l?l.prixOeuf??"":"";$("l-close").hidden=!l;$("l-msg").textContent="";if(l&&l.espece&&![...$("l-espece").options].some(o=>o.value===l.espece)){const o=el("option",null,l.espece);$("l-espece").append(o);$("l-espece").value=l.espece}
-  const lay=!l||isLayer(l);$("l-psujet").value=l?l.prixSujet??"":"";$("l-invest").value=l?l.investissement??"":"";$("l-charges").value=l?l.chargesMois??"":"";
+  const lay=!l||isLayer(l);$("l-psujet").value=l?l.prixSujet??"":"";$("l-invest").value=l?l.investissement??"":"";$("l-dureeinv").value=l?l.dureeInvest??"":"";$("l-charges").value=l?l.chargesMois??"":"";
   $("l-agefin").value=l?l.ageFin??"":"";$("l-pfin").value=l?l.prixFin??"":"";
   $("l-palt").value=l?l.prixAlimentAlt??"":"";$("l-mortprev").value=l?l.mortPrev??"":"";$("l-aavant").value=l?l.alimentAvant??"":"";$("l-mavant").value=l?l.mortsAvant??"":"";$("l-oavant").value=l?l.oeufsAvant??"":"";$("l-stock").value=l?l.stockAliment??"":"";
   syncSpeciesForm();renderStep();window.scrollTo(0,0)}
@@ -1214,7 +1220,7 @@ $("l-save").onclick=async()=>{
   if(!$("l-nom").value.trim()||!eff){lStep=0;renderStep();$("l-msg").textContent="Indiquez au moins le nom et l'effectif.";$("l-msg").className="msg err";return}
   const body={nom:$("l-nom").value.trim(),espece:$("l-espece").value,race:$("l-race").value.trim(),effectif:eff,arrivee:$("l-arrivee").value||today(),
     ageArrivee:N($("l-age").value)||0,prixAliment:N($("l-paliment").value),prixOeuf:N($("l-pvente").value),prixKg:N($("l-pkg").value),actif:true,
-    prixSujet:N($("l-psujet").value),investissement:N($("l-invest").value),chargesMois:N($("l-charges").value),ageFin:N($("l-agefin").value),prixFin:N($("l-pfin").value),
+    prixSujet:N($("l-psujet").value),investissement:N($("l-invest").value),dureeInvest:N($("l-dureeinv").value),chargesMois:N($("l-charges").value),ageFin:N($("l-agefin").value),prixFin:N($("l-pfin").value),
     prixAlimentAlt:N($("l-palt").value),mortPrev:N($("l-mortprev").value),alimentAvant:N($("l-aavant").value),mortsAvant:N($("l-mavant").value),oeufsAvant:N($("l-oavant").value),stockAliment:N($("l-stock").value),
     createdAt:editLot?editLot.createdAt||Date.now():Date.now()};
   $("l-save").disabled=true;

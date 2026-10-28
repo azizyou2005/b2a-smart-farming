@@ -124,8 +124,9 @@ function compute(Y){
   if(!cats.has("animaux"))lots.forEach(l=>{if(yearOf(l.arrivee)!==Y||(A.isCrop&&A.isCrop(l)))return;const v=(Number(l.prixSujet)||0)*(Number(l.effectif)||0);if(v){G(grpOf(l)).d+=v;nb++}});
   /* amortissements */
   const du=duree();let amort=0;
-  const am=(inv,y0)=>{if(inv>0&&y0&&Y>=y0&&Y<y0+du)amort+=inv/du};
-  lots.forEach(l=>am(Number(l.investissement)||0,yearOf(l.arrivee)));am(N(R.invest)||0,Math.round(N(R.investAn)||0));
+  const am=(inv,y0,d)=>{d=d||du;if(inv>0&&y0&&Y>=y0&&Y<y0+d)amort+=inv/d};
+  /* même durée que dans la rentabilité du lot quand elle y est indiquée */
+  lots.forEach(l=>{const dl=N(l.dureeInvest);am(Number(l.investissement)||0,yearOf(l.arrivee),dl>0?Math.max(1,Math.round(dl)):null)});am(N(R.invest)||0,Math.round(N(R.investAn)||0));
   const rows=order.filter(g=>acts[g].v||acts[g].d).map(g=>[g,acts[g]]);
   const ca=rows.reduce((p,[,a])=>p+a.v,0),dep=rows.reduce((p,[,a])=>p+a.d,0);
   const marge=ca-dep,avant=marge-amort,imp=avant>0?avant*taux()/100:0;
