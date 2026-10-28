@@ -5,6 +5,20 @@ const B=window.B2A;if(!B||!B.app)return;const A=B.app;
 
 /* ================= traductions ================= */
 const T={
+"D'où viennent les dépenses":["Where the costs come from","Da dove vengono le spese","De dónde vienen los gastos"],
+"Chaque montant compté dans les dépenses, du plus gros au plus petit. Les lignes estimées sont calculées depuis la fiche du lot, car elles ne sont pas notées dans la caisse.":["Each amount counted in the costs, largest first. Estimated lines are calculated from the batch record, because they are not entered in the cash book.","Ogni importo contato nelle spese, dal più grande al più piccolo. Le righe stimate sono calcolate dalla scheda del lotto, perché non sono annotate in cassa.","Cada importe contado en los gastos, del mayor al menor. Las líneas estimadas se calculan desde la ficha del lote, porque no están anotadas en la caja."],
+"Achat des animaux (estimé)":["Animal purchase (estimated)","Acquisto degli animali (stimato)","Compra de animales (estimado)"],
+"Aliment estimé (saisies)":["Estimated feed (records)","Mangime stimato (registrazioni)","Alimento estimado (registros)"],
+"Couvoir (œufs, électricité, frais)":["Hatchery (eggs, electricity, costs)","Incubatoio (uova, elettricità, spese)","Incubadora (huevos, electricidad, gastos)"],
+"Amortissement":["Depreciation","Ammortamento","Amortización"],
+"Caisse : Aliment":["Cash book: Feed","Cassa: Mangime","Caja: Alimento"],
+"Caisse : Animaux (poussins, achats)":["Cash book: Animals (chicks, purchases)","Cassa: Animali (pulcini, acquisti)","Caja: Animales (pollitos, compras)"],
+"Caisse : Vaccins et médicaments":["Cash book: Vaccines and medicines","Cassa: Vaccini e farmaci","Caja: Vacunas y medicamentos"],
+"Caisse : Main-d'œuvre":["Cash book: Labour","Cassa: Manodopera","Caja: Mano de obra"],
+"Caisse : Transport":["Cash book: Transport","Cassa: Trasporto","Caja: Transporte"],
+"Caisse : Eau et électricité":["Cash book: Water and electricity","Cassa: Acqua ed elettricità","Caja: Agua y electricidad"],
+"Caisse : Matériel et entretien":["Cash book: Equipment and upkeep","Cassa: Attrezzatura e manutenzione","Caja: Material y mantenimiento"],
+"Caisse : Autre":["Cash book: Other","Cassa: Altro","Caja: Otro"],
 "Bilan de l'année":["Yearly results","Bilancio dell'anno","Balance del año"],
 "Ventes, dépenses et bénéfice net de toute la ferme, par espèce.":["Sales, costs and net profit of the whole farm, by species.","Vendite, spese e utile netto di tutta l'azienda, per specie.","Ventas, gastos y beneficio neto de toda la granja, por especie."],
 "Année précédente":["Previous year","Anno precedente","Año anterior"],"Année suivante":["Next year","Anno successivo","Año siguiente"],
@@ -85,6 +99,7 @@ card.innerHTML=`<style>#b-tiles .tile{padding-left:8px;padding-right:8px}#b-tile
 
 /* ================= calcul ================= */
 /* Chaque lot compte dans le groupe de son espèce (ou de sa culture) : valable pour toutes les espèces de l'application. */
+const CATN={aliment:"Aliment",animaux:"Animaux (poussins, achats)",sante:"Vaccins et médicaments",mo:"Main-d'œuvre",transport:"Transport",energie:"Eau et électricité",materiel:"Matériel et entretien",autre:"Autre"};
 const COUV="Couvoir",AUTRES="Autres ventes",COMMUN="Charges communes";
 const PROD_GRP={oeufs:"Poules pondeuses",oeufs_plateau:"Poules pondeuses",reforme:"Poules pondeuses",poulets:"Poulets de chair",poulets_kg:"Poulets de chair",poussins:COUV};
 function grpOf(l){if(!l)return AUTRES;
@@ -99,6 +114,9 @@ function compute(Y){
   const acts={};const G=g=>acts[g]||(acts[g]={v:0,d:0},order.includes(g)||order.splice(order.length-3,0,g),acts[g]);
   order.forEach(g=>acts[g]={v:0,d:0});
   let enc=0,poussFact=0,poussPaye=0,nb=0;const facProd=new Set();
+  /* détail des dépenses pour l'écran « D'où viennent les dépenses » */
+  const det=[],caisseAgg={},lotName=l=>(l&&(l.nom||l.espece))||"";
+  const add=(label,who,calc,amt)=>{if(amt>0)det.push({label,who,calc,amt})};
   /* ventes : factures de l'année */
   (A.factures()||[]).forEach(f=>{if(yearOf(f.date)!==Y)return;const t=A.facTotals(f);nb++;enc+=t.paye||0;
     const ratio=t.sous?t.total/t.sous:0,pr=t.total?(t.paye||0)/t.total:0;const lot=f.lotId&&byId[f.lotId];
@@ -114,18 +132,23 @@ function compute(Y){
   /* catégories déjà notées dans la caisse, par espèce ; une dépense sans lot couvre toutes les espèces */
   const cats={};const has=(c,g)=>!!(cats[c]&&(cats[c].has(g)||cats[c].has(COMMUN)));
   depenses.forEach(d=>{if(yearOf(d.date)!==Y)return;nb++;const l=d.lotId&&byId[d.lotId],g=l?grpOf(l):COMMUN;
-    (cats[d.cat]||(cats[d.cat]=new Set())).add(g);G(g).d+=Number(d.montant)||0});
+    (cats[d.cat]||(cats[d.cat]=new Set())).add(g);G(g).d+=Number(d.montant)||0;
+    const k=d.cat+"|"+g,c=caisseAgg[k]||(caisseAgg[k]={cat:d.cat,g,n:0,v:0});c.n++;c.v+=Number(d.montant)||0});
+  Object.values(caisseAgg).forEach(c=>add("Caisse : "+(CATN[c.cat]||"Autre"),c.g,c.n+" dépense(s)",c.v));
   /* dépenses estimées depuis les lots quand elles ne sont pas dans la caisse */
   (A.saisies()||[]).forEach(s=>{if(yearOf(s.date)!==Y)return;const l=byId[s.lotId];if(!l||has("aliment",grpOf(l)))return;const kg=N(s.alimentKg),pa=Number(l.prixAliment)||0;
-    if(kg>0&&pa>0)G(grpOf(l)).d+=kg*pa});
-  lots.forEach(l=>{if(yearOf(l.arrivee)!==Y||(A.isCrop&&A.isCrop(l))||has("animaux",grpOf(l)))return;const v=(Number(l.prixSujet)||0)*(Number(l.effectif)||0);if(v>0){G(grpOf(l)).d+=v;nb++}});
+    if(kg>0&&pa>0){G(grpOf(l)).d+=kg*pa;const k="al|"+l.id,c=caisseAgg[k]||(caisseAgg[k]={kg:0,pa,l});c.kg+=kg}});
+  Object.keys(caisseAgg).filter(k=>k.startsWith("al|")).forEach(k=>{const c=caisseAgg[k];add("Aliment estimé (saisies)",lotName(c.l),fmt(Math.round(c.kg))+" kg × "+fmt(c.pa)+" F",c.kg*c.pa)});
+  lots.forEach(l=>{if(yearOf(l.arrivee)!==Y||(A.isCrop&&A.isCrop(l))||has("animaux",grpOf(l)))return;const v=(Number(l.prixSujet)||0)*(Number(l.effectif)||0);if(v>0){G(grpOf(l)).d+=v;nb++;
+    add("Achat des animaux (estimé)",lotName(l)+" · "+(l.arrivee||""),fmt(Number(l.effectif))+" × "+fmt(Number(l.prixSujet))+" F",v)}});
   /* couvoir : coûts des couvées et poussins encaissés (toutes espèces couvées)
      - électricité des couveuses : déjà dans la caisse si « Eau et électricité » y est notée
      - œufs de ses propres poules : simple transfert interne, ni vente d'œufs ni achat pour le couvoir */
   let couvEnc=0,ownPoule=0;const C=window.B2A_COUV,elecCaisse=!!cats.energie;
   if(C)(C.batches()||[]).forEach(b=>{if(yearOf(b.debut)!==Y)return;nb++;let s=null;try{s=C.sale(b)}catch(e){}
     if(!s)return;const c=s.c||{};const own=b.oeufsPropres===true||(b.oeufsPropres==null&&/\b(mes|mon|ma|nos|notre)\b|ferme|maison|propre/i.test(b.origine||""));
-    G(COUV).d+=(own?0:c.oeufs||0)+(elecCaisse?0:c.elec||0)+(c.frais||0);
+    const cd=(own?0:c.oeufs||0)+(elecCaisse?0:c.elec||0)+(c.frais||0);G(COUV).d+=cd;
+    add("Couvoir (œufs, électricité, frais)",(b.oeufs||0)+" œufs · "+(b.debut||""),"",cd);
     if(own&&(b.espece||"poule")==="poule")ownPoule+=Number(b.oeufs)||0;
     if(s.reel!=null)couvEnc+=s.reel});
   G(COUV).v+=Math.max(poussFact,couvEnc);if(couvEnc>poussFact)enc+=couvEnc-poussPaye;
@@ -133,13 +156,14 @@ function compute(Y){
   Object.keys(est).forEach(g=>{if(ownPoule<=0)return;const e=est[g],q=Math.min(e.q,ownPoule);if(q>0){acts[g].v-=q*e.v/e.q;ownPoule-=q}});
   /* amortissements */
   const du=duree();let amort=0;
-  const am=(inv,y0,d)=>{d=d||du;if(inv>0&&y0&&Y>=y0&&Y<y0+d)amort+=inv/d};
+  const am=(inv,y0,d,who)=>{d=d||du;if(inv>0&&y0&&Y>=y0&&Y<y0+d){amort+=inv/d;add("Amortissement",who,fmt(inv)+" F ÷ "+d,inv/d)}};
   /* même durée que dans la rentabilité du lot quand elle y est indiquée */
-  lots.forEach(l=>{const dl=N(l.dureeInvest);am(Number(l.investissement)||0,yearOf(l.arrivee),dl>0?Math.max(1,Math.round(dl)):null)});am(N(R.invest)||0,Math.round(N(R.investAn)||0));
+  lots.forEach(l=>{const dl=N(l.dureeInvest);am(Number(l.investissement)||0,yearOf(l.arrivee),dl>0?Math.max(1,Math.round(dl)):null,lotName(l))});am(N(R.invest)||0,Math.round(N(R.investAn)||0),null,"Réglages du bilan");
   const rows=order.filter(g=>acts[g].v||acts[g].d).map(g=>[g,acts[g]]);
   const ca=rows.reduce((p,[,a])=>p+a.v,0),dep=rows.reduce((p,[,a])=>p+a.d,0);
   const marge=ca-dep,avant=marge-amort,imp=avant>0?avant*taux()/100:0;
-  return {rows,ca,dep,marge,amort,avant,imp,net:avant-imp,enc,empty:!nb&&!amort};
+  det.sort((a,b)=>b.amt-a.amt);
+  return {rows,ca,dep,marge,amort,avant,imp,net:avant-imp,enc,det,empty:!nb&&!amort};
 }
 
 /* ================= affichage ================= */
@@ -168,6 +192,13 @@ function render(){
   sum.push({label:`Impôt (${String(taux()).replace(".",",")} %)`,value:money(-S.imp)});
   sum.push({label:"Bénéfice net",value:money(S.net),sign:S.net,bold:true});
   W.append(list(sum));
+  /* détail : chaque ligne qui compose les dépenses, de la plus grosse à la plus petite */
+  if(S.det.length){const D=el("details","box");D.append(el("summary",null,"D'où viennent les dépenses"));
+    D.append(el("p","note","Chaque montant compté dans les dépenses, du plus gros au plus petit. Les lignes estimées sont calculées depuis la fiche du lot, car elles ne sont pas notées dans la caisse."));
+    const ul=el("ul","dlist");S.det.forEach(r=>{const li=el("li");li.style.cssText="display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 12px";
+      li.append(el("span",null,r.label),el("b",null,money(-r.amt)));
+      const sm=el("small",null,[r.who,r.calc].filter(Boolean).join(" · "));sm.style.flexBasis="100%";sm.setAttribute("data-notr","");li.append(sm);ul.append(li)});
+    D.append(ul);W.append(D)}
   /* projection sur l'année en cours */
   if(year===cy){const now=new Date(),d0=new Date(cy,0,1);const doy=Math.floor((now-d0)/864e5)+1;
     if(doy>=30&&doy<355){const k=365/doy;const avant=S.marge*k-S.amort,net=avant-(avant>0?avant*taux()/100:0);
