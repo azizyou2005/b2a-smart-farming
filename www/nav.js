@@ -10,7 +10,8 @@ const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=nu
 const MORE=[["diagnostic","Photo IA et guide santé","Signes de maladie, causes probables, analyse photo"],
   ["formules","Formules d'aliment","Fabriquer l'aliment et calculer son coût"],
   ["ventes","Ventes et caisse","Factures, dépenses et bénéfice du mois"],
-  ["couvoir","Couvoir","Couveuses, couvées et vente des poussins"]];
+  ["couvoir","Couvoir","Couveuses, couvées et vente des poussins"],
+  ["poulailler","Poulailler connecté","Aliment, eau, lumière, ventilation et alertes à distance"]];
 const order=["tableau","saisie","calendrier","marche"];
 /* ordre des boutons : les 4 principaux, puis « Plus », puis les autres (cachés sur téléphone) */
 order.forEach(id=>{const b=$("tab-"+id);if(b)nav.append(b)});

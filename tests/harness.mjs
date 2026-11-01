@@ -85,6 +85,11 @@ export async function visitAll(page) {
   await tab("formules"); await selects("#v-formules");
   await tab("ventes"); await click("#v-new", 700); await selects("#v-ventes"); await click("#v-cancel", 400);
   await tab("couvoir"); await click("#v-couvoir >> text=/couveuse|incubator|incubatrice|incubadora/i", 700);
+  await tab("poulailler"); await W(3500);
+  for (const p of ["chaleur", "eau", "sonde"]) await click(`#pc-simbox [data-panne=${p}]`, 1500);
+  await W(20000); await click("#pc-acq", 1500); await click("#pc-seg-sante [data-v='1']", 1500);
+  for (const k of ["modeVentil", "modeEau"]) { await click(`#pc-seg-${k} [data-p=man]`, 800); await click(`#pc-man-${k} [data-v='3']`, 800); }
+  await click("#pc-seg-global [data-p=man]", 1500); await click("#pc-seg-global [data-p=auto]", 1500); await click("#pc-simbox [data-panne='']", 800);
   await tab("marche");
   for (const m of ["acheter", "vendre", "services", "mes"]) await click(`#m-seg [data-m=${m}]`, 700);
   await click("#m-seg [data-m=services]", 500); await click(".s-card", 500); await click("#m-body .back", 400); await click(".s-join .btn", 600);

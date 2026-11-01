@@ -2,6 +2,7 @@
  "it": [
   "Agro Diagnostic",
   "Arachide",
+  "Auto",
   "Aziz",
   "BF-OUA-{0}-{1}-B{2}-{3}",
   "B{0}A Smart Farming",
@@ -35,6 +36,8 @@
   "Smart Building",
   "Smart Farming",
   "WhatsApp",
+  "limite {0} ppm",
+  "ppm",
   "{0}",
   "{0}.",
   "© {0} B{1}A-HIGH-TECHNOLOGY-AUTOMATION"
@@ -43,6 +46,7 @@
   "Action",
   "Agro Diagnostic",
   "Animal",
+  "Auto",
   "Aziz",
   "BF-OUA-{0}-{1}-B{2}-{3}",
   "B{0}A Smart Farming",
@@ -89,16 +93,19 @@
   "Type",
   "Urgent",
   "Vaccination",
+  "Ventilation",
   "Version {0}-{1}c",
   "WhatsApp",
   "hectares",
   "hectares (ha)",
   "litre",
+  "ppm",
   "© {0} B{1}A-HIGH-TECHNOLOGY-AUTOMATION"
  ],
  "es": [
   "Agro Diagnostic",
   "Animal",
+  "Auto",
   "Aziz",
   "BF-OUA-{0}-{1}-B{2}-{3}",
   "B{0}A Smart Farming",
@@ -132,6 +139,7 @@
   "Tomate",
   "Total",
   "WhatsApp",
+  "ppm",
   "{0} sem.",
   "{0} urgentes",
   "© {0} B{1}A-HIGH-TECHNOLOGY-AUTOMATION"
