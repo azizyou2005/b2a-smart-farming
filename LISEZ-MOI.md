@@ -182,8 +182,12 @@ Les prestataires remplissent leur fiche, choisissent un abonnement (1, 3 ou 12 m
 |---|---|
 | `www/index.html` | L'application complète |
 | `www/shim.js`, `www/extra.js`, `www/guide.js`, `www/dict-extra.js` | Données sur le téléphone, réglages, code IA, guide santé, traductions |
+| `www/dict.js`, `www/dict-fix.js` | Traductions (anglais, italien, espagnol) : c'est ici qu'on les modifie |
+| `www/langue.js`, `www/dict-en.js`, `www/dict-it.js`, `www/dict-es.js` | Chargement de la seule langue choisie (rien en français). Les fichiers `dict-en/it/es.js` sont refaits automatiquement par `outils/langues.mjs` à chaque publication : ne pas les modifier à la main |
+| `www/icons/b2a-logo.png`, `b2a-nom.png`, `b2a-slogan.png` | Logo B2A d'origine affiché en haut et en bas de l'application |
+| `www/plus.js` (partie « rappels ») | Rappels et notifications : soins du jour, rappel du soir si la saisie n'est pas faite (application Android), commandes du Marché (nouvelle commande pour le vendeur, réponse du vendeur pour l'acheteur) |
 | `www/libs/` | Fabrication des PDF sans internet |
-| `www/sw.js` | Fonctionnement sans internet |
+| `www/sw.js` | Fonctionnement sans internet. Réseau lent : l'application s'ouvre avec la copie du téléphone après 3,5 s au plus, la nouvelle version arrive en arrière-plan |
 | `www/manifest.json`, `www/icons/` | Installation sur l'écran d'accueil, icônes B2A |
 | `www/config.js` | Configuration : synchronisation Firebase et adresse du serveur IA |
 | `www/admin.html` | Page B2A pour créer et gérer les codes d'accès IA |

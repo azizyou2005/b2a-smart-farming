@@ -34,6 +34,10 @@ jobs:
 
       # Le code publié (site + APK) est compressé et brouillé : plus difficile à lire et à recopier.
       # Les fichiers lisibles restent seulement dans ce dépôt.
+      # Un fichier de traductions par langue (dict-en.js, dict-it.js, dict-es.js) : le téléphone ne charge que la sienne
+      - name: Préparer les fichiers de langue
+        run: node outils/langues.mjs
+
       - name: Compresser et brouiller le code publié
         run: |
           cd www
