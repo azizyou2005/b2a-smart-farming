@@ -67,9 +67,11 @@ sheet.innerHTML=`<div class="sheet-in">
     <p class="note">Demande à B2A de supprimer votre inscription et, si vous vendez sur le Marché, votre boutique, votre pièce d'identité et vos annonces (sous 30 jours). Les commandes conclues et les commissions peuvent être gardées le temps exigé par la loi.</p>
     <div class="row"><button class="btn small ghost danger" id="x-delbtn" type="button">Supprimer mon compte</button><span class="msg" id="x-delmsg"></span></div>
   </section>
-  <p class="note" style="text-align:center">B2A Smart Farming · version gratuite · <a href="https://azizyou2005.github.io/b2a-smart-farming/confidentialite.html" target="_blank" rel="noopener">Confidentialité</a> · <a href="https://azizyou2005.github.io/b2a-smart-farming/suppression-compte.html" target="_blank" rel="noopener">Suppression du compte</a></p>
+  <p class="note" style="text-align:center">B2A Smart Farming<span id="x-ver" data-notr></span> · version gratuite · <a href="https://azizyou2005.github.io/b2a-smart-farming/confidentialite.html" target="_blank" rel="noopener">Confidentialité</a> · <a href="https://azizyou2005.github.io/b2a-smart-farming/suppression-compte.html" target="_blank" rel="noopener">Suppression du compte</a></p>
 </div>`;
 document.body.append(sheet);
+/* numéro de la version installée, en bas des Réglages */
+fetch("version.json").then(r=>r.ok?r.json():null).then(v=>{const e=document.getElementById("x-ver");if(v&&v.v&&e)e.textContent=" · v"+v.v}).catch(()=>{});
 let lastFocus=null;
 /* Le bouton « retour » du téléphone ferme les Réglages au lieu de quitter l'application */
 let setHist=false;
