@@ -32,6 +32,8 @@ const T={
 "Rappels activés.":["Reminders on.","Promemoria attivati.","Recordatorios activados."],
 "Rappels désactivés.":["Reminders off.","Promemoria disattivati.","Recordatorios desactivados."],
 "Les notifications sont bloquées. Autorisez-les dans les réglages du téléphone.":["Notifications are blocked. Allow them in the phone settings.","Le notifiche sono bloccate. Consentile nelle impostazioni del telefono.","Las notificaciones están bloqueadas. Permítalas en los ajustes del teléfono."],
+"Sur iPhone, les notifications marchent seulement depuis l'icône de l'application. Dans Safari, touchez Partager, puis Sur l'écran d'accueil, et ouvrez B{0}A Smart Farming depuis cette icône.":["On iPhone, notifications only work from the app icon. In Safari, tap Share, then Add to Home Screen, and open B{0}A Smart Farming from that icon.","Su iPhone le notifiche funzionano solo dall'icona dell'app. In Safari tocca Condividi, poi Aggiungi alla schermata Home, e apri B{0}A Smart Farming da quell'icona.","En iPhone, las notificaciones solo funcionan desde el icono de la aplicación. En Safari, toque Compartir, luego Añadir a pantalla de inicio, y abra B{0}A Smart Farming desde ese icono."],
+"Mettez à jour l'iPhone (Réglages, Général, Mise à jour logicielle) pour recevoir les notifications.":["Update the iPhone (Settings, General, Software Update) to receive notifications.","Aggiorna l'iPhone (Impostazioni, Generali, Aggiornamento software) per ricevere le notifiche.","Actualice el iPhone (Ajustes, General, Actualización de software) para recibir notificaciones."],
 "Ce navigateur ne peut pas afficher de notifications.":["This browser cannot show notifications.","Questo browser non può mostrare notifiche.","Este navegador no puede mostrar notificaciones."],
 "{0} rappel(s) programmé(s) sur ce téléphone, même application fermée et sans internet.":["{0} {0:reminder|reminders} scheduled on this phone, even with the app closed and without internet.","{0} {0:promemoria|promemoria} programmati su questo telefono, anche ad app chiusa e senza internet.","{0} {0:recordatorio|recordatorios} programados en este teléfono, incluso con la aplicación cerrada y sin internet."],
 "Dans le navigateur, le rappel s'affiche quand vous ouvrez l'application. Pour être prévenu même application fermée, installez l'application Android.":["In the browser, the reminder shows when you open the app. To be notified even with the app closed, install the Android app.","Nel browser il promemoria compare quando apri l'app. Per essere avvisato anche ad app chiusa, installa l'app Android.","En el navegador, el recordatorio aparece al abrir la aplicación. Para recibir avisos con la aplicación cerrada, instale la aplicación Android."],
@@ -474,7 +476,13 @@ const R={
     const LN=plug("LocalNotifications");
     if(LN){let p=await LN.checkPermissions().catch(()=>({display:"prompt"}));if(p.display!=="granted")p=await LN.requestPermissions().catch(()=>({display:"denied"}));
       if(p.display!=="granted"){msg.textContent="Les notifications sont bloquées. Autorisez-les dans les réglages du téléphone.";msg.className="msg err";return false}}
-    else{if(!("Notification" in window)){msg.textContent="Ce navigateur ne peut pas afficher de notifications.";msg.className="msg err";return false}
+    else{if(!("Notification" in window)){
+        /* iPhone / iPad : les notifications n'existent que dans l'application ajoutée à l'écran d'accueil (Safari ne les donne pas dans un onglet) */
+        const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+        const home=navigator.standalone===true||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches);
+        msg.textContent=ios&&!home?"Sur iPhone, les notifications marchent seulement depuis l'icône de l'application. Dans Safari, touchez Partager, puis Sur l'écran d'accueil, et ouvrez B2A Smart Farming depuis cette icône."
+          :ios?"Mettez à jour l'iPhone (Réglages, Général, Mise à jour logicielle) pour recevoir les notifications.":"Ce navigateur ne peut pas afficher de notifications.";
+        msg.className="msg err";return false}
       let p=Notification.permission;if(p==="default")p=await Notification.requestPermission();
       if(p!=="granted"){msg.textContent="Les notifications sont bloquées. Autorisez-les dans les réglages du téléphone.";msg.className="msg err";return false}}
     B.lsSet("b2a-perm","1");return true}
