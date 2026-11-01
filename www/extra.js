@@ -57,6 +57,7 @@ sheet.innerHTML=`<div class="sheet-in">
       <div><dt>Entreprise</dt><dd data-notr>B2A-HIGH-TECHNOLOGY-AUTOMATION</dd></div>
       <div><dt>Propriétaire et gérant</dt><dd data-notr>Bayere Abdoul Aziz</dd></div>
       <div><dt>Siège</dt><dd>Ouagadougou, Burkina Faso (RCCM 2024)</dd></div>
+      <div><dt>Numéro D-U-N-S</dt><dd data-notr>850426983</dd></div>
       <div><dt>Contact</dt><dd data-notr>azizyou2005@yahoo.fr</dd></div>
     </dl>
     <p class="note">B2A Smart Farming est une application privée, propriété exclusive de B2A-HIGH-TECHNOLOGY-AUTOMATION et de Bayere Abdoul Aziz. Le code, les textes, les guides, le nom, le logo et le slogan B2A sont protégés. Toute copie, revente ou réutilisation sans autorisation écrite est interdite. L'utilisation gratuite de l'application publiée par B2A reste autorisée pour votre propre élevage.</p>
