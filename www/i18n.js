@@ -72,7 +72,15 @@ const mo=new MutationObserver(ms=>{for(const m of ms){if(m.type==="characterData
 function start(){walk(document.body);mo.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:ATTRS})}
 
 /* sélecteur de langue */
-function setLang(l){LANG=l;try{localStorage.setItem(LS_LANG,l)}catch(e){}document.documentElement.lang=l;walk(document.body);renderBtn()}
+/* traductions complémentaires (dict-fix.js) : ajoutées seulement là où les modules n'en ont pas */
+function applyFill(){const F=window.B2A_DICT_FILL||{};for(const l in F){const d=DICT[l]=DICT[l]||{};const f=F[l];for(const k in f)if(d[k]==null)d[k]=f[k];delete F[l]}}
+const loadLang=l=>(window.B2A_loadLang?window.B2A_loadLang(l):Promise.resolve()).then(applyFill);
+const NOLANG={fr:"Sans internet, cette langue ne peut pas être chargée. Réessayez une fois connecté.",en:"Without internet, this language cannot be loaded. Try again once connected.",it:"Senza internet questa lingua non può essere caricata. Riprova quando sei connesso.",es:"Sin internet, este idioma no se puede cargar. Inténtelo de nuevo con conexión."};
+function toast(msg){const t=document.createElement("div");t.setAttribute("data-notr","");t.setAttribute("role","status");t.textContent=msg;
+  t.style.cssText="position:fixed;left:12px;right:12px;bottom:84px;z-index:9999;background:#1e2d4a;color:#fff;padding:12px 14px;border-radius:12px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.3)";
+  document.body.append(t);setTimeout(()=>t.remove(),5000)}
+function applyLang(l){LANG=l;try{localStorage.setItem(LS_LANG,l)}catch(e){}document.documentElement.lang=l;walk(document.body);renderBtn()}
+function setLang(l){loadLang(l).then(()=>applyLang(l),()=>toast(NOLANG[LANG]||NOLANG.fr))}
 window.B2A_setLang=setLang;
 const NAMES={fr:"Français",en:"English",it:"Italiano",es:"Español"};
 let btn,menu;
@@ -85,5 +93,8 @@ function buildMenu(){const band=document.querySelector(".band-in");if(!band)retu
   for(const l of ["fr","en","it","es"]){const b=document.createElement("button");b.type="button";b.dataset.l=l;b.setAttribute("role","menuitemradio");b.textContent=NAMES[l];b.onclick=()=>{menu.hidden=true;setLang(l)};menu.append(b)}
   btn.onclick=e=>{e.stopPropagation();menu.hidden=!menu.hidden};document.addEventListener("click",()=>{if(menu)menu.hidden=true});
   w.append(btn,menu);const at=band.querySelector(".apptitle");band.insertBefore(w,at?at.nextSibling:null);renderBtn()}
+applyFill();
+/* si le fichier de la langue n'a pas pu être chargé au démarrage : nouvel essai, puis traduction de l'écran */
+if(LANG!=="fr"&&!(window.B2A_LANG_OK||{})[LANG])loadLang(LANG).then(()=>walk(document.body),()=>{});
 document.documentElement.lang=LANG;buildMenu();start();
 })();

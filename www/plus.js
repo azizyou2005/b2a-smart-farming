@@ -36,6 +36,13 @@ const T={
 "{0} rappel(s) programmé(s) sur ce téléphone, même application fermée et sans internet.":["{0} {0:reminder|reminders} scheduled on this phone, even with the app closed and without internet.","{0} {0:promemoria|promemoria} programmati su questo telefono, anche ad app chiusa e senza internet.","{0} {0:recordatorio|recordatorios} programados en este teléfono, incluso con la aplicación cerrada y sin internet."],
 "Dans le navigateur, le rappel s'affiche quand vous ouvrez l'application. Pour être prévenu même application fermée, installez l'application Android.":["In the browser, the reminder shows when you open the app. To be notified even with the app closed, install the Android app.","Nel browser il promemoria compare quando apri l'app. Per essere avvisato anche ad app chiusa, installa l'app Android.","En el navegador, el recordatorio aparece al abrir la aplicación. Para recibir avisos con la aplicación cerrada, instale la aplicación Android."],
 "Soins du jour":["Today's care","Cure di oggi","Cuidados del día"],
+"Rappels et notifications":["Reminders and notifications","Promemoria e notifiche","Recordatorios y notificaciones"],
+"Rappel du soir si la saisie du jour n'est pas faite ({0}:{1})":["Evening reminder if today's entry is not done ({0}:{1})","Promemoria la sera se l'inserimento di oggi non è fatto ({0}:{1})","Recordatorio por la tarde si el registro del día no está hecho ({0}:{1})"],
+"Commandes du Marché : nouvelle commande, réponse du vendeur":["Market orders: new order, seller's reply","Ordini del Mercato: nuovo ordine, risposta del venditore","Pedidos del Mercado: nuevo pedido, respuesta del vendedor"],
+"Dans le navigateur, les commandes du Marché sont signalées quand l'application est ouverte. Avec l'application Android, elles arrivent aussi en arrière-plan.":["In the browser, Market orders are shown while the app is open. With the Android app, they also arrive in the background.","Nel browser gli ordini del Mercato sono segnalati quando l'app è aperta. Con l'app Android arrivano anche in background.","En el navegador, los pedidos del Mercado se avisan cuando la aplicación está abierta. Con la aplicación Android, también llegan en segundo plano."],
+"Saisie du jour":["Today's entry","Inserimento di oggi","Registro del día"],
+"Pensez à noter la saisie du jour : œufs, morts, aliment.":["Remember to record today's entry: eggs, deaths, feed.","Ricordati di inserire i dati di oggi: uova, morti, mangime.","Recuerde anotar el registro del día: huevos, bajas, pienso."],
+"Notifications du Marché activées.":["Market notifications on.","Notifiche del Mercato attivate.","Notificaciones del Mercado activadas."],
 "Aujourd'hui":["Today","Oggi","Hoy"],
 "{0} soin(s) en retard":["{0} overdue care {0:task|tasks}","{0} {0:cura|cure} in ritardo","{0} {0:cuidado|cuidados} atrasados"],
 "Ouvrez l'application pour les marquer faits.":["Open the app to mark them done.","Apri l'app per segnarli come fatti.","Abra la aplicación para marcarlos como hechos."],
@@ -438,7 +445,8 @@ const R={
   text(items,multi){return items.map(({p,l})=>tr(p.nom)+(multi?" ("+(l.nom||"")+")":"")).join(" · ")},
   async schedule(){
     const LN=plug("LocalNotifications");if(!LN)return null;
-    try{const pend=await LN.getPending();const ids=(pend&&pend.notifications||[]).map(n=>({id:n.id}));if(ids.length)await LN.cancel({notifications:ids})}catch(e){}
+    /* on retire seulement les rappels (soins : n° de date ou 99 ; saisie : 97), jamais les notifications du Marché */
+    try{const pend=await LN.getPending();const ids=(pend&&pend.notifications||[]).filter(n=>n.id===99||n.id===97||(n.id>=19000000&&n.id<=30000000)).map(n=>({id:n.id}));if(ids.length)await LN.cancel({notifications:ids})}catch(e){}
     if(!this.on())return 0;
     const {byDay,late}=this.plan(60);const multi=A.lots().length>1;const now=Date.now();const list=[];
     Object.keys(byDay).sort().forEach(d=>{const at=new Date(d+"T"+pad(this.hour())+":00:00");if(at.getTime()<=now+60000)return;
@@ -446,7 +454,13 @@ const R={
         schedule:{at,allowWhileIdle:true},extra:{tab:"calendrier"}})});
     if(late){const d=new Date();d.setDate(d.getDate()+(d.getHours()>=this.hour()?1:0));d.setHours(this.hour(),5,0,0);
       list.push({id:99,title:tr(`${late} soin(s) en retard`),body:tr("Ouvrez l'application pour les marquer faits."),schedule:{at:d,allowWhileIdle:true},extra:{tab:"calendrier"}})}
+    const sa=this.saisieAt();if(sa)list.push({id:97,title:tr("Saisie du jour")+" · B2A Smart Farming",body:tr("Pensez à noter la saisie du jour : œufs, morts, aliment."),schedule:{at:sa,allowWhileIdle:true},extra:{tab:"saisie"}});
     const L2=list.slice(0,60);if(L2.length)await LN.schedule({notifications:L2});return L2.length},
+  /* rappel du soir (18:00) : aujourd'hui si un lot d'animaux n'a pas encore sa saisie du jour, sinon demain */
+  saisieOn:()=>B.lsGet("b2a-rem-saisie")!=="0",
+  saisieAt(){if(!this.saisieOn())return null;const lots=A.lots().filter(l=>!A.isCrop(l));if(!lots.length)return null;
+    const t=today();const done=new Set(A.saisies().filter(x=>x.date===t).map(x=>x.lotId));const missing=lots.some(l=>!done.has(l.id));
+    const d=new Date();d.setHours(18,0,0,0);if(!missing||d.getTime()<=Date.now()+60000)d.setDate(d.getDate()+1);return d},
   /* navigateur : notification à l'ouverture, une fois par jour */
   async webCheck(){if(isNative()||!this.on()||!("Notification" in window)||Notification.permission!=="granted")return;
     if(new Date().getHours()<this.hour()||B.lsGet("b2a-rem-last")===today())return;
@@ -455,21 +469,41 @@ const R={
     B.lsSet("b2a-rem-last",today());
     try{const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();const o={body,icon:"icons/icon-192.png",badge:"icons/icon-192.png",tag:"b2a-soins"};
       if(reg&&reg.showNotification)await reg.showNotification(tr("Soins du jour"),o);else new Notification(tr("Soins du jour"),o)}catch(e){}},
-  async enable(){const msg=$("p-rmsg");
+  async enable(){if(!await this.perm())return false;B.lsSet("b2a-rem","1");return true},
+  async perm(){const msg=$("p-rmsg");
     const LN=plug("LocalNotifications");
     if(LN){let p=await LN.checkPermissions().catch(()=>({display:"prompt"}));if(p.display!=="granted")p=await LN.requestPermissions().catch(()=>({display:"denied"}));
       if(p.display!=="granted"){msg.textContent="Les notifications sont bloquées. Autorisez-les dans les réglages du téléphone.";msg.className="msg err";return false}}
     else{if(!("Notification" in window)){msg.textContent="Ce navigateur ne peut pas afficher de notifications.";msg.className="msg err";return false}
       let p=Notification.permission;if(p==="default")p=await Notification.requestPermission();
       if(p!=="granted"){msg.textContent="Les notifications sont bloquées. Autorisez-les dans les réglages du téléphone.";msg.className="msg err";return false}}
-    B.lsSet("b2a-rem","1");return true}
+    B.lsSet("b2a-perm","1");return true}
 };
+/* notification immédiate (Marché…) : utilisée par marche.js via window.B2A.notify(titre, texte, onglet, n°) */
+/* ouvrir un onglet comme si on le touchait (le Marché se charge au clic) */
+const openTab=t=>{const b=document.getElementById("tab-"+t);if(b)b.click();else A.show(t)};
+const marcheOn=()=>B.lsGet("b2a-notif-m")!=="0";
+/* autorisation déjà donnée sur ce téléphone ? (pour cocher la case sans redemander) */
+const permOk=()=>B.lsGet("b2a-perm")==="1"||R.on()||(!isNative()&&"Notification" in window&&Notification.permission==="granted");
+async function notifyNow(title,body,tab,id){if(!marcheOn())return false;
+  try{const LN=plug("LocalNotifications");
+    if(LN){const p=await LN.checkPermissions().catch(()=>null);if(!p||p.display!=="granted")return false;
+      await LN.schedule({notifications:[{id:id||(1000000000+Date.now()%100000000),title,body,schedule:{at:new Date(Date.now()+1000),allowWhileIdle:true},extra:{tab:tab||""}}]});return true}
+    if(!("Notification" in window)||Notification.permission!=="granted")return false;
+    const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration();const o={body,icon:"icons/icon-192.png",badge:"icons/icon-192.png",tag:"b2a-"+(id||Date.now()),data:{tab:tab||""}};
+    if(reg&&reg.showNotification)await reg.showNotification(title,o);else new Notification(title,o);return true}catch(e){console.warn(e);return false}}
+B.notify=notifyNow;
+/* proposé dans le Marché : activer d'un geste (renvoie true si c'est bon) */
+B.notifyAsk=async()=>{const m=$("p-rmsg");const ok=m?await R.perm():false;if(ok)B.lsSet("b2a-notif-m",null);return ok};
+B.notifyReady=()=>marcheOn()&&permOk();
+/* clic sur une notification du navigateur : le service worker demande d'ouvrir l'onglet */
+if(navigator.serviceWorker)navigator.serviceWorker.addEventListener("message",e=>{try{if(e.data&&e.data.b2aTab)openTab(e.data.b2aTab)}catch(x){}});
 const resched=debounce(async()=>{try{const n=await R.schedule();if(n!=null)lastCount=n;renderRemStatus()}catch(e){console.warn(e)}R.webCheck()},2500);
 let lastCount=null;
 addEventListener("b2a-data",resched);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)resched()});
 setInterval(()=>R.webCheck(),30*60*1000);
-{const LN=plug("LocalNotifications");if(LN&&LN.addListener)LN.addListener("localNotificationActionPerformed",a=>{try{const tab=a&&a.notification&&a.notification.extra&&a.notification.extra.tab;if(tab)A.show(tab)}catch(e){}})}
+{const LN=plug("LocalNotifications");if(LN&&LN.addListener)LN.addListener("localNotificationActionPerformed",a=>{try{const tab=a&&a.notification&&a.notification.extra&&a.notification.extra.tab;if(tab)openTab(tab)}catch(e){}})}
 
 /* ================= 7. réglages ================= */
 const setIn=document.querySelector("#x-set .sheet-in");
@@ -482,12 +516,14 @@ if(setIn){
     <div class="field" id="p-ttsbox"><span class="label">Vitesse de la voix</span><div class="seg3" id="p-rate" role="group" aria-label="Vitesse de la voix"><button type="button" data-r="0.75">Lente</button><button type="button" data-r="0.9">Normale</button><button type="button" data-r="1.1">Rapide</button></div>
       <div class="row"><button class="btn small ghost pbtn" type="button" id="p-ttstest">${ICON.spk}<span>Essayer la voix</span></button></div></div>
     <p class="note" id="p-ttsno" hidden>La lecture à voix haute n'est pas disponible sur ce téléphone.</p>`;
-  const s2=el("section","card");s2.innerHTML=`<h3 class="sec">Rappels</h3>
+  const s2=el("section","card");s2.innerHTML=`<h3 class="sec">Rappels et notifications</h3>
     <p class="note">Recevoir un rappel le matin pour les vaccins, traitements et travaux du jour.</p>
     <div class="row"><button class="btn small" type="button" id="p-ron">Activer les rappels</button>
       <label for="p-rh" class="note" style="font-size:14px">Heure du rappel</label><select id="p-rh" style="max-width:110px"></select>
       <button class="btn small ghost" type="button" id="p-rtest" hidden>Tester</button></div>
-    <p class="msg" id="p-rmsg" aria-live="polite"></p><p class="note" id="p-rst"></p>`;
+    <label class="toggle" id="p-rsbox" hidden><input type="checkbox" id="p-rs"><span>Rappel du soir si la saisie du jour n'est pas faite (18:00)</span></label>
+    <label class="toggle"><input type="checkbox" id="p-rm"><span>Commandes du Marché : nouvelle commande, réponse du vendeur</span></label>
+    <p class="msg" id="p-rmsg" aria-live="polite"></p><p class="note" id="p-rst"></p><p class="note" id="p-rmn" hidden>Dans le navigateur, les commandes du Marché sont signalées quand l'application est ouverte. Avec l'application Android, elles arrivent aussi en arrière-plan.</p>`;
   const s3=el("section","card");s3.innerHTML=`<h3 class="sec">Faire connaître l'application</h3>
     <p class="note">Envoyez l'application à un autre éleveur par WhatsApp, SMS ou Bluetooth. Elle est gratuite.</p>
     <div class="row"><button class="btn small pbtn" type="button" id="p-sendapp">${ICON.share}<span>Envoyer l'application à un ami</span></button><button class="btn small ghost" type="button" id="p-copy">Copier le lien</button><span class="msg" id="p-smsg"></span></div>`;
@@ -499,6 +535,7 @@ function renderDisplay(){const z=B.lsGet("b2a-zoom")||"n";document.querySelector
   $("p-ttsbox").hidden=!Speech.can();$("p-ttsno").hidden=Speech.can()}
 function renderRemStatus(){if(!$("p-ron"))return;const on=R.on();$("p-ron").textContent=on?"Désactiver":"Activer les rappels";$("p-ron").className="btn small"+(on?" ghost":"");
   $("p-rh").value=String(R.hour());$("p-rtest").hidden=!on;
+  $("p-rsbox").hidden=!(on&&isNative());$("p-rs").checked=R.saisieOn();$("p-rm").checked=marcheOn()&&permOk();$("p-rmn").hidden=isNative()||!$("p-rm").checked;
   $("p-rst").textContent=!on?"":isNative()?(lastCount!=null?tr(`${lastCount} rappel(s) programmé(s) sur ce téléphone, même application fermée et sans internet.`):""):"Dans le navigateur, le rappel s'affiche quand vous ouvrez l'application. Pour être prévenu même application fermée, installez l'application Android."}
 if($("p-zoom")){
   document.querySelectorAll("#p-zoom button").forEach(b=>b.onclick=()=>{B.lsSet("b2a-zoom",b.dataset.z==="n"?null:b.dataset.z);applyDisplay();renderDisplay()});
@@ -508,6 +545,10 @@ if($("p-zoom")){
   $("p-ron").onclick=async()=>{const m=$("p-rmsg");m.textContent="";m.className="msg";
     if(R.on()){B.lsSet("b2a-rem",null);await R.schedule().catch(()=>{});lastCount=null;m.textContent="Rappels désactivés.";renderRemStatus();return}
     if(await R.enable()){m.textContent="Rappels activés.";m.className="msg ok";lastCount=await R.schedule().catch(()=>null);B.lsSet("b2a-rem-last",null);R.webCheck();renderRemStatus()}};
+  $("p-rs").onchange=async()=>{B.lsSet("b2a-rem-saisie",$("p-rs").checked?null:"0");lastCount=await R.schedule().catch(()=>null);renderRemStatus()};
+  $("p-rm").onchange=async()=>{const m=$("p-rmsg");m.textContent="";m.className="msg";
+    if(!$("p-rm").checked){B.lsSet("b2a-notif-m","0");renderRemStatus();return}
+    if(await R.perm()){B.lsSet("b2a-notif-m",null);m.textContent="Notifications du Marché activées.";m.className="msg ok"}else $("p-rm").checked=false;renderRemStatus()};
   $("p-rh").onchange=async()=>{B.lsSet("b2a-rem-h",$("p-rh").value);B.lsSet("b2a-rem-last",null);lastCount=await R.schedule().catch(()=>null);renderRemStatus()};
   $("p-rtest").onclick=async()=>{const LN=plug("LocalNotifications");const body=tr("Rappel de test : les rappels fonctionnent.");
     try{if(LN)await LN.schedule({notifications:[{id:98,title:"B2A Smart Farming",body,schedule:{at:new Date(Date.now()+5000),allowWhileIdle:true}}]});

@@ -107,9 +107,9 @@ function listen(){if(started)return;started=true;
     subs.push(s.doc("marche_boutiques/"+s.uid).onSnapshot(d=>{if(d.exists)boutiques[s.uid]=d.data();render()},err));
     loadAnnonces();
     subs.push(s.col("marche_annonces").where("vendeur","==",s.uid).onSnapshot(x=>{mesAnnonces=x.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));render()},err));
-    subs.push(s.col("marche_commandes").where("vendeur","==",s.uid).onSnapshot(x=>{recues=x.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));render();badge()},err));
-    if(badgeOff){badgeOff();badgeOff=null}
-    subs.push(s.col("marche_commandes").where("acheteur","==",s.uid).onSnapshot(x=>{passees=x.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));render()},err));
+    subs.push(s.col("marche_commandes").where("vendeur","==",s.uid).onSnapshot(x=>{recues=x.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));render();badge();notifOrders(recues,"v")},err));
+    if(badgeOff){badgeOff();badgeOff=null}if(buyOff){buyOff();buyOff=null}
+    subs.push(s.col("marche_commandes").where("acheteur","==",s.uid).onSnapshot(x=>{passees=x.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));if(passees.length)B.lsSet("b2a-m-buyer","1");render();notifOrders(passees,"a")},err));
     subs.push(s.col("marche_paiements").where("vendeur","==",s.uid).onSnapshot(x=>{paiements=x.docs.map(d=>({id:d.id,...d.data()}));render()},err));
   }).catch(e=>{console.warn(e);const V=$("v-marche");if(V){V.querySelector("#m-body").innerHTML="";V.querySelector("#m-body").append(el("p","msg err","Le marché a besoin d'internet pour s'ouvrir la première fois. Connectez-vous puis revenez."))}})}
 /* annonces : les plus récentes d'abord, 30 par 30 (« Voir plus de produits ») */
@@ -127,9 +127,32 @@ const sellerAnn={};function needSellerAnn(uid){if(sellerAnn[uid]||!S)return;sell
 let badgeOff=null;
 function badgeLight(){if(started||badgeOff||B.lsGet("b2a-m-seller")!=="1")return;
   store().then(s=>{if(started)return;badgeOff=s.col("marche_commandes").where("vendeur","==",s.uid).where("statut","==","demande").onSnapshot(x=>{
-    if(started)return;const t=$("tab-marche");if(!t)return;let b=t.querySelector(".m-badge");const n=x.size;if(!n){if(b)b.remove();return}if(!b){b=el("span","m-badge");t.append(b)}b.textContent=n>9?"9+":String(n)},()=>{})}).catch(()=>{})}
+    if(started)return;notifOrders(x.docs.map(d=>({id:d.id,...d.data()})),"v");const t=$("tab-marche");if(!t)return;let b=t.querySelector(".m-badge");const n=x.size;if(!n){if(b)b.remove();return}if(!b){b=el("span","m-badge");t.append(b)}b.textContent=n>9?"9+":String(n)},()=>{})}).catch(()=>{})}
 function badge(){const t=$("tab-marche");if(!t)return;const n=recues.filter(c=>c.statut==="demande").length;let b=t.querySelector(".m-badge");
   if(!n){if(b)b.remove();return}if(!b){b=el("span","m-badge");t.append(b)}b.textContent=n>9?"9+":String(n)}
+
+/* ---------- 2 bis. notifications : nouvelle commande (vendeur), réponse du vendeur (acheteur) ----------
+   Chaque commande déjà vue est notée sur le téléphone (b2a-m-vus) : pas de double notification.
+   La première fois, tout est noté sans notifier (pas d'avalanche d'anciennes commandes). */
+const tr=t=>window.__tr?window.__tr(t):t;
+function notifOrders(list,role){const N=B.notify;let seen=null;try{seen=JSON.parse(B.lsGet("b2a-m-vus")||"null")}catch(e){}
+  const first=!seen||!seen["_"+role];seen=seen||{};seen["_"+role]=1;let ch=first;
+  list.forEach(c=>{const k=role+c.id,old=seen[k];if(old===c.statut)return;seen[k]=c.statut;ch=true;if(first||!N)return;
+    const what=`${fmt(c.qte)} ${c.unite||""} · ${c.titre||""}`.replace(/\s+/g," ");const id=1000000000+(Math.abs([...c.id].reduce((h,x)=>(h*31+x.charCodeAt(0))|0,7))%100000000);
+    if(role==="v"&&c.statut==="demande"&&old==null)N(tr("Nouvelle commande")+" · B2A",what,"marche",id);
+    else if(role==="a"&&old&&c.statut==="acceptee")N(tr("Commande acceptée")+" · B2A",what+"\n"+tr("Ouvrez le Marché pour voir le contact du vendeur."),"marche",id);
+    else if(role==="a"&&old&&c.statut==="refusee")N(tr("Commande refusée")+" · B2A",what,"marche",id)});
+  if(!ch)return;const keys=Object.keys(seen);if(keys.length>400)keys.slice(0,keys.length-400).forEach(k=>{if(k[0]!=="_")delete seen[k]});
+  B.lsSet("b2a-m-vus",JSON.stringify(seen))}
+/* acheteur : réponse du vendeur suivie dès l'ouverture de l'application (petite requête, seulement s'il a déjà commandé) */
+let buyOff=null;
+function buyerLight(){if(started||buyOff||B.lsGet("b2a-m-buyer")!=="1")return;
+  store().then(s=>{if(started)return;buyOff=s.col("marche_commandes").where("acheteur","==",s.uid).onSnapshot(x=>{if(started)return;notifOrders(x.docs.map(d=>({id:d.id,...d.data()})),"a")},()=>{})}).catch(()=>{})}
+/* carte « Être prévenu » dans Vendre et Mes commandes, tant que les notifications ne sont pas activées */
+function askCard(txt){if(!B.notifyAsk||B.notifyReady()||B.lsGet("b2a-m-ask")==="0")return null;
+  const c=el("div","m-ask");c.append(el("span",null,txt));const r=el("div","row");const ok=el("button","btn small","Activer");ok.type="button";const no=el("button","btn small ghost","Plus tard");no.type="button";
+  const m=el("small","note");ok.onclick=async()=>{ok.disabled=true;if(await B.notifyAsk()){c.remove()}else{ok.disabled=false;m.textContent="Les notifications sont bloquées. Autorisez-les dans les réglages du téléphone."}};
+  no.onclick=()=>{B.lsSet("b2a-m-ask","0");c.remove()};r.append(ok,no);c.append(r,m);return c}
 
 /* ---------- 3. calculs vendeur ---------- */
 const isSeller=()=>!!me&&me.statut==="actif";
@@ -210,7 +233,7 @@ function detail(a){needShop(a.vendeur);const own=S&&a.vendeur===S.uid;const c=el
     const d={annonce:a.id,titre:a.titre||"",vendeur:a.vendeur,vendeurNom:sh.nom||a.vendeurNom||"",acheteur:S.uid,acheteurVille:vl.value.trim(),
       qte:n,unite:a.unite||"",prix:Number(a.prix)||0,total:Math.round(n*(Number(a.prix)||0)*100)/100,devise:a.devise||"XOF",statut:"demande",creeLe:S.ts(),majLe:S.ts()};
     const ct={nom:nm.value.trim(),tel:tl.value.trim(),ville:vl.value.trim(),note:nt.value.trim()};
-    go.disabled=true;go.textContent="Envoi de la commande…";m.textContent="";try{const res=await placeOrder(a,d,ct);flashT=Date.now()+15000;flash=(res==="lent"?"Réseau lent : la commande part dès que la connexion le permet. ":"")+`Commande envoyée à ${a.vendeurNom||"au vendeur"} : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (${money(d.total,d.devise)}). Le vendeur va accepter la commande puis vous contacter.`;open=null;mode="mes";render();window.scrollTo(0,0)}
+    go.disabled=true;go.textContent="Envoi de la commande…";m.textContent="";try{const res=await placeOrder(a,d,ct);B.lsSet("b2a-m-buyer","1");flashT=Date.now()+15000;flash=(res==="lent"?"Réseau lent : la commande part dès que la connexion le permet. ":"")+`Commande envoyée à ${a.vendeurNom||"au vendeur"} : ${fmt(n)} ${a.unite||""} de « ${a.titre} » (${money(d.total,d.devise)}). Le vendeur va accepter la commande puis vous contacter.`;open=null;mode="mes";render();window.scrollTo(0,0)}
     catch(e){console.warn(e);go.disabled=false;go.textContent="Envoyer la commande";bad(errTxt(e))}};
   return c}
 
@@ -243,7 +266,7 @@ function renderSell(Bd){
     A.kpi("Commandes à traiter",String(recues.filter(c=>c.statut==="demande"||c.statut==="acceptee").length),recues.filter(c=>c.statut==="demande").length+" nouvelle(s)"),
     A.kpi("Ventes du mois",C.moisTxt,C.moisN+" vente(s)"),
     A.kpi("Ventes totales",C.ventesTxt,C.nb+" vente(s) conclue(s)"));
-  Bd.append(K);
+  Bd.append(K);{const ak=askCard("Être prévenu sur ce téléphone à chaque nouvelle commande ?");if(ak)Bd.append(ak)}
   /* commandes reçues */
   const C1=el("section","card");Bd.append(C1);C1.append(el("h2","sec","Commandes reçues"));const act=recues.filter(c=>c.statut==="demande"||c.statut==="acceptee"),old=recues.filter(c=>c.statut!=="demande"&&c.statut!=="acceptee");
   if(!act.length)C1.append(el("p","note","Aucune commande en attente."));act.forEach(c=>C1.append(orderCard(c,"vendeur")));
@@ -451,6 +474,7 @@ function orderCard(c,side){const w=el("div","m-order");const st=ST[c.statut]||ST
   w.append(r);return w}
 function renderMine(Bd){if(flash&&Date.now()<flashT){Bd.append(el("p","msg good m-flash",flash))}const C=el("section","card");Bd.append(C);C.append(el("h2","sec","Mes commandes"));
   if(!passees.length){C.append(el("p","note","Vous n'avez encore rien commandé. Touchez « Acheter » pour voir les produits en vente."));return}
+  {const ak=askCard("Être prévenu sur ce téléphone quand le vendeur accepte ou refuse votre commande ?");if(ak)C.append(ak)}
   passees.forEach(c=>C.append(orderCard(c,"acheteur")))}
 
 /* ---------- 4 bis. commission : visible seulement dans Réglages, pour le vendeur ---------- */
@@ -480,9 +504,10 @@ const T=$("tab-marche");if(T)T.addEventListener("click",()=>{listen();setTimeout
 if(!V.hidden){listen();render()}
 /* les commandes reçues s'affichent aussi en pastille, même hors de l'onglet */
 /* plus de chargement du Marché à l'ouverture de l'application : seulement la petite pastille pour les vendeurs */
-setTimeout(()=>{if(B.CFG?navigator.onLine:true)badgeLight()},4000);
+setTimeout(()=>{if(B.CFG?navigator.onLine:true){badgeLight();buyerLight()}},4000);
 
 const css=el("style");css.textContent=`
+.m-ask{display:grid;gap:8px;padding:12px 14px;margin:0 0 12px;border-radius:12px;background:var(--surface);border:1.5px solid var(--line)}.m-ask>span{font-weight:600}
 .m-filters{display:grid;gap:12px}.m-filters input{flex:1;min-width:0;font:16px var(--body);padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);min-height:46px}
 .m-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}.m-chips .chip{flex:none;white-space:nowrap}
 .m-chips .chip[aria-pressed="true"]{background:var(--navy,#1b2e4c);color:#fff;border-color:transparent}
@@ -518,7 +543,13 @@ nav.tabs{grid-template-columns:repeat(8,minmax(0,1fr))}
 document.head.append(css);
 
 /* ---------- 6. traductions principales ---------- */
-const TR={"Marché":["Market","Mercato","Mercado"],"Marché B2A":["B2A Market","Mercato B2A","Mercado B2A"],"Acheter":["Buy","Compra","Comprar"],"Vendre":["Sell","Vendi","Vender"],"Mes commandes":["My orders","I miei ordini","Mis pedidos"],
+const TR={"Nouvelle commande":["New order","Nuovo ordine","Nuevo pedido"],"Commande acceptée":["Order accepted","Ordine accettato","Pedido aceptado"],"Commande refusée":["Order declined","Ordine rifiutato","Pedido rechazado"],
+ "Ouvrez le Marché pour voir le contact du vendeur.":["Open the Market to see the seller's contact.","Apri il Mercato per vedere il contatto del venditore.","Abra el Mercado para ver el contacto del vendedor."],
+ "Être prévenu sur ce téléphone à chaque nouvelle commande ?":["Get notified on this phone for each new order?","Ricevere un avviso su questo telefono a ogni nuovo ordine?","¿Recibir un aviso en este teléfono con cada pedido nuevo?"],
+ "Être prévenu sur ce téléphone quand le vendeur accepte ou refuse votre commande ?":["Get notified on this phone when the seller accepts or declines your order?","Ricevere un avviso su questo telefono quando il venditore accetta o rifiuta il tuo ordine?","¿Recibir un aviso en este teléfono cuando el vendedor acepte o rechace su pedido?"],
+ "Activer":["Turn on","Attiva","Activar"],"Plus tard":["Later","Più tardi","Más tarde"],
+ "Les notifications sont bloquées. Autorisez-les dans les réglages du téléphone.":["Notifications are blocked. Allow them in the phone settings.","Le notifiche sono bloccate. Consentile nelle impostazioni del telefono.","Las notificaciones están bloqueadas. Permítalas en los ajustes del teléfono."],
+ "Marché":["Market","Mercato","Mercado"],"Marché B2A":["B2A Market","Mercato B2A","Mercado B2A"],"Acheter":["Buy","Compra","Comprar"],"Vendre":["Sell","Vendi","Vender"],"Mes commandes":["My orders","I miei ordini","Mis pedidos"],
  "Éleveurs et agriculteurs":["Livestock and crop farmers","Allevatori e agricoltori","Ganaderos y agricultores"],"Commander":["Order","Ordina","Pedir"],"Envoyer la commande":["Send order","Invia ordine","Enviar pedido"],
  "Nouvelle annonce":["New listing","Nuovo annuncio","Nuevo anuncio"],"+ Nouvelle annonce":["+ New listing","+ Nuovo annuncio","+ Nuevo anuncio"],"Publier l'annonce":["Publish listing","Pubblica annuncio","Publicar anuncio"],"Mes annonces":["My listings","I miei annunci","Mis anuncios"],
  "Commandes reçues":["Orders received","Ordini ricevuti","Pedidos recibidos"],"Ouvrir ma boutique":["Open my shop","Apri il mio negozio","Abrir mi tienda"],"Accepter":["Accept","Accetta","Aceptar"],"Refuser":["Decline","Rifiuta","Rechazar"],
