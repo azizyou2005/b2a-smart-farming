@@ -29,6 +29,9 @@ ok(sw.includes(`"b2a-v${v}"`), `sw.js : le cache doit s'appeler b2a-v${v}`);
 for (const m of sw.matchAll(/"([\w./-]+\.(?:js|html|json|png))"/g)) ok(existsSync(join(WWW, m[1])), `sw.js garde ${m[1]}, fichier absent`);
 // 3. i18n.js chargé en dernier (il traduit ce que les autres fichiers ont affiché)
 ok(scripts.length && scripts[scripts.length - 1][1] === "i18n.js", "index.html : i18n.js doit être le dernier script");
+// 3 bis. fichiers de langue préparés par outils/langues.mjs (chargés à la demande par langue.js)
+for (const l of ["en", "it", "es"]) ok(existsSync(join(WWW, `dict-${l}.js`)), `dict-${l}.js absent : lancer node outils/langues.mjs`);
+ok(!/<script src="dict/.test(index), "index.html : les traductions se chargent par langue.js, pas directement");
 // 4. manifeste
 try { const m = JSON.parse(readFileSync(join(WWW, "manifest.json"), "utf8")); ok(m.name && m.icons && m.icons.length, "manifest.json incomplet"); } catch (e) { fails.push("manifest.json invalide : " + e.message); }
 // 5. politique de sécurité du contenu sur chaque page
