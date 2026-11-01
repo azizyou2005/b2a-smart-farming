@@ -319,11 +319,11 @@ const FORM={
   {id:"croissance",t:"Croissance volailles locales (après 6 semaines)",a:[6,999],g:70,c:{pb:[15,17],ca:[0.9,1.1],em:[2550,2800],lys:[0.72,0.9],met:[0.32,0.42]},d:"Environ 50 à 90 g par sujet et par jour, en complément du parcours.",
    f:{mais:40.25,sorgho:17.5,son:15,sonriz:8,arachide:6,coton:5,poisson:5,phosphate:1.2,coquille:1.1,premix:0.5,sel:0.25,lysine:0.15,methionine:0.05}}],
  porc:[
-  {id:"demarrage",t:"Porcelets (10 à 25 kg)",a:[0,10],g:750,c:{pb:[18.5,21],ca:[0.8,1],lys:[1.2,1.4]},d:"Environ 0,5 à 1 kg par porcelet et par jour, en 3 repas.",
+  {id:"demarrage",t:"Porcelets (10 à 25 kg)",a:[0,9],g:750,c:{pb:[18.5,21],ca:[0.8,1],lys:[1.2,1.4]},d:"Environ 0,5 à 1 kg par porcelet et par jour, en 3 repas.",
    f:{mais:44.1,sorgho:20,soja:16.5,arachide:6,son:5,poisson:5,phosphate:1.5,coquille:0.7,premix:0.5,lysine:0.4,sel:0.3}},
-  {id:"croissance",t:"Croissance (25 à 60 kg)",a:[10,18],g:1900,c:{pb:[15.5,17.5],ca:[0.65,0.85],lys:[0.88,1]},d:"Environ 1,5 à 2,3 kg par porc et par jour, en 2 repas.",
+  {id:"croissance",t:"Croissance (25 à 60 kg)",a:[9,17],g:1900,c:{pb:[15.5,17.5],ca:[0.65,0.85],lys:[0.88,1]},d:"Environ 1,5 à 2,3 kg par porc et par jour, en 2 repas.",
    f:{mais:35.15,sorgho:18,son:11,sonriz:10,dreche:10,poisson:5,arachide:4,coton:4,phosphate:1.5,premix:0.5,lysine:0.35,sel:0.3,coquille:0.2}},
-  {id:"finition",t:"Finition (60 kg et plus)",a:[18,999],g:2650,c:{pb:[13,15],ca:[0.6,0.8],lys:[0.7,0.85]},d:"Environ 2,3 à 3 kg par porc et par jour, en 2 repas.",
+  {id:"finition",t:"Finition (60 kg et plus)",a:[17,999],g:2650,c:{pb:[13,15],ca:[0.6,0.8],lys:[0.7,0.85]},d:"Environ 2,3 à 3 kg par porc et par jour, en 2 repas.",
    f:{mais:36.15,sorgho:18.5,son:13,sonriz:12,dreche:12,coton:5,phosphate:1.5,coquille:0.7,premix:0.5,lysine:0.35,sel:0.3}}],
  petitsrum:[
   {id:"jeune",t:"Agneaux et chevreaux sevrés (3 à 6 mois)",a:[0,26],g:250,c:{pb:[16.5,19],ca:[0.8,1.2]},d:"200 à 300 g de concentré par tête et par jour, avec du bon fourrage à volonté, une pierre à lécher et de l'eau propre.",
@@ -339,11 +339,11 @@ const FORM={
   {id:"concentre",t:"Embouche (12 mois et plus)",a:[52,999],g:3500,c:{pb:[14,16.5],ca:[0.6,1.1]},d:"3 à 4 kg par tête et par jour, avec de la paille ou du foin à volonté, une pierre à lécher et 30 à 50 litres d'eau par jour.",
    f:{mais:31,son:30,graincoton:15,coton:12,melasse:8,coquille:1.5,sel:1.5,premix:1}}],
  poisson:[
-  {id:"alevins",t:"Alevins (moins de 20 g)",a:[0,6],g:1,c:{pb:[40,45],ca:[1,3],lys:[2.2,3],met:[0.8,1.2]},d:"Aliment fin (farine ou miettes de 0,5 à 1 mm), 4 à 6 repas par jour. Environ 8 à 10 % du poids des poissons par jour. Pour le silure, viser 2 à 4 points de protéines en plus.",
+  {id:"alevins",t:"Alevins (moins de 20 g)",a:[0,5],g:1,c:{pb:[40,45],ca:[1,3],lys:[2.2,3],met:[0.8,1.2]},d:"Aliment fin (farine ou miettes de 0,5 à 1 mm), 4 à 6 repas par jour. Environ 8 à 10 % du poids des poissons par jour. Pour le silure, viser 2 à 4 points de protéines en plus.",
    f:{poisson:45,soja:13,sorgho:9,arachide:8,son:6,coton:6,mais:5,huile:3,sang:3,phosphate:1,premix:1}},
-  {id:"croissance",t:"Croissance (20 à 150 g)",a:[6,16],g:3.5,c:{pb:[32,36],ca:[0.9,2],lys:[1.75,2.2],met:[0.6,0.9]},d:"Granulés de 2 à 3 mm, 3 repas par jour. Environ 3 à 5 % du poids des poissons par jour. Arrêter de nourrir si les poissons ne mangent plus.",
+  {id:"croissance",t:"Croissance (20 à 150 g)",a:[5,15],g:3.5,c:{pb:[32,36],ca:[0.9,2],lys:[1.75,2.2],met:[0.6,0.9]},d:"Granulés de 2 à 3 mm, 3 repas par jour. Environ 3 à 5 % du poids des poissons par jour. Arrêter de nourrir si les poissons ne mangent plus.",
    f:{poisson:20,coton:15,soja:12,arachide:12,sonriz:10,dreche:10,mais:9.95,son:7,huile:2,phosphate:1.5,premix:0.5,lysine:0.05}},
-  {id:"finition",t:"Grossissement (150 g et plus)",a:[16,999],g:8,c:{pb:[28,32],ca:[0.8,2],lys:[1.5,1.9],met:[0.48,0.75]},d:"Granulés de 3 à 4 mm (flottants de préférence), 2 repas par jour. Environ 2 à 3 % du poids des poissons par jour. Réduire la ration par temps froid ou si l'eau est trouble.",
+  {id:"finition",t:"Grossissement (150 g et plus)",a:[15,999],g:8,c:{pb:[28,32],ca:[0.8,2],lys:[1.5,1.9],met:[0.48,0.75]},d:"Granulés de 3 à 4 mm (flottants de préférence), 2 repas par jour. Environ 2 à 3 % du poids des poissons par jour. Réduire la ration par temps froid ou si l'eau est trouble.",
    f:{son:15,coton:15,soja:12,arachide:12,poisson:10,sonriz:10,dreche:10,mais:9.8,sorgho:2,huile:2,phosphate:1.5,premix:0.5,lysine:0.2}}],
  vachelait:[
   {id:"concentre",t:"Concentré vaches laitières",a:[0,999],g:4000,c:{pb:[17.5,20],ca:[0.8,1.2]},d:"1 à 2 kg par jour pour l'entretien, plus 1 kg pour 2 litres de lait, avec du fourrage de qualité à volonté.",
@@ -365,7 +365,7 @@ let prixIng={},prixEng={},mesFormules=[];
 const pIng=k=>Number(prixIng[k]??(ING[k]||{}).prix)||0,pEng=k=>Number(prixEng[k]??ENG[k].prix)||0;
 const ingN=k=>ING[k]?ING[k].n:k;
 function formAt(key,w){const L=FORM[key]||[];return L.find(x=>w>=x.a[0]&&w<x.a[1])||L[L.length-1]}
-const FAKE_ESP={pondeuse:"Poules pondeuses",chair:"Poulets de chair",local:"Poulets locaux",porc:"Porcs"};
+const FAKE_ESP={pondeuse:"Poules pondeuses",chair:"Poulets de chair",local:"Poulets locaux",porc:"Porcs",poisson:"Poissons"};
 /* ration repère en g par animal et par jour, pour une espèce, un âge (semaines) et une formule */
 function rationG(key,w,fo){
   if(FAKE_ESP[key]&&w!=null){try{const g=stdFeed({espece:FAKE_ESP[key]},w);if(g>0)return g}catch(e){}}
@@ -900,7 +900,7 @@ function stdFeed(l,w){ // g/sujet/jour
   if(isPoultry(l))return w<4?25:w<8?45:w<12?60:w<18?80:115;
   if(k==="petitsrum")return 300;if(k==="chevrelait")return 500;if(k==="bovin")return 3000;if(k==="vachelait")return 4000;
   if(k==="poisson"){const bw=(stdWeight(l,w)||0)*1000;return Math.round(bw*(bw<20?0.08:bw<100?0.05:bw<300?0.03:0.02)*10)/10}
-  if(k==="porc")return w<8?600:w<16?1600:w<24?2300:2800;
+  if(k==="porc"){const bw=stdWeight(l,w)||0;return bw<10?350:bw<24?750:bw<40?1600:bw<60?2100:bw<85?2500:2800}
   return 0;}
 function ration(l,s,date){const d=date||today();const w=(Number(l.ageArrivee)||0)+(l.arrivee?Math.max(0,daysBetween(l.arrivee,d))/7:0);let g=stdFeed(l,w);if(!g||!s||!(s.alive>0))return null;
   const ws=weightStatus(l,s);const base=g;
