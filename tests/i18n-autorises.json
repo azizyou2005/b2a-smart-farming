@@ -35,10 +35,12 @@
   "SR{0}, Komsaya, Bondofa",
   "Smart Building",
   "Smart Farming",
+  "U{0} MPPT",
   "WhatsApp",
   "limite {0} ppm",
   "ppm",
   "{0}",
+  "{0} ppm",
   "{0}.",
   "© {0} B{1}A-HIGH-TECHNOLOGY-AUTOMATION"
  ],
@@ -92,6 +94,7 @@
   "Transport",
   "Type",
   "Urgent",
+  "U{0} MPPT",
   "Vaccination",
   "Ventilation",
   "Version {0}-{1}c",
@@ -100,6 +103,7 @@
   "hectares (ha)",
   "litre",
   "ppm",
+  "{0} ppm",
   "© {0} B{1}A-HIGH-TECHNOLOGY-AUTOMATION"
  ],
  "es": [
@@ -138,8 +142,10 @@
   "Soja",
   "Tomate",
   "Total",
+  "U{0} MPPT",
   "WhatsApp",
   "ppm",
+  "{0} ppm",
   "{0} sem.",
   "{0} urgentes",
   "© {0} B{1}A-HIGH-TECHNOLOGY-AUTOMATION"

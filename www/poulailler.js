@@ -12,6 +12,9 @@ const V=document.getElementById("v-poulailler");if(!V)return;
 const T={
 "Poulailler":["Poultry house","Pollaio","Gallinero"],
 "Poulailler connecté":["Connected poultry house","Pollaio connesso","Gallinero conectado"],
+"Vue {0}D du poulailler":["{0}D view of the poultry house","Vista {0}D del pollaio","Vista {0}D del gallinero"],
+"Voir et commander les équipements dans le bâtiment en {0}D : lumières, ventilateurs, moteur, eau, valeurs en couleur.":["See and control the equipment in the building in {0}D: lights, fans, motor, water, colour-coded values.","Vedere e comandare gli apparecchi dell'edificio in {0}D: luci, ventilatori, motore, acqua, valori a colori.","Ver y controlar los equipos del edificio en {0}D: luces, ventiladores, motor, agua, valores en color."],
+"La vue {0}D n'a pas pu se charger.":["The {0}D view could not load.","Impossibile caricare la vista {0}D.","No se pudo cargar la vista {0}D."],
 "Aliment, eau, lumière, ventilation et alertes à distance":["Feed, water, light, ventilation and alerts remotely","Mangime, acqua, luce, ventilazione e allarmi a distanza","Pienso, agua, luz, ventilación y alertas a distancia"],
 "Dispositif de contrôle B{0}A Smart Building":["B{0}A Smart Building control device","Dispositivo di controllo B{0}A Smart Building","Dispositivo de control B{0}A Smart Building"],
 "Démo":["Demo","Demo","Demo"],"Mode démo":["Demo mode","Modalità demo","Modo demo"],
@@ -292,11 +295,13 @@ V.innerHTML=`<style>
 #v-poulailler .pc-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
 #v-poulailler .pc-note.warn{color:var(--warn)} #v-poulailler .pc-note.bad{color:var(--bad)} #v-poulailler .pc-note.ok{color:var(--ok)}
 #v-poulailler .pc-sim{display:flex;flex-wrap:wrap;gap:8px}
-#pc-toast{position:fixed;left:50%;top:12px;transform:translateX(-50%);width:min(92%,440px);background:var(--bad-bg);color:var(--bad);border:1px solid var(--bad);border-radius:12px;padding:10px 14px;font-weight:700;z-index:60;display:none}
+#pc-toast{position:fixed;left:50%;top:12px;transform:translateX(-50%);width:min(92%,440px);background:var(--bad-bg);color:var(--bad);border:1px solid var(--bad);border-radius:12px;padding:10px 14px;font-weight:700;z-index:90;display:none}
 </style>
 <section class="card">
   <div class="pc-head"><div><h2 class="sec">Poulailler connecté</h2><p class="note">Dispositif de contrôle B2A Smart Building</p></div><span class="pc-st" id="pc-status">Démo</span></div>
   <p class="note" id="pc-demo-note">Mode démo : simulation, aucun dispositif branché. Configurez la connexion en bas de l'écran.</p>
+  <button class="btn" type="button" id="pc-3d">Vue 3D du poulailler</button>
+  <p class="note">Voir et commander les équipements dans le bâtiment en 3D : lumières, ventilateurs, moteur, eau, valeurs en couleur.</p>
 </section>
 <section class="card" id="pc-card-al">
   <div class="pc-head"><h2 class="sec">Alertes</h2><span class="pc-st on" id="pc-s-al">Aucune</span></div>
@@ -515,6 +520,16 @@ $("pc-son").onclick=()=>{try{audio=audio||new(window.AudioContext||window.webkit
   sonActif=!sonActif;$("pc-son").textContent=sonActif?"Son activé":"Activer le son";if(sonActif)bip()};
 document.querySelectorAll("#pc-simbox [data-panne]").forEach(b=>b.onclick=()=>{if(demo)send({panne:b.dataset.panne})});
 $("pc-c-save").onclick=()=>{cfg=Object.assign(cfg,{demo:$("pc-c-demo").checked,ip:$("pc-c-ip").value.trim(),user:$("pc-c-user").value.trim(),password:$("pc-c-pw").value});saveCfg();connect()};
+
+/* ================= vue 3D : chargée seulement quand on l'ouvre (aucun effet sur la vitesse de l'app sinon) ================= */
+function loadScript(src){return new Promise((ok,ko)=>{const e=document.createElement("script");e.src=src;e.onload=ok;e.onerror=ko;document.head.append(e)})}
+const VER=(()=>{const e=document.querySelector('script[src*="poulailler.js"]');const m=e&&/[?&]v=([\d.]+)/.exec(e.getAttribute("src"));return m?m[1]:"1"})();
+$("pc-3d").onclick=async()=>{const b=$("pc-3d");if(b.disabled)return;b.disabled=true;b.style.opacity=".6";
+  try{if(!window.THREE)await loadScript("libs/three.min.js?v="+VER);if(!window.THREE.OrbitControls)await loadScript("libs/OrbitControls.js?v="+VER);
+    if(!window.B2A_PC3D)await loadScript("poulailler3d.js?v="+VER);if(!started)start();
+    window.B2A_PC3D.open({data:()=>data,refresh,send,demo:()=>demo,ALARMES})}
+  catch(e){toast(tr("La vue 3D n'a pas pu se charger."))}
+  finally{b.disabled=false;b.style.opacity=""}};
 
 /* ================= démarrage : seulement quand l'écran est ouvert ================= */
 let started=false;

@@ -90,6 +90,8 @@ export async function visitAll(page) {
   await W(20000); await click("#pc-acq", 1500); await click("#pc-seg-sante [data-v='1']", 1500);
   for (const k of ["modeVentil", "modeEau"]) { await click(`#pc-seg-${k} [data-p=man]`, 800); await click(`#pc-man-${k} [data-v='3']`, 800); }
   await click("#pc-seg-global [data-p=man]", 1500); await click("#pc-seg-global [data-p=auto]", 1500); await click("#pc-simbox [data-panne='']", 800);
+  if (await click("#pc-3d", 6000)) { await click("#p3-cmds .cmd >> nth=1", 800); await click("#p3-sheet [data-m=man]", 800); await click("#p3-sheet .x", 400);
+    await click("#p3-panne", 800); await click("#p3-sheet [data-p=chaleur]", 2500); await click("#p3-views [data-v=ext]", 800); await click("#p3-close, #p3-err button", 800); }
   await tab("marche");
   for (const m of ["acheter", "vendre", "services", "mes"]) await click(`#m-seg [data-m=${m}]`, 700);
   await click("#m-seg [data-m=services]", 500); await click(".s-card", 500); await click("#m-body .back", 400); await click(".s-join .btn", 600);
