@@ -15,3 +15,11 @@ updates:
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 3
+    # Outils de test seulement (jamais dans l'application publiée).
+    # Ces 3 bibliothèques sont imposées par firebase-tools / firebase : Dependabot ne peut pas
+    # les mettre à jour seul (conflit de versions) et échouait à chaque passage.
+    # Elles seront mises à jour automatiquement avec firebase-tools et firebase.
+    ignore:
+      - dependency-name: "uuid"
+      - dependency-name: "minimatch"
+      - dependency-name: "@grpc/grpc-js"
