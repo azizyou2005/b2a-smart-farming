@@ -80,6 +80,8 @@ const T={
 "Âge : {0} semaines":["Age: {0} weeks","Età: {0} settimane","Edad: {0} semanas"],"Âge : {0} jours":["Age: {0} days","Età: {0} giorni","Edad: {0} días"],
 "{0} semaines":["{0} weeks","{0} settimane","{0} semanas"],"{0} jours":["{0} days","{0} giorni","{0} días"],
 "{0} animaux":["{0} animals","{0} animali","{0} animales"],"pondeuses":["layers","ovaiole","ponedoras"],"poulets de chair":["broilers","polli da carne","pollos de engorde"],
+"poulets locaux et pintades":["local chickens and guinea fowl","polli locali e faraone","pollos locales y pintadas"],"porcs":["pigs","suini","cerdos"],"moutons et chèvres":["sheep and goats","pecore e capre","ovejas y cabras"],"chèvres laitières":["dairy goats","capre da latte","cabras lecheras"],"bovins":["cattle","bovini","bovinos"],"vaches laitières":["dairy cows","vacche da latte","vacas lecheras"],"poissons":["fish","pesci","peces"],"autres animaux":["other animals","altri animali","otros animales"],
+"vérifier l'état des animaux.":["check the animals.","controllare gli animali.","revisar los animales."],"Eau en baisse de {0} % sur {1} jours : vérifier l'état des animaux.":["Water down {0} % over {1} days: check the animals.","Acqua in calo del {0} % su {1} giorni: controllare gli animali.","Agua en bajada del {0} % en {1} días: revisar los animales."],
 "Température cible":["Target temperature","Temperatura obiettivo","Temperatura objetivo"],"Lumière par jour":["Light per day","Luce al giorno","Luz por día"],
 "Ventilation étages {0} / {1}":["Ventilation stages {0} / {1}","Ventilazione stadi {0} / {1}","Ventilación etapas {0} / {1}"],
 "Consignes non envoyées : dispositif injoignable. Il garde les dernières reçues.":["Setpoints not sent: device unreachable. It keeps the last ones received.","Setpoint non inviati: dispositivo non raggiungibile. Mantiene gli ultimi ricevuti.","Consignas no enviadas: dispositivo inaccesible. Mantiene las últimas recibidas."],
@@ -165,14 +167,32 @@ const ALARMES={
 const CMDS={modeAliment:"moteur",modeEau:"vanne",modeEclairage:"lampes",modeHumid:"humid",modeVentil:"vent1"};
 
 /* ================= consignes selon l'espèce, l'âge et la santé (repères de départ, à valider avec le guide de la souche) ================= */
-function consignes(ageJ,ponte,sante){
-  const s=Math.floor(ageJ/7)+1;let t,hb,hh,lum;
-  if(ponte){
+/* espèce du lot : clé, nom affiché et code envoyé au dispositif (point espece) */
+const ESPECES={pondeuse:[1,"pondeuses"],chair:[2,"poulets de chair"],local:[3,"poulets locaux et pintades"],porc:[4,"porcs"],petitsrum:[5,"moutons et chèvres"],
+  chevrelait:[6,"chèvres laitières"],bovin:[7,"bovins"],vachelait:[8,"vaches laitières"],poisson:[9,"poissons"],autre:[10,"autres animaux"]};
+const VOLAILLES=["pondeuse","chair","local"];
+function especeDe(l){const e=(l&&l.espece)||"";
+  return /poisson|tilapia|silure|clarias/i.test(e)?"poisson":/pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade|caille|dinde|canard/i.test(e)?"local":
+    /vache/i.test(e)?"vachelait":/chèvre.*lait/i.test(e)?"chevrelait":/chèvre|mouton|brebis|agneau/i.test(e)?"petitsrum":/bovin|veau|taurillon/i.test(e)?"bovin":/porc|truie/i.test(e)?"porc":"autre"}
+function consignes(ageJ,esp,sante){
+  const s=Math.floor(ageJ/7)+1;let t,hb=50,hh=70,lum=12,v1,v2;
+  if(esp==="pondeuse"){
     if(ageJ<=3){t=33;hb=60;hh=70;lum=22.5}else if(s===1){t=31.5;hb=60;hh=70;lum=20}else if(s===2){t=29.5;hb=55;hh=65;lum=16}
     else if(s===3){t=27.5;hb=50;hh=65;lum=14}else if(s===4){t=25.5;hb=50;hh=70;lum=12}else{t=23;hb=50;hh=70;lum=s<=16?11:Math.min(16,11+0.5*(s-16))}
-  }else{ /* poulets de chair : environ 32 °C au premier jour, puis baisse régulière vers 21 °C */
-    t=Math.max(21,Math.round((32-ageJ*0.3)*2)/2);hb=ageJ<=7?60:50;hh=70;lum=ageJ<=7?23:18}
-  let v1=t+2,v2=t+5;if(sante){t+=1.5;v1=t+2;v2=t+7}
+  }else if(esp==="chair"){ /* poulets de chair : environ 32 °C au premier jour, puis baisse régulière vers 21 °C */
+    t=Math.max(21,Math.round((32-ageJ*0.3)*2)/2);hb=ageJ<=7?60:50;lum=ageJ<=7?23:18}
+  else if(esp==="local"){ /* poulets locaux, pintades : démarrage plus chaud et croissance plus lente */
+    t=Math.max(21,Math.round((33-ageJ*0.25)*2)/2);hb=ageJ<=7?60:50;lum=ageJ<=7?23:ageJ<=28?16:12}
+  else if(esp==="porc"){ /* porcelets au chaud, porcs à l'engrais au frais : sensibles à la chaleur */
+    t=ageJ<=7?30:ageJ<=28?28:ageJ<=56?25:ageJ<=84?22:20;hb=50;hh=70;lum=ageJ<=56?16:12;v1=t+3;v2=t+6}
+  else if(esp==="petitsrum"||esp==="chevrelait"){ /* agneaux et chevreaux protégés du froid, adultes ventilés dès 25 °C */
+    t=ageJ<=14?22:ageJ<=60?18:16;hh=75;lum=esp==="chevrelait"&&ageJ>60?16:12;v1=Math.max(t+3,25);v2=Math.max(t+7,29)}
+  else if(esp==="bovin"||esp==="vachelait"){ /* veaux à l'abri, adultes : stress de chaleur dès 22 à 25 °C */
+    t=ageJ<=56?18:15;hh=75;lum=esp==="vachelait"&&ageJ>56?16:12;v1=Math.max(t+3,22);v2=Math.max(t+7,26)}
+  else if(esp==="poisson"){t=28;hb=0;hh=100;lum=12;v1=31;v2=33}   /* bassins : pas d'humidificateur */
+  else{t=22;v1=26;v2=29}
+  if(v1==null){v1=t+2;v2=t+5}
+  if(sante){if(VOLAILLES.includes(esp)||(esp==="porc"&&ageJ<=56)){t+=1.5;v1=t+2;v2=t+7}else t+=1}
   return {tCible:t,hrBasse:hb,hrHaute:hh,dureeLumiere:lum,seuilVent1:v1,seuilVent2:v2,modeSante:sante?1:0}
 }
 
@@ -379,12 +399,13 @@ const vues={};let sonActif=false,audio=null;
 function lotsPoules(){return (A.lots()||[]).filter(l=>!A.isCrop||!A.isCrop(l))}
 function lotChoisi(){const L=lotsPoules();return L.find(l=>l.id===cfg.lotId)||L.find(l=>A.isLayer(l))||L[0]||null}
 function infoLot(){
-  const l=lotChoisi();if(!l)return{l:null,ageJ:109,ponte:true,alive:430,sante:0};
+  const l=lotChoisi();if(!l)return{l:null,ageJ:109,esp:"pondeuse",ponte:true,alive:430,sante:0};
   let ageJ=Math.round((Number(l.ageArrivee)||0)*7);
   if(l.arrivee){const d=Math.floor((new Date(A.today()+"T12:00")-new Date(l.arrivee+"T12:00"))/864e5);if(d>0)ageJ+=d}
   let s=null;try{s=A.stats(l)}catch(e){}
   let malade=0;try{malade=+(!!s&&(s.morts7pct>1||(A.allAlerts(l,s)||[]).some(a=>a[0]==="bad")))}catch(e){}
-  return{l,ageJ,ponte:A.isLayer(l),alive:s?s.alive:Number(l.effectif)||0,sante:santeForcee!=null?santeForcee:malade}
+  const esp=especeDe(l);
+  return{l,ageJ,esp,ponte:esp==="pondeuse",alive:s?s.alive:Number(l.effectif)||0,sante:santeForcee!=null?santeForcee:malade}
 }
 function setStatus(cls,t){const e=$("pc-status");e.className="pc-st "+cls;e.textContent=t}
 function connect(){
@@ -402,15 +423,17 @@ async function send(vals){busy=true;try{await api.write(vals);await refresh()}ca
 
 /* consignes de l'âge et de la santé, envoyées au dispositif avec les données du lot */
 async function envoyerConsignes(){
-  const I=infoLot(),c=consignes(I.ageJ,I.ponte,I.sante);
-  const vals=Object.assign({},c,{ageJours:I.ageJ,effectif:I.alive,espece:I.ponte?1:2});
-  busy=true;try{await api.write(vals);envoye=new Date()}catch(e){envoye=null}finally{busy=false}
+  const I=infoLot(),c=consignes(I.ageJ,I.esp,I.sante);
+  const vals=Object.assign({},c,{ageJours:I.ageJ,effectif:I.alive});
+  busy=true;try{await api.write(vals);envoye=new Date()}catch(e){envoye=null}
+  try{await api.write({espece:ESPECES[I.esp][0]})}catch(e){}   /* envoyé à part : un ancien programme du dispositif qui ne connaît que 1 et 2 ne bloque pas les consignes */
+  finally{busy=false}
   renderLot(I,c);refresh()}
 function renderLot(I,c){
   const sel=$("pc-lot"),L=lotsPoules();const cur=I.l?I.l.id:"";
   sel.innerHTML=L.length?L.map(l=>`<option value="${l.id}">${String(l.nom||l.espece||"Lot").replace(/[<>&"]/g,"")}</option>`).join(""):`<option value="">Pondeuses (démo)</option>`;sel.value=cur;
   const sem=Math.floor(I.ageJ/7);
-  $("pc-lotinfo").textContent=(I.ageJ<14?`Âge : ${I.ageJ} jours`:`Âge : ${sem} semaines`)+` · ${fmt(I.alive,0)} animaux · `+(I.ponte?"pondeuses":"poulets de chair");
+  $("pc-lotinfo").textContent=(I.ageJ<14?`Âge : ${I.ageJ} jours`:`Âge : ${sem} semaines`)+` · ${fmt(I.alive,0)} animaux · `+ESPECES[I.esp][1];
   $("pc-k-ct").textContent=fmt(c.tCible);$("pc-k-ch").textContent=c.hrBasse+" – "+c.hrHaute;$("pc-k-cl").textContent=fmt(c.dureeLumiere,c.dureeLumiere%1?1:0);
   $("pc-k-cv").textContent=fmt(c.seuilVent1,c.seuilVent1%1?1:0)+" / "+fmt(c.seuilVent2,c.seuilVent2%1?1:0);
   document.querySelectorAll("#pc-seg-sante button").forEach(b=>b.classList.toggle("sel",Number(b.dataset.v)===I.sante));
@@ -498,7 +521,7 @@ function render(){
   setS("ap",`${va>=0?"+":"−"}${fmt(Math.abs(va),0)} % sur 7 jours`);setS("ep",`${ve>=0?"+":"−"}${fmt(Math.abs(ve),0)} % sur 7 jours`);
   flag("ap",lvl(va,-5,10,-15,20));flag("ep",lvl(ve,-5,15,-15,30));flag("ra",lvl(ra,1.6,2.6,1.3,3.2));
   const Al=[];
-  if(ve<-15)Al.push(["bad",`Eau en baisse de ${fmt(-ve,0)} % sur 7 jours : vérifier l'état des poules.`]);
+  if(ve<-15)Al.push(["bad",`Eau en baisse de ${fmt(-ve,0)} % sur 7 jours : vérifier l'état des ${VOLAILLES.includes(infoLot().esp)?"poules":"animaux"}.`]);
   if(va<-15)Al.push(["bad",`Aliment en baisse de ${fmt(-va,0)} % sur 7 jours.`]);
   if(d.nh3>20)Al.push(["warn","Ammoniac élevé : litière à changer."]);
   if(d.ph<6||d.ph>8)Al.push(["bad","pH de l'eau hors de 6 à 8."]);
