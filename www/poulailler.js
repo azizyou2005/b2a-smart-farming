@@ -439,7 +439,8 @@ let tick=0,lotsSig="";
 async function refresh(){
   if(!api)return;if(V.hidden&&(demo||(tick++%10)))return;   // écran fermé : la démo s'arrête, le vrai dispositif est surveillé toutes les 30 s pour les alertes
   {const sig=lotsPoules().map(l=>l.id).join();if(sig!==lotsSig){const premier=lotsSig==="";lotsSig=sig;if(!premier&&!busy){envoyerConsignes();return}}}
-  try{data=await api.readAll();horsLigne=null;render();if($("pc-status").classList.contains("bad"))setStatus(demo?"warn":"on",demo?"Démo":cfg.ip)}
+  try{data=await api.readAll();horsLigne=null;render();
+    try{const I=infoLot();window.B2A_PC_HIER=!demo&&I.l&&!I.l.__couv&&I.esp!=="culture"&&data.alimHier>0?{lotId:I.l.id,date:new Date(new Date(A.today()+"T12:00")-864e5).toISOString().slice(0,10),alimKg:Math.round(data.alimHier*10)/10}:null}catch(e){}if($("pc-status").classList.contains("bad"))setStatus(demo?"warn":"on",demo?"Démo":cfg.ip)}
   catch(e){setStatus("bad","Hors ligne");$("pc-updated").textContent="Dispositif injoignable (VPN actif ?)";if(!horsLigne)horsLigne=Date.now();renderAlertes()}}
 async function send(vals){busy=true;try{await api.write(vals);await refresh()}catch(e){setStatus("bad","Commande non envoyée")}finally{busy=false}}
 
@@ -554,7 +555,7 @@ function render(){
   const n=I.alive||430,gp=d.alimHier*1000/n,ml=d.eauHier*1000/n,ra=d.eauHier/d.alimHier,ve=(d.eauHier/refE-1)*100,va=(d.alimHier/refA-1)*100;
   setK("ap",fmt(gp,0));setK("ep",fmt(ml,0));setK("ra",fmt(ra));
   setS("ap",`${va>=0?"+":"−"}${fmt(Math.abs(va),0)} % sur 7 jours`);setS("ep",`${ve>=0?"+":"−"}${fmt(Math.abs(ve),0)} % sur 7 jours`);
-  flag("ap",lvl(va,-5,10,-15,20));flag("ep",lvl(ve,-5,15,-15,30));flag("ra",lvl(ra,1.6,2.6,1.3,3.2));
+  flag("ap",lvl(va,-5,10,-15,20));flag("ep",lvl(ve,-5,15,-15,30));{const e=infoLot().esp,R=VOLAILLES.includes(e)?[1.6,2.6,1.3,3.2]:e==="porc"?[2,4,1.5,5]:/petitsrum|chevrelait|bovin|vachelait/.test(e)?[3,6,2,8]:null;flag("ra",R?lvl(ra,...R):"")}
   const Al=[];
   if(ve<-15)Al.push(["bad",`Eau en baisse de ${fmt(-ve,0)} % sur 7 jours : vérifier l'état des ${VOLAILLES.includes(infoLot().esp)?"poules":"animaux"}.`]);
   if(va<-15)Al.push(["bad",`Aliment en baisse de ${fmt(-va,0)} % sur 7 jours.`]);

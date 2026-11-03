@@ -3,6 +3,7 @@
    Les clés suivent i18n.js : nombres → {0}, {1}… ; texte entre « » → {q0}… */
 (function(){
 const T={
+"Aliment d'hier rempli par le dispositif B{0}A : vérifiez puis touchez Enregistrer.":["Yesterday's feed filled in by the B{0}A device: check it, then tap Save.","Mangime di ieri compilato dal dispositivo B{0}A: controlla e tocca Salva.","Pienso de ayer rellenado por el dispositivo B{0}A: compruébalo y toca Guardar."],
 "Bâtiment, mangeoires, abreuvoirs… (sans l'achat des animaux)":["Building, feeders, drinkers… (not the purchase of the animals)", "Edificio, mangiatoie, abbeveratoi… (senza l'acquisto degli animali)", "Edificio, comederos, bebederos… (sin la compra de los animales)"],
 "Durée d'utilisation du bâtiment et du matériel (années)":["Useful life of the building and equipment (years)", "Durata di utilizzo dell'edificio e dell'attrezzatura (anni)", "Vida útil del edificio y del equipo (años)"],
 "Le lot ne paie que sa part de l'investissement : sa durée divisée par cette durée ({0} ans si vide)":["The batch only bears its share of the investment: its duration divided by this period ({0} years if empty)", "Il lotto paga solo la sua parte dell'investimento: la sua durata divisa per questa durata ({0} anni se vuoto)", "El lote solo paga su parte de la inversión: su duración dividida por esta duración ({0} años si está vacío)"],

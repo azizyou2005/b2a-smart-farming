@@ -1313,7 +1313,8 @@ function loadSaisie(){const id=$("s-lot").value,d=$("s-date").value;const s=sais
   $("s-poids").previousElementSibling.textContent=bigS?"Poids moyen (kg)":"Poids moyen (g)";$("s-poids").step=bigS?"0.1":"1";$("s-recu").value=s?s.alimentRecu??"":"";$("s-note").value=s?s.note||"":"";
   {const lR=lots.find(x=>x.id===id),h=$("s-ration");if(h){const ra=lR?ration(lR,stats(lR),d):null;h.textContent=ra?`Conseillé : ≈ ${fmt(ra.kg,1)} kg pour ${fmt(ra.n)} sujets (${fmt(ra.g)} g par sujet), selon l'âge.`:"";h.hidden=!ra;h.onclick=ra?()=>{if(!$("s-aliment").value)$("s-aliment").value=Math.round(ra.kg*10)/10}:null}}
   const l=lots.find(x=>x.id===id);$("s-oeufs").closest(".field").hidden=l?!hasProd(l):false;$("s-oeufs").previousElementSibling.textContent=l&&isDairy(l)?"Lait trait (litres)":"Œufs ramassés";$("s-oeufs").step=l&&isDairy(l)?"0.5":"1";
-  sMsg(s?"Fiche existante chargée : corrigez les chiffres (morts, œufs, aliment…) puis touchez Enregistrer.":"");
+  {const H=window.B2A_PC_HIER;if(!s&&H&&H.lotId===id&&H.date===d&&!$("s-aliment").value){$("s-aliment").value=H.alimKg;sMsg("Aliment d'hier rempli par le dispositif B2A : vérifiez puis touchez Enregistrer.")}
+  else sMsg(s?"Fiche existante chargée : corrigez les chiffres (morts, œufs, aliment…) puis touchez Enregistrer.":"");}
   const del=$("s-del");if(del){del.hidden=!s||!canWrite;del.dataset.c="";del.textContent="Supprimer cette fiche"}}
 $("s-date").value=today();$("s-lot").onchange=loadSaisie;$("s-date").onchange=loadSaisie;
 $("s-save").onclick=async()=>{
