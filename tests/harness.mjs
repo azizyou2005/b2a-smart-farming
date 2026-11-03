@@ -28,7 +28,7 @@ export async function openApp(browser, opts = {}) {
   const ctx = await browser.newContext({ viewport: { width, height }, acceptDownloads: true, permissions: ["geolocation"], geolocation: { latitude: 12.3714, longitude: -1.5197 } });
   await ctx.route("**/*", async route => {
     const url = route.request().url();
-    if (url.includes("config.js")) return route.fulfill({ body: "window.B2A_FIREBASE=null;window.B2A_IA_URL=null;window.B2A_NOTIFY_EMAIL=null;", contentType: "text/javascript" });
+    if (url.includes("config.js")) return route.fulfill({ body: "window.B2A_FIREBASE=null;window.B2A_IA_URL=null;window.B2A_NOTIFY_EMAIL=null;window.B2A_NOTIFY_ID=null;window.B2A_CONTACT_EMAIL=\"contact@exemple.com\";", contentType: "text/javascript" });
     if (!url.startsWith("https://app/")) return route.abort(); // aucun accès à internet pendant les tests
     const path = url.slice("https://app/".length).split("?")[0] || "index.html";
     try {

@@ -28,4 +28,4 @@ window.B2A_CGU={VERSION:"2026-10c",TITRE:"Conditions d'utilisation du Marché B2
 ["13. Modification des conditions",
 "B2A peut modifier ces conditions. Les vendeurs sont prévenus dans l'application et doivent accepter la nouvelle version pour continuer à publier des annonces."],
 ["14. Droit applicable et contact",
-"Les présentes conditions sont régies par le droit du Burkina Faso. En cas de litige entre B2A et un vendeur, les parties cherchent d'abord une solution amiable ; à défaut, les tribunaux compétents de Ouagadougou sont saisis. Contact : B2A-HIGH-TECHNOLOGY-AUTOMATION, azizyou2005@yahoo.fr."]]};
+"Les présentes conditions sont régies par le droit du Burkina Faso. En cas de litige entre B2A et un vendeur, les parties cherchent d'abord une solution amiable ; à défaut, les tribunaux compétents de Ouagadougou sont saisis. Contact : B2A-HIGH-TECHNOLOGY-AUTOMATION, "+(window.B2A_CONTACT_EMAIL||"")+"."]]};

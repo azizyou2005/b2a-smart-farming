@@ -9,7 +9,7 @@ import { initializeTestEnvironment, assertSucceeds, assertFails } from "@firebas
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 let env;
-const ADMIN = { email: "azizyou2005@yahoo.fr" };
+const ADMIN = { email: "azizyou2005@yahoo.fr", firebase: { sign_in_provider: "password" } };
 const JPEG = "data:image/jpeg;base64," + "A".repeat(150000);
 
 before(async () => {
@@ -148,4 +148,18 @@ test("fermes : les données ne sont lisibles qu'avec le bon code et l'accord du 
   await assertFails(as("bob").doc("farms/ABCDE12345/members/bob").update({ statut: "actif" }));
   await assertSucceeds(as("alice").doc("farms/ABCDE12345/members/bob").update({ statut: "actif" }));
   await assertSucceeds(as("bob").doc("farms/ABCDE12345/lots/l1").get());
+});
+
+test("ferme sans propriétaire : il faut être membre actif ; admin seulement avec mot de passe", async () => {
+  await setup(async db => {
+    await db.doc("farms/OLDFARM123/members/alice").set({ name: "A", role: "employe", statut: "actif" });
+    await db.doc("farms/OLDFARM123/lots/l1").set({ nom: "Lot" });
+  });
+  await assertSucceeds(as("alice").doc("farms/OLDFARM123/lots/l1").get());
+  // bob connaît le code mais n'est pas dans l'équipe : refusé tant qu'il ne s'est pas inscrit comme membre
+  await assertFails(as("bob").doc("farms/OLDFARM123/lots/l1").get());
+  await assertFails(as("bob").doc("farms/OLDFARM123/lots/l2").set({ nom: "Pirate" }));
+  // même adresse e-mail, mais connexion d'un autre type : pas administrateur
+  await assertFails(as("y", { email: "azizyou2005@yahoo.fr", firebase: { sign_in_provider: "google.com" } }).doc("inscriptions/alice").update({ statut: "bloque" }));
+  await assertSucceeds(as("x", ADMIN).doc("inscriptions/alice").update({ statut: "bloque" }));
 });

@@ -33,7 +33,7 @@ MARCHÉ B2A
 - Suppression du compte (URL) : https://azizyou2005.github.io/b2a-smart-farming/suppression-compte.html
 
 ## Graphiques
-icone-512.png · banniere-1024x500.png · captures : capture-1 à 6, 7-accueil, 9-vendre (1080x1920)
+icone-512.png · banniere-1024x500.png · captures : capture-1 à capture-8 (1080x1920, version 60.12 : accueil, lot, saisie du jour, soins, formules, poulailler, menus Gestion et Technique). Pour les refaire : node tests/captures.mjs (voir en tête du fichier)
 
 ## Contenu de l'app
 - Accès à l'app : ouverte sans mot de passe (compte anonyme). Pour les examinateurs : « Ouvrez l'app, saisissez un prénom/nom et passez les écrans d'inscription ; Marché : onglet Acheter visible tout de suite ; Vendre demande une boutique + pièce (non obligatoire pour tester l'achat). »

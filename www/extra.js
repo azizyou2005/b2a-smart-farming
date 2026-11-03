@@ -58,7 +58,7 @@ sheet.innerHTML=`<div class="sheet-in">
       <div><dt>Propriétaire et gérant</dt><dd data-notr>Bayere Abdoul Aziz</dd></div>
       <div><dt>Siège</dt><dd>Ouagadougou, Burkina Faso (RCCM 2024)</dd></div>
       <div><dt>Numéro D-U-N-S</dt><dd data-notr>850426983</dd></div>
-      <div><dt>Contact</dt><dd data-notr>azizyou2005@yahoo.fr</dd></div>
+      <div><dt>Contact</dt><dd data-notr>${window.B2A_CONTACT_EMAIL||""}</dd></div>
     </dl>
     <p class="note">B2A Smart Farming est une application privée, propriété exclusive de B2A-HIGH-TECHNOLOGY-AUTOMATION et de Bayere Abdoul Aziz. Le code, les textes, les guides, le nom, le logo et le slogan B2A sont protégés. Toute copie, revente ou réutilisation sans autorisation écrite est interdite. L'utilisation gratuite de l'application publiée par B2A reste autorisée pour votre propre élevage.</p>
     <p class="note">© 2026 B2A-HIGH-TECHNOLOGY-AUTOMATION · Bayere Abdoul Aziz. Tous droits réservés.</p>
@@ -99,6 +99,16 @@ async function backupNudge(){if(document.documentElement.classList.contains("acc
   const later=el("button","btn ghost","Plus tard");later.type="button";later.onclick=()=>{try{localStorage.setItem("b2a-bkp-off",String(Date.now()+3*864e5))}catch(e){}c.remove()};r.append(go,later);c.append(r);
   home.insertBefore(c,home.children[1]||null)}
 setTimeout(()=>backupNudge().catch(()=>{}),2500);
+/* sur l'accueil : ferme partagée sans propriétaire (créée avec une ancienne version) → inviter à en devenir propriétaire */
+function ownerNudge(){const T=B.team;if($("x-own")||!T||T.role!=="libre"||!T.uid||!db||db.kind!=="cloud")return;
+  if(document.documentElement.classList.contains("acces-on"))return;const home=$("home");if(!home)return;
+  const c=el("section","card x-bkp");c.id="x-own";c.append(el("h2","sec","Protégez votre ferme"));
+  c.append(el("p","note","Votre ferme n'a pas encore de propriétaire : vous ne pouvez ni accepter ni retirer les membres de l'équipe. Si c'est votre ferme, devenez-en propriétaire."));
+  const r=el("div","row");const go=el("button","btn","Devenir propriétaire");go.type="button";
+  go.onclick=()=>{openSet();setTimeout(()=>{const s=$("x-sync");if(s)s.scrollIntoView({block:"center"})},300)};r.append(go);c.append(r);
+  home.insertBefore(c,home.children[1]||null)}
+addEventListener("b2a-team",()=>{const T=B.team;if(T&&T.role!=="libre"){const x=$("x-own");if(x)x.remove()}else setTimeout(ownerNudge,500)});
+setTimeout(ownerNudge,3000);
 function renderSet(){
   lastBackup();
   if(B.renderCompte)B.renderCompte($("x-compte"),$("x-cbox"));
@@ -192,7 +202,7 @@ $("x-delbtn").onclick=async()=>{const b=$("x-delbtn"),m=$("x-delmsg");
       new Promise((_,r)=>setTimeout(()=>r(new Error("lent")),10000))]);ok=true}catch(e){console.warn(e)}}
   if(ok){m.textContent="Demande envoyée. B2A supprime votre compte sous 30 jours.";m.className="msg good";b.textContent="Demande envoyée"}
   else{const body=`Bonjour B2A, je demande la suppression de mon compte B2A Smart Farming.\nNom : ${B.lsGet("b2a-my-name")||""}\nIdentifiant : ${uid||B.me}`;
-    location.href="mailto:azizyou2005@yahoo.fr?subject="+encodeURIComponent("Suppression de mon compte B2A Smart Farming")+"&body="+encodeURIComponent(body);
+    location.href="mailto:"+(window.B2A_CONTACT_EMAIL||"")+"?subject="+encodeURIComponent("Suppression de mon compte B2A Smart Farming")+"&body="+encodeURIComponent(body);
     m.textContent="Envoyez l'e-mail qui vient de s'ouvrir pour terminer la demande.";m.className="msg";b.disabled=false;b.dataset.c="";b.textContent="Supprimer mon compte"}};
 $("x-export").onclick=async()=>{
   if(!db)return;const out={app:"B2A Smart Farming",version:2,exporte:new Date().toISOString()};

@@ -8,7 +8,8 @@ const $=id=>document.getElementById(id);
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 const pad=n=>String(n).padStart(2,"0");
 const today=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
-const VERSION="2026.10";
+/* même numéro que version.json (pris dans l'adresse du script : acces.js?v=60.12) */
+const VERSION=((document.currentScript&&/[?&]v=([\d.]+)/.exec(document.currentScript.src))||[])[1]||"web";
 const plateforme=()=>{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()?"android":/iphone|ipad/i.test(navigator.userAgent)?"iphone (web)":/android/i.test(navigator.userAgent)?"android (web)":"ordinateur (web)"};
 let acc=null;try{acc=JSON.parse(B.lsGet(LS_ACC)||"null")}catch(e){acc=null}
 const save=v=>{acc=v;B.lsSet(LS_ACC,v?JSON.stringify(v):null)};
@@ -50,7 +51,7 @@ function form(err){const c=head("Inscription","Remplissez ce formulaire pour ouv
   em.autocomplete="email";em.maxLength=100;em.inputMode="email";pw.autocomplete="new-password";pw.maxLength=100;c.append(g2);
   const m=el("p","msg"+(err?" err":""),err||"");m.setAttribute("aria-live","polite");c.append(m);
   const b=el("button","btn","M'inscrire et ouvrir l'application");b.type="button";c.append(b);
-  c.append(el("p","note","Une connexion internet est nécessaire pour l'inscription. Ensuite, l'application marche sans internet."));
+  c.append(el("p","note","Sans internet, vous pouvez quand même vous inscrire et utiliser l'application tout de suite : l'inscription sera envoyée à B2A dès que le téléphone aura du réseau."));
   const lg=el("button","btn ghost acc-alt","J'ai déjà un compte : me connecter");lg.type="button";lg.onclick=()=>login();c.append(lg);
   b.onclick=async()=>{const d={prenom:p.value.trim(),nom:n.value.trim(),ville:v.value.trim(),pays:py.value.trim(),elevage:e.value,taille:t.value.trim()};
     const mail=em.value.trim().toLowerCase(),pass=pw.value;
@@ -59,7 +60,7 @@ function form(err){const c=head("Inscription","Remplissez ce formulaire pour ouv
     if(!d.elevage){m.textContent="Choisissez votre type d'élevage.";m.className="msg err";return}
     if(mail||pass){if(!okMail(mail)){m.textContent="Adresse e-mail non valide (ou laissez l'e-mail et le mot de passe vides).";m.className="msg err";return}
       if(pass.length<6){m.textContent="Mot de passe trop court : 6 caractères minimum.";m.className="msg err";return}}
-    if(!navigator.onLine){m.textContent="Pas de connexion internet. Connectez-vous puis appuyez à nouveau sur le bouton.";m.className="msg err";return}
+    if(!navigator.onLine){offlineStart(d,!!(mail||pass));return}
     b.disabled=true;b.textContent="Envoi…";m.textContent="";
     const reset=x=>{b.disabled=false;b.textContent="M'inscrire et ouvrir l'application";m.textContent=x;m.className="msg err"};
     try{const u=await B.ensureUser(B.CFG);
@@ -141,19 +142,40 @@ B.renderCompte=async(sec,box)=>{if(!sec||!box)return;box.innerHTML="";
     catch(x){console.warn(x);b.disabled=false;b.textContent="Protéger mon compte";ko(mailErr(x)||"La création du compte e-mail a échoué. Vérifiez la connexion et réessayez.")}}};
 
 /* e-mail au propriétaire (FormSubmit, sans compte) */
-function notify(d,mail){const to=window.B2A_NOTIFY_EMAIL;if(!to)return;
+function notify(d,mail){const to=window.B2A_NOTIFY_ID||window.B2A_NOTIFY_EMAIL;if(!to)return;
   const admin=location.origin+location.pathname.replace(/[^/]*$/,"")+"utilisateurs.html";
   fetch("https://formsubmit.co/ajax/"+encodeURIComponent(to),{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},
     body:JSON.stringify({_subject:"B2A Smart Farming : nouvel utilisateur, "+d.prenom+" "+d.nom,_template:"table",_captcha:"false",
       "Prénom":d.prenom,"Nom":d.nom,"Ville":d.ville,"Pays":d.pays,"Élevage":d.elevage,"Taille":d.taille||"—","E-mail du compte":mail||"— (sans e-mail)","Appareil":plateforme(),
       "Gérer les utilisateurs":admin.startsWith("http")?admin:"https://azizyou2005.github.io/b2a-smart-farming/utilisateurs.html"})}).catch(()=>{})}
 
+/* ---------- inscription sans internet ----------
+   Les informations restent sur le téléphone (statut "local") et l'application s'ouvre tout de suite.
+   Dès qu'il y a du réseau, l'inscription est envoyée à Firebase et l'e-mail part chez B2A.
+   L'e-mail et le mot de passe ne sont jamais gardés sur le téléphone : ils s'ajoutent plus tard dans Réglages. */
+function offlineStart(d,hadMail){
+  if(!B.lsGet(B.LS_NAME))B.lsSet(B.LS_NAME,d.prenom+" "+d.nom);
+  save({statut:"local",d,le:today()});hide();
+  toast(hadMail?"Inscription gardée sur le téléphone. Sans internet, l'e-mail n'a pas pu être enregistré : ajoutez-le plus tard dans Réglages > Compte."
+               :"Inscription gardée sur le téléphone. Elle sera envoyée à B2A dès que vous aurez internet.");}
+let sending=false;
+async function sendPending(){if(sending||!acc||acc.statut!=="local"||!navigator.onLine)return;sending=true;
+  try{const d=acc.d||{};const u=await B.ensureUser(B.CFG);const ref=firebase.firestore().doc("inscriptions/"+u.uid);
+    const old=await ref.get();
+    if(!old.exists){await ref.set({prenom:d.prenom||"",nom:d.nom||"",ville:d.ville||"",pays:d.pays||"",elevage:d.elevage||"",taille:d.taille||"",
+      statut:"approuve",creeLe:firebase.firestore.FieldValue.serverTimestamp(),vuLe:today(),
+      plateforme:plateforme(),langue:(window.B2A_LANG?window.B2A_LANG():"fr"),version:VERSION,appareil:B.me});
+      notify(d,"")}
+    save({uid:u.uid,statut:old.exists?old.data().statut:"approuve"});listen()}
+  catch(e){console.warn(e)}
+  sending=false}
+
 let off=null;
 function wait(){const c=head("Demande envoyée","Votre demande est en attente de validation par B2A. Cet écran s'ouvrira tout seul dès qu'elle sera acceptée.");
   const s=el("div","acc-wait");s.append(el("span","spinner"),el("span",null,navigator.onLine?"En attente de la réponse…":"Pas de connexion : la réponse s'affichera dès que vous serez connecté."));c.append(s);
   listen()}
 function refused(st){const c=head("Accès retiré","Votre accès à l'application a été retiré par B2A.");
-  c.append(el("p","note","Pour en parler, contactez B2A-HIGH-TECHNOLOGY-AUTOMATION :"));const a=el("p","acc-mail","azizyou2005@yahoo.fr");a.setAttribute("data-notr","");c.append(a)}
+  c.append(el("p","note","Pour en parler, contactez B2A-HIGH-TECHNOLOGY-AUTOMATION :"));const a=el("p","acc-mail",window.B2A_CONTACT_EMAIL||"");a.setAttribute("data-notr","");c.append(a)}
 
 async function listen(){if(off)return;try{const u=await B.ensureUser(B.CFG);
   off=firebase.firestore().doc("inscriptions/"+u.uid).onSnapshot(d=>{if(!d.exists){if(d.metadata.fromCache)return;save(null);off&&off();off=null;show();form();return}
@@ -169,9 +191,10 @@ function toast(t){const x=el("div","acc-toast",t);document.body.append(x);setTim
 /* ---------- démarrage ---------- */
 const msg0=B.lsGet(LS_MSG);if(msg0)B.lsSet(LS_MSG,null);
 if(msg0==="ok")setTimeout(()=>toast("Connexion réussie. Vous retrouvez votre compte."),300);
-if(acc&&acc.statut==="approuve"){listen()}            /* déjà accepté : l'app s'ouvre, même sans internet ; on vérifie en arrière-plan */
+if(acc&&acc.statut==="local"){sendPending();setInterval(sendPending,5*60000)}   /* inscrit sans internet : l'app s'ouvre ; envoi dès que possible (nouvel essai toutes les 5 min) */
+else if(acc&&acc.statut==="approuve"){listen()}            /* déjà accepté : l'app s'ouvre, même sans internet ; on vérifie en arrière-plan */
 else if(acc&&acc.statut==="attente"){show();wait()}
 else if(acc&&(acc.statut==="refuse"||acc.statut==="bloque")){show();refused(acc.statut);listen()}
 else{show();form(msg0&&msg0!=="ok"?msg0:"")}
-addEventListener("online",()=>{if(ov.isConnected&&box.querySelector(".acc-wait")){wait()}});
+addEventListener("online",()=>{if(acc&&acc.statut==="local"){sendPending();return}if(ov.isConnected&&box.querySelector(".acc-wait")){wait()}});
 })();

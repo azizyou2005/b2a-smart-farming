@@ -2,7 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Propriétaire de l'application (compte E-mail / mot de passe créé dans Firebase Authentication)
-    function isAdmin() { return request.auth != null && request.auth.token.email == 'azizyou2005@yahoo.fr'; }
+    // Connexion obligatoire par e-mail + mot de passe : un compte d'un autre type (Google, téléphone, lien…) portant
+    // la même adresse ne devient jamais administrateur.
+    function isAdmin() { return request.auth != null && request.auth.token.email == 'azizyou2005@yahoo.fr'
+      && request.auth.token.firebase.sign_in_provider == 'password'; }
     // Un utilisateur ne peut utiliser la ferme partagée qu'après l'accord du propriétaire
     function approved() { return request.auth != null
       && get(/databases/$(database)/documents/inscriptions/$(request.auth.uid)).data.statut == 'approuve'; }
@@ -46,7 +49,8 @@ service cloud.firestore {
     // ---------- Fermes partagées ----------
     // farms/<code> : { owner: identifiant Firebase du téléphone propriétaire, approbation: true/false }
     // farms/<code>/members/<uid> : { name, dev, role: 'proprietaire'|'employe', statut: 'actif'|'attente'|'retire', vu, creeLe }
-    // Une ferme sans document farms/<code> (créée avant le système de propriétaire) reste ouverte à qui connaît le code.
+    // Une ferme sans document farms/<code> (créée avant le système de propriétaire) : il faut au moins être inscrit
+    // dans son équipe (members/<uid> actif) pour lire ou écrire ses données ; l'application propose d'en devenir propriétaire.
     function validCode(farm) { return farm.matches('^[A-Z0-9]{10}$'); }
     function hasOwner(farm) { return exists(/databases/$(database)/documents/farms/$(farm)); }
     function farmData(farm) { return get(/databases/$(database)/documents/farms/$(farm)).data; }
@@ -56,7 +60,7 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/farms/$(farm)/members/$(request.auth.uid))
         && get(/databases/$(database)/documents/farms/$(farm)/members/$(request.auth.uid)).data.statut == 'actif';
     }
-    function canUse(farm) { return approved() && validCode(farm) && (!hasOwner(farm) || isOwner(farm) || activeMember(farm)); }
+    function canUse(farm) { return approved() && validCode(farm) && (isOwner(farm) || activeMember(farm)); }
 
     // Fiche de la ferme : lisible avec le code exact (jamais de liste), modifiable seulement par le propriétaire.
     match /farms/{farm} {
