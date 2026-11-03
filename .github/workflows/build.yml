@@ -4,6 +4,12 @@ on:
   push:
     # main : application publiée (site + APK + AAB) · marche : version d'essai du Marché, en ligne seulement sous /essai/
     branches: [main, marche]
+    # Pas de nouvelle publication (ni de nouvelle « Release ») quand seuls les tests,
+    # la configuration Dependabot ou la documentation changent : l'application reste identique.
+    paths-ignore:
+      - "tests/**"
+      - ".github/dependabot.yml"
+      - "**/*.md"
   workflow_dispatch:
 
 permissions:
