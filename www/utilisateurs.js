@@ -34,12 +34,15 @@ function render(){
   const acc=users.filter(u=>u.statut==="approuve");
   const a7=acc.filter(u=>(u.vuLe||"")>=dayAgo(7)).length,a30=acc.filter(u=>(u.vuLe||"")>=dayAgo(30)).length;
   const K=$("u-kpis");K.innerHTML="";
+  /* fidélité : parmi les personnes inscrites depuis plus de 30 jours, combien ont encore ouvert l'app ces 30 derniers jours */
+  const old=acc.filter(u=>u.creeLe&&u.creeLe.toDate&&u.creeLe.toDate()<new Date(Date.now()-30*864e5)),kept=old.filter(u=>(u.vuLe||"")>=dayAgo(30)).length;
   const new7=users.filter(u=>u.creeLe&&u.creeLe.toDate&&u.creeLe.toDate()>=new Date(Date.now()-7*864e5)).length;
   K.append(kpi("Utilisateurs avec accès",fmt(acc.length),fmt(users.length)+" inscrits au total","ok"),
     kpi("Nouveaux 7 jours",fmt(new7),"inscriptions récentes"),
     kpi("Actifs 7 jours",fmt(a7),"ont ouvert l'app"),kpi("Actifs 30 jours",fmt(a30),"ont ouvert l'app"),
+    kpi("Fidélité",old.length?fmt(Math.round(kept/old.length*100))+" %":"—",old.length?fmt(kept)+" sur "+fmt(old.length)+" inscrits depuis plus de 30 jours ont rouvert l'app ce mois-ci":"pas encore d'inscrits de plus de 30 jours",old.length&&kept/old.length<0.3?"warn":""),
     kpi("Accès retiré",fmt(by("refuse")+by("bloque"))));
-  note("users",{total:users.length,acces:acc.length,new7,a7,a30});
+  note("users",{total:users.length,acces:acc.length,new7,a7,a30,fidelite:old.length?kept/old.length:null});
   document.querySelectorAll("#u-filter .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===filter));
   const q=$("u-q").value.trim().toLowerCase();
   let list=users.filter(u=>filter==="tous"||(filter==="refuse"?u.statut==="refuse"||u.statut==="bloque":u.statut===filter));

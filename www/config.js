@@ -24,3 +24,14 @@ window.B2A_IA_URL = null;
    doit être accepté dans la page utilisateurs.html. Un e-mail est envoyé à cette adresse pour
    chaque nouvelle demande (la première fois, confirmez l'activation dans l'e-mail de FormSubmit). */
 window.B2A_NOTIFY_EMAIL = "azizyou2005@yahoo.fr";
+
+/* 4. Cacher l'e-mail dans le code publié (conseillé) : FormSubmit donne, dans son e-mail d'activation,
+   un identifiant secret (une suite de lettres et de chiffres). Collez-le ici à la place de null :
+   les inscriptions seront envoyées à votre e-mail sans qu'il apparaisse dans le code.
+   Exemple : window.B2A_NOTIFY_ID = "a1b2c3d4e5f6..."; */
+window.B2A_NOTIFY_ID = null;
+
+/* 5. E-mail de contact affiché aux utilisateurs (Réglages, conditions du Marché, suppression du compte).
+   À remplacer par contact@b2a-tech.com dès que cette boîte existe : c'est le seul endroit à changer dans l'application
+   (et aussi dans confidentialite.html, suppression-compte.html et marche-cgu.js, article 14, avec sa traduction). */
+window.B2A_CONTACT_EMAIL = "azizyou2005@yahoo.fr";

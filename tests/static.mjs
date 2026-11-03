@@ -26,6 +26,8 @@ for (const [, src, ver] of scripts) {
   ok(src === "config.js" || sw.includes(`"${src}"`), `sw.js : ${src} n'est pas gardé pour le hors connexion`);
 }
 ok(sw.includes(`"b2a-v${v}"`), `sw.js : le cache doit s'appeler b2a-v${v}`);
+// un seul numéro de version partout : package.json (versionName Android / Google Play) = version.json
+ok(JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).version === v, `package.json : version différente de version.json (${v})`);
 for (const m of sw.matchAll(/"([\w./-]+\.(?:js|html|json|png))"/g)) ok(existsSync(join(WWW, m[1])), `sw.js garde ${m[1]}, fichier absent`);
 // 3. i18n.js chargé en dernier (il traduit ce que les autres fichiers ont affiché)
 ok(scripts.length && scripts[scripts.length - 1][1] === "i18n.js", "index.html : i18n.js doit être le dernier script");

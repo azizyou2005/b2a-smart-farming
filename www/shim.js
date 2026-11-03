@@ -167,7 +167,8 @@ async function joinFarm(cfg,code){
 }
 let dbP=null;
 function getDb(){if(!dbP)dbP=(async()=>{
-  if(CFG&&farm){try{const db=await makeCloud(CFG,farm);try{await joinFarm(CFG,farm)}catch(e){}return db}catch(e){B2A.cloudFail=true;return makeLocal()}}
+  /* d'abord l'inscription dans l'équipe (exigée par les règles, même pour une ferme sans propriétaire), puis les données */
+  if(CFG&&farm){try{try{await joinFarm(CFG,farm)}catch(e){}const db=await makeCloud(CFG,farm);return db}catch(e){B2A.cloudFail=true;return makeLocal()}}
   return makeLocal()})();return dbP}
 
 /* ---------- membres de l'équipe (noms) ---------- */
