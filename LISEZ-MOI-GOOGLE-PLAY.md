@@ -60,3 +60,9 @@ https://azizyou2005.github.io/b2a-smart-farming/confidentialite.html
 Tous les textes à copier (fiche, Data safety, accès examinateur, URL de suppression) sont dans `store/FICHE-GOOGLE-PLAY.md`.
 À faire dans la Play Console : Contenu de l'application > Suppression du compte (coller l'URL `suppression-compte.html`), Sécurité des données, Public cible 18+, Classification, puis envoyer le fichier .aab de la dernière Release.
 La demande de suppression faite dans l'app arrive dans la page d'administration (Marché > Demandes de suppression de compte) : à traiter sous 30 jours.
+
+## Mise à jour novembre 2026 (version 60.16)
+- Fiche en français, italien et anglais, réponses « Sécurité des données » et « Contenu de l'application », ordre des étapes : `store/FICHE-GOOGLE-PLAY.md`.
+- Nouvelles captures (version 60.16) dans `store/`.
+- Politique de confidentialité complétée (italien et anglais, e-mail facultatif, dispositif connecté).
+- Dispositif connecté : pour se connecter au vrai dispositif, installer son certificat HTTPS sur le téléphone (Réglages Android > Sécurité > Chiffrement et identifiants > Installer un certificat > Certificat CA). L'application l'accepte.
