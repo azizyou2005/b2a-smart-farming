@@ -9,7 +9,7 @@ const T={
 "étage {0} au-dessus de {1} °C, étage {2} au-dessus de {3} °C ; aussi si l'ammoniac dépasse {4} ppm.":["stage {0} above {1} °C, stage {2} above {3} °C; also if ammonia exceeds {4} ppm.","stadio {0} oltre {1} °C, stadio {2} oltre {3} °C; anche se l'ammoniaca supera {4} ppm.","etapa {0} por encima de {1} °C, etapa {2} por encima de {3} °C; también si el amoníaco supera {4} ppm."],
 "Au-dessus de {0} °C, tout tourne même en Arrêt.":["Above {0} °C, everything runs even when set to Off.","Oltre {0} °C, tutto gira anche in Arresto.","Por encima de {0} °C, todo funciona incluso en Paro."],
 "Fermer":["Close","Chiudi","Cerrar"],
-"Poulailler en {0}D":["Poultry house in {0}D","Pollaio in {0}D","Gallinero en {0}D"],
+"Poulailler en {0}D":["Poultry house in {0}D","Pollaio in {0}D","Gallinero en {0}D"],"Serre en {0}D":["Greenhouse in {0}D","Serra in {0}D","Invernadero en {0}D"],"Couveuse en {0}D":["Incubator in {0}D","Incubatrice in {0}D","Incubadora en {0}D"],"Élevage en {0}D":["Livestock building in {0}D","Allevamento in {0}D","Granja en {0}D"],"Bassin en {0}D":["Pond in {0}D","Vasca in {0}D","Estanque en {0}D"],"Arrosage":["Watering","Irrigazione","Riego"],
 "Aucune alerte":["No alert","Nessun allarme","Ninguna alerta"],"1 alerte":["1 alert","1 allarme","1 alerta"],"{0} alertes":["{0} alerts","{0} allarmi","{0} alertas"],
 "Intérieur":["Inside","Interno","Interior"],"Dessus":["Top","Dall'alto","Arriba"],"Extérieur":["Outside","Esterno","Exterior"],
 "Simuler une panne":["Simulate a fault","Simula un guasto","Simular una avería"],"Acquitter":["Acknowledge","Tacitare","Reconocer"],
@@ -41,6 +41,8 @@ const LOC={fr:"fr-FR",en:"en-GB",it:"it-IT",es:"es-ES"};
 const fc=(v,d=1)=>v==null||isNaN(v)?"—":Number(v).toLocaleString(LOC[window.B2A_LANG?window.B2A_LANG():"fr"]||"fr-FR",{minimumFractionDigits:d,maximumFractionDigits:d});
 window.B2A_PC3D={open(B){
 const ALARMES=B.ALARMES;
+const LOT=B.lot?B.lot():{genre:"volaille"},GEN=LOT.genre||"volaille",ESP=LOT.esp||"",SUB=LOT.x||"";
+const ok=k=>!B.pertinente||B.pertinente(k);
 const root=document.createElement("div");root.id="p3";document.documentElement.style.overflow="hidden";
 root.innerHTML=`<style>
 #p3{position:fixed;inset:0;z-index:80;background:#0d1626;color:#e8edf5;font:15px/1.35 var(--body,system-ui,sans-serif);overflow:hidden;touch-action:none}
@@ -79,7 +81,7 @@ root.innerHTML=`<style>
 #p3-err{position:absolute;inset:0;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;text-align:center;padding:30px}
 </style><canvas id="p3-c"></canvas>
 <div id="p3-top">
-  <div class="r"><h1>Poulailler en 3D</h1><span class="pill ${B.demo()?"demo":"ok"}" id="p3-mode">${B.demo()?"Démo":"Dispositif"}</span><span class="pill ok" id="p3-alc">Aucune alerte</span><button class="x3" id="p3-close" type="button">Fermer</button></div>
+  <div class="r"><h1>${{volaille:"Poulailler en 3D",animal:"Élevage en 3D",poisson:"Bassin en 3D",culture:"Serre en 3D",couvee:"Couveuse en 3D"}[GEN]}</h1><span class="pill ${B.demo()?"demo":"ok"}" id="p3-mode">${B.demo()?"Démo":"Dispositif"}</span><span class="pill ok" id="p3-alc">Aucune alerte</span><button class="x3" id="p3-close" type="button">Fermer</button></div>
   <div class="r" id="p3-cmds"></div>
   <div id="p3-alert"></div>
   <div class="r" id="p3-views"><button class="view on" data-v="int" type="button">Intérieur</button><button class="view" data-v="top" type="button">Dessus</button><button class="view" data-v="ext" type="button">Extérieur</button><button class="view" id="p3-panne" type="button">Simuler une panne</button><button class="view" id="p3-acq" type="button">Acquitter</button></div>
@@ -97,7 +99,7 @@ const controls=new THREE.OrbitControls(camera,canvas);controls.enableDamping=tru
 const hemi=new THREE.HemisphereLight(0xffffff,0x8a7a5a,0.75);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xffffff,0.85);sun.position.set(8,18,22);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
 Object.assign(sun.shadow.camera,{left:-16,right:16,top:16,bottom:-16,near:1,far:60});scene.add(sun);
-const G={walls:new THREE.Group(),roof:new THREE.Group(),cables:new THREE.Group(),hens:new THREE.Group(),labels:new THREE.Group(),labelsExt:new THREE.Group(),eq:new THREE.Group(),dyn:new THREE.Group()};
+const G={walls:new THREE.Group(),roof:new THREE.Group(),cables:new THREE.Group(),hens:new THREE.Group(),labels:new THREE.Group(),labelsExt:new THREE.Group(),eq:new THREE.Group(),dyn:new THREE.Group(),feed:new THREE.Group(),alt:new THREE.Group(),lampL:new THREE.Group(),eauL:new THREE.Group()};
 Object.values(G).forEach(g=>scene.add(g));
 const M=(c,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:0.8,metalness:0.05},o));
 function box(w,h,d,c,x,y,z,g=G.eq,o){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),typeof c==="number"?M(c,o):c);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m}
@@ -113,7 +115,7 @@ function label(txt,x,y,z,col="#0a5aa8",size=0.32,grp){txt=tr(txt);
 /* étiquette de valeur qui se met à jour */
 function dyn(x,y,z,size=0.3){const CW=1024,c=document.createElement("canvas");c.width=CW;c.height=64;const ctx=c.getContext("2d");const t=new THREE.CanvasTexture(c);t.minFilter=THREE.LinearFilter;
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,depthTest:false}));s.position.set(x,y,z);s.renderOrder=11;s.scale.set(size*CW/64,size,1);G.dyn.add(s);let last="";
-  return{set(txt,col){const k=txt+col;if(k===last)return;last=k;ctx.clearRect(0,0,CW,64);ctx.font="bold 44px system-ui,sans-serif";
+  return{s,set(txt,col){const k=txt+col;if(k===last)return;last=k;ctx.clearRect(0,0,CW,64);ctx.font="bold 44px system-ui,sans-serif";
     const w=Math.min(CW,Math.ceil(ctx.measureText(txt).width)+28);drawTag(ctx,w,txt,col);t.needsUpdate=true;s.center.set(w/2/CW,0.5)}}}
 
 /* ---------- terrain et sol ---------- */
@@ -161,7 +163,7 @@ const blades=[],fanBoxes=[];
 const blue=0x3d8fe0;
 const pipe=cyl(0.025,9,blue,5.1,0.4,2.0,"x");
 for(let x=0.8;x<9.6;x+=0.5)cyl(0.01,0.06,0xaaaaaa,x,0.36,2.0);
-const flo=[];[[9.3,"B1"],[5.2,"B2"],[0.9,"B3"]].forEach(([x,ref])=>{flo.push(sph(0.07,0x1f5fbf,x,0.47,2.0));label(ref,x,0.85,2.0,"#1f5fbf",0.24)});
+const flo=[];[[9.3,"B1"],[5.2,"B2"],[0.9,"B3"]].forEach(([x,ref])=>{flo.push(sph(0.07,0x1f5fbf,x,0.47,2.0));label(ref,x,0.85,2.0,"#1f5fbf",0.24,G.eauL)});
 cyl(0.03,1.6,blue,10.2,0.4,2.8,"z");cyl(0.03,0.6,blue,9.9,0.4,2.0,"x");
 cyl(0.03,3.3,blue,11.85,0.4,3.6,"x");
 box(0.16,0.12,0.12,0x2c3e50,11.3,0.4,3.6);label("B7 compteur",11.3,0.85,3.6,"#1f5fbf",0.24);
@@ -169,18 +171,18 @@ const yv=box(0.14,0.18,0.14,0x16a085,10.7,0.45,3.6);label("YV1 vanne",10.7,1.15,
 cyl(0.6,1.2,0x2a6fbd,13.4,1.15,3.6,"y",G.eq,{roughness:0.5});box(1.3,0.55,1.3,0x7f8c8d,13.4,0.27,3.6);
 
 /* ---------- ligne d'aliment, trémie, moteur, pesons ---------- */
-const feedLine=box(8.8,0.08,0.18,0xc9a24a,5.0,0.3,4.15);
-box(0.6,0.7,0.6,new THREE.MeshStandardMaterial({color:0xd8b35b,transparent:true,opacity:0.35}),9.7,1.0,4.15);const tremieFill=box(0.56,0.66,0.56,0xc9a24a,9.7,1.0,4.15);box(0.25,0.25,0.25,0x7f8c8d,9.7,0.55,4.15);
-[[-0.25,-0.25],[0.25,-0.25],[-0.25,0.25],[0.25,0.25]].forEach(([dx,dz])=>cyl(0.03,0.6,0x555555,9.7+dx,0.35,4.15+dz));
-const mot=cyl(0.09,0.22,0x444444,10.1,0.6,4.15,"x");const motMark=box(0.03,0.16,0.03,0xf1c40f,10.22,0.6,4.15);
+const feedLine=box(8.8,0.08,0.18,0xc9a24a,5.0,0.3,4.15,G.feed);
+box(0.6,0.7,0.6,new THREE.MeshStandardMaterial({color:0xd8b35b,transparent:true,opacity:0.35}),9.7,1.0,4.15,G.feed);const tremieFill=box(0.56,0.66,0.56,0xc9a24a,9.7,1.0,4.15,G.feed);box(0.25,0.25,0.25,0x7f8c8d,9.7,0.55,4.15,G.feed);
+[[-0.25,-0.25],[0.25,-0.25],[-0.25,0.25],[0.25,0.25]].forEach(([dx,dz])=>cyl(0.03,0.6,0x555555,9.7+dx,0.35,4.15+dz,"y",G.feed));
+const mot=cyl(0.09,0.22,0x444444,10.1,0.6,4.15,"x",G.feed);const motMark=box(0.03,0.16,0.03,0xf1c40f,10.22,0.6,4.15,G.feed);
 
-const fpts=[];[[8.8,"B4"],[5.2,"B5"],[0.9,"B6"]].forEach(([x,ref])=>{fpts.push(box(0.07,0.12,0.07,0x8a6a1f,x,0.42,4.05));label(ref,x,0.8,4.15,"#8a6a1f",0.24)});
+const fpts=[];[[8.8,"B4"],[5.2,"B5"],[0.9,"B6"]].forEach(([x,ref])=>{fpts.push(box(0.07,0.12,0.07,0x8a6a1f,x,0.42,4.05,G.feed));label(ref,x,0.8,4.15,"#8a6a1f",0.24,G.feed)});
 /* ---------- brumisation ---------- */
 cyl(0.012,9.0,0x16a085,5.3,2.2,3.4,"x");for(let k=0;k<6;k++){const x=1.2+1.5*k;sph(0.04,0x16a085,x,2.17,3.4)}
 const pump=box(0.3,0.25,0.25,0x16a085,10.4,0.3,3.0);label("M5 pompe",10.4,0.75,3.0,"#16a085",0.24);
 /* ---------- éclairage ---------- */
 const lamps=[];
-[1.5,4.0,6.5,9.0].forEach((x,k)=>{[[1.2,1+k],[5.8,5+k]].forEach(([z,n])=>{const s=sph(0.1,0xfff3b0,x,2.2,z,G.eq,{emissive:0xffd54f,emissiveIntensity:0});lamps.push(s);label("E"+n,x,2.45,z,"#b7950b",0.22)})});
+[1.5,4.0,6.5,9.0].forEach((x,k)=>{[[1.2,1+k],[5.8,5+k]].forEach(([z,n])=>{const s=sph(0.1,0xfff3b0,x,2.2,z,G.eq,{emissive:0xffd54f,emissiveIntensity:0});lamps.push(s);label("E"+n,x,2.45,z,"#b7950b",0.22,G.lampL)})});
 /* ---------- capteurs d'ambiance ---------- */
 [[8.6,"B21"],[6.0,"B22"],[2.4,"B23"]].forEach(([x,ref])=>{box(0.08,0.12,0.05,0xe74c3c,x,0.6,2.75);cyl(0.008,1.9,0x999999,x,1.6,2.75)});
 box(0.08,0.12,0.05,0x8e44ad,2.6,0.5,5.15);box(0.08,0.12,0.05,0x8e44ad,2.6,1.0,5.15);cyl(0.008,1.9,0x999999,2.6,1.5,5.15);
@@ -206,6 +208,32 @@ const trayM=M(0x95a5a6,{metalness:0.5});
 
 
 
+/* ---------- contenu selon le lot choisi : volailles, autres animaux, bassin, cultures ou couveuse ---------- */
+(function(){if(GEN==="volaille")return;G.hens.visible=false;
+  let seed=11;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};const A=G.alt;
+  const libre=(x,z)=>!(x>9.6&&z>4.2)&&Math.abs(z-4.15)>0.3&&Math.abs(z-2.0)>0.25;
+  if(GEN==="culture"){floor.material.color.setHex(0x6b4f33);const tige=M(0x3e7d2a),feu=M(0x4caf50),fruit=M(0xd84315);const fruits=SUB==="mara"||SUB==="legume";
+    for(const z of [0.8,1.4,2.6,3.2,3.8,4.7,5.3,5.9,6.5])for(let x=0.7;x<9.5;x+=0.55){if(!libre(x,z))continue;const h=0.35+rnd()*0.25;
+      const g=new THREE.Group();const t=new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.02,h,6),tige);t.position.y=h/2;
+      const f=new THREE.Mesh(new THREE.SphereGeometry(0.13+rnd()*0.05,8,6),feu);f.position.y=h;f.scale.set(1,0.8,1);g.add(t,f);
+      if(fruits&&rnd()<0.35){const r=new THREE.Mesh(new THREE.SphereGeometry(0.035,6,5),fruit);r.position.set(0.08,h-0.05,0.04);g.add(r)}
+      g.position.set(x,0,z);g.traverse(o=>{o.castShadow=true});A.add(g)}
+    for(const z of [1.1,2.9,5.0,6.2])box(8.8,0.02,0.02,0x1f5fbf,5.0,0.03,z,A)}   // goutte-à-goutte
+  else if(GEN==="couvee"){const blanc=/canard|barbarie|oie/i.test(SUB)?0xf4f1e8:/caille/i.test(SUB)?0xd9c7a0:0xe9cfa6,oeuf=M(blanc,{roughness:0.6});
+    [3.2,7.2].forEach(cx=>{box(1.7,1.9,1.1,0xdfe6ec,cx,0.95,3.5,A,{metalness:0.2});box(1.5,1.6,0.02,new THREE.MeshStandardMaterial({color:0x9fd3ff,transparent:true,opacity:0.35}),cx,1.0,4.06,A);
+      [0.45,0.95,1.45].forEach(y=>{box(1.4,0.03,0.9,0x95a5a6,cx,y,3.5,A);for(let i=0;i<8;i++)for(let j=0;j<5;j++){const e=new THREE.Mesh(new THREE.SphereGeometry(0.06,10,8),oeuf);e.scale.set(1,1.3,1);e.position.set(cx-0.6+i*0.17,y+0.09,3.15+j*0.17);A.add(e)}})})}
+  else if(GEN==="poisson"){floor.material.color.setHex(0xbdb39a);const eau=new THREE.MeshStandardMaterial({color:0x2f86c8,transparent:true,opacity:0.7,roughness:0.2});
+    [[3.0,1.1],[3.0,5.6],[7.6,1.1],[7.6,5.6]].forEach(([x,z])=>{box(3.6,0.25,1.4,0x8e8e8e,x,0.12,z,A);box(3.4,0.04,1.2,eau,x,0.25,z,A);
+      for(let k=0;k<10;k++){const f=new THREE.Mesh(new THREE.SphereGeometry(0.06,8,6),M(0xe67e22));f.scale.set(1.8,0.7,0.6);f.position.set(x-1.5+rnd()*3,0.2,z-0.5+rnd()*1.0);f.rotation.y=rnd()*6.28;A.add(f)}})}
+  else{ /* animaux à quatre pattes */
+    const P=/porc/.test(ESP)?{c:0xf2b8ae,w:0.8,h:0.42,d:0.38,n:26}:/bovin|vache/.test(ESP)?{c:/vache/.test(ESP)?0xf5f5f5:0x7a5232,t:/vache/.test(ESP)?0x222222:null,w:1.5,h:0.75,d:0.55,n:10}:{c:/chevre/.test(ESP)?0x9c6b3e:0xeee6d3,w:0.65,h:0.4,d:0.3,n:28};
+    for(let i=0;i<P.n;i++){const x=0.8+rnd()*8.6,z=0.5+rnd()*6.1;if(!libre(x,z))continue;const g=new THREE.Group(),m=M(P.c);
+      const b=new THREE.Mesh(new THREE.BoxGeometry(P.w,P.h*0.6,P.d),m);b.position.y=P.h*0.7;const hd=new THREE.Mesh(new THREE.BoxGeometry(P.w*0.3,P.h*0.45,P.d*0.75),m);hd.position.set(P.w*0.58,P.h*0.85,0);g.add(b,hd);
+      if(P.t){const tc=new THREE.Mesh(new THREE.BoxGeometry(P.w*0.35,P.h*0.62,P.d*1.02),M(P.t));tc.position.set(-P.w*0.1,P.h*0.7,0);g.add(tc)}
+      [[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([a,c])=>{const l=new THREE.Mesh(new THREE.BoxGeometry(P.w*0.1,P.h*0.45,P.d*0.15),m);l.position.set(a*P.w*0.38,P.h*0.22,c*P.d*0.35);g.add(l)});
+      g.position.set(x,0,z);g.rotation.y=rnd()*6.28;g.traverse(o=>{o.castShadow=true});A.add(g)}}})();
+if(GEN==="culture"||GEN==="couvee")G.feed.visible=false;
+if(GEN==="couvee"){lamps.forEach(l=>l.visible=false);flo.forEach(f=>f.visible=false);G.lampL.visible=false;G.eauL.visible=false}
 const lampLights=[new THREE.PointLight(0xffe08a,0,9,1.6),new THREE.PointLight(0xffe08a,0,9,1.6)];lampLights[0].position.set(5,2.1,1.6);lampLights[1].position.set(5,2.1,5.4);lampLights.forEach(l=>scene.add(l));
 tremieFill.geometry.translate(0,0.33,0);tremieFill.position.y=0.67;
 /* brumisation : gouttelettes */
@@ -217,6 +245,9 @@ const mist=new THREE.Points(mistG,new THREE.PointsMaterial({color:0xdff3ff,size:
 const VL={b21:dyn(8.6,1.0,2.75),b22:dyn(6.0,1.0,2.75),b23:dyn(2.4,1.0,2.75),air:dyn(2.6,1.45,5.15),cuve:dyn(13.4,2.2,3.6,0.32),bat:dyn(10.5,0.65,6.55,0.26),
   tre:dyn(9.7,1.75,4.15),eau:dyn(11.3,0.9,3.6,0.26),vent:dyn(-0.4,2.0,3.6),ecl:dyn(5.2,2.75,3.5),mot:dyn(10.3,0.25,4.6,0.24)};
 const C_OK="#2e7d32",C_W="#b26a00",C_B="#c62828",C_N="#1b2e4c";
+if(GEN==="culture"||GEN==="couvee"){VL.tre.s.visible=false;VL.mot.s.visible=false}
+if(GEN==="couvee"){VL.eau.s.visible=false;VL.ecl.s.visible=false}
+if(GEN!=="volaille"&&GEN!=="animal")VL.air.s.visible=false;
 
 
 let D={};
@@ -244,7 +275,9 @@ const CMDS=[
   st:()=>D.humid?"Pompe M5 en marche":"Arrêté"}];
 const hhmm=h=>{const m=Math.round(((h%24)+24)%24*60);return String(Math.floor(m/60)%24).padStart(2,"0")+" h "+String(m%60).padStart(2,"0")};
 const cmdBox=document.getElementById("p3-cmds");
-CMDS.forEach((c,i)=>{const b=document.createElement("button");b.className="cmd";b.innerHTML=`<i></i>${c.icon} <span>${c.name}</span> <small data-notr>A</small>`;b.onclick=()=>open(i);c.btn=b;cmdBox.append(b)});
+const CMD_OK=i=>!((GEN==="culture"||GEN==="couvee")&&i===2)&&!(GEN==="couvee"&&(i===0||i===3))&&!(GEN==="poisson"&&i===4);
+if(GEN==="culture")CMDS[3].name="Arrosage";
+CMDS.forEach((c,i)=>{const b=document.createElement("button");b.className="cmd";b.innerHTML=`<i></i>${c.icon} <span>${c.name}</span> <small data-notr>A</small>`;b.onclick=()=>open(i);c.btn=b;if(CMD_OK(i))cmdBox.append(b)});
 let openIdx=-1;const sheet=document.getElementById("p3-sheet");
 function open(i){openIdx=i;renderSheet();sheet.style.display="block";document.getElementById("p3-vals").style.visibility="hidden"}
 function closeSheet(){openIdx=-1;sheet.style.display="none";document.getElementById("p3-vals").style.visibility="visible"}
@@ -275,7 +308,7 @@ const bp=document.getElementById("p3-panne");if(B.demo())bp.onclick=()=>open(99)
 document.getElementById("p3-acq").onclick=()=>send({acquitter:1});
 
 /* ---------- toucher un équipement dans la 3D ---------- */
-const pick=[];const reg=(objs,i)=>objs.forEach(o=>{o.userData.cmd=i;pick.push(o)});
+const pick=[];const reg=(objs,i)=>{if(CMD_OK(i))objs.forEach(o=>{o.userData.cmd=i;pick.push(o)})};
 reg(lamps,0);reg(fanBoxes.concat(blades.flatMap(b=>b.children)),1);reg([tremieFill,mot,feedLine].concat(fpts),2);reg([yv,pipe].concat(flo),3);reg([pump],4);
 const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();let down=null;
 canvas.addEventListener("pointerdown",e=>{down=[e.clientX,e.clientY]});
@@ -287,9 +320,9 @@ canvas.addEventListener("pointerup",e=>{if(!down||Math.hypot(e.clientX-down[0],e
 /* ---------- mise à jour de l'interface ---------- */
 const ALN=Object.keys(ALARMES);
 function ui(){
-  const act=ALN.filter(a=>D[a]);
+  const act=ALN.filter(a=>D[a]&&ok(a));
   CMDS.forEach(c=>{const on=!!D[c.out],man=D[c.k]!==1;c.btn.classList.toggle("on",on);const s=c.btn.querySelector("small");s.textContent=man?"M":"A";s.className=man?"man":"";
-    c.btn.classList.toggle("al",c.al.some(a=>D[a]))});
+    c.btn.classList.toggle("al",c.al.some(a=>D[a]&&ok(a)))});
   const ac=document.getElementById("p3-alc");ac.textContent=act.length?(act.length>1?act.length+" alertes":"1 alerte"):"Aucune alerte";ac.className="pill "+(act.length?"bad":"ok");
   const al=document.getElementById("p3-alert");al.style.display=act.length?"block":"none";
   al.textContent=act.map(a=>tr(ALARMES[a][1])).join(" · ")+(D.sirene?" · "+tr("sirène en marche"):"");al.setAttribute("data-notr","")
@@ -298,7 +331,7 @@ function ui(){
     ["NH₃",fmt(D.nh3,0)+" ppm",lvl(D.nh3,0,15,0,25)],
     ["Eau jour",fmt(D.eauJour,0)+" L",lvl(D.eauJour/(D.eauHier*Math.max(.05,new Date().getHours()/24)),0.85,1.25,0.7,1.5)],
     ["Batterie",fmt(D.batterie)+" V",lvl(D.batterie,25,29.5,24,29.5)]];
-  document.getElementById("p3-vals").innerHTML=V.map(([l,v,c])=>`<div class="v ${c}"><span>${l}</span><b>${v}</b></div>`).join("");
+  document.getElementById("p3-vals").innerHTML=V.filter(([l])=>!(l==="NH₃"&&GEN!=="volaille"&&GEN!=="animal")&&!(l==="Eau jour"&&GEN==="couvee")).map(([l,v,c])=>`<div class="v ${c}"><span>${l}</span><b>${v}</b></div>`).join("");
   // étiquettes 3D
   [["b21","t1","h1","B21"],["b22","t2","h2","B22"],["b23","t3","h3","B23"]].forEach(([k,t,h,r])=>{const bad=D[t]<-10||D[t]>60;
     VL[k].set(bad?`${r} ${tr("en défaut")}`:`${r} ${fc(D[t])} °C · ${fc(D[h],0)} %`,COL[bad?"bad":lvl(D[t],D.tCible-1.5,D.tCible+1.5,D.tCible-3,D.tCible+3)])});
@@ -340,7 +373,7 @@ function place(v){const V=VIEWS[v],F=THREE.MathUtils.degToRad(camera.fov),fv=2*M
   const port=innerWidth<innerHeight,r=port&&V.pr?V.pr:V.r;const dist=r/Math.sin(Math.min(fv,fh)/2)*1.02;let d=new THREE.Vector3(...(port&&V.pd?V.pd:V.d));if(v==="top"&&port)d=new THREE.Vector3(0.02,1,0);
   d.normalize();const tg=new THREE.Vector3(...V.t);return[tg.clone().add(d.multiplyScalar(dist)),tg]}
 function go(v){cur=v;document.querySelectorAll("#p3-views [data-v]").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
-  G.roof.visible=v==="ext";G.labels.visible=v!=="ext";G.dyn.visible=true;wallMat.transparent=true;wallMat.opacity=v==="int"?0.35:1;wallMat.depthWrite=v!=="int";
+  G.roof.visible=v==="ext";G.labels.visible=v!=="ext";G.lampL.visible=G.eauL.visible=v!=="ext"&&GEN!=="couvee";G.dyn.visible=true;wallMat.transparent=true;wallMat.opacity=v==="int"?0.35:1;wallMat.depthWrite=v!=="int";
   const[p1,t1]=place(v),p0=camera.position.clone(),t0=controls.target.clone(),st=performance.now();
   anim=()=>{const k=Math.min(1,(performance.now()-st)/900),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;camera.position.lerpVectors(p0,p1,e);controls.target.lerpVectors(t0,t1,e);if(k>=1)anim=null}}
 document.querySelectorAll("#p3-views [data-v]").forEach(b=>b.onclick=()=>go(b.dataset.v));

@@ -80,7 +80,7 @@ const T={
 "Âge : {0} semaines":["Age: {0} weeks","Età: {0} settimane","Edad: {0} semanas"],"Âge : {0} jours":["Age: {0} days","Età: {0} giorni","Edad: {0} días"],
 "{0} semaines":["{0} weeks","{0} settimane","{0} semanas"],"{0} jours":["{0} days","{0} giorni","{0} días"],
 "{0} animaux":["{0} animals","{0} animali","{0} animales"],"pondeuses":["layers","ovaiole","ponedoras"],"poulets de chair":["broilers","polli da carne","pollos de engorde"],
-"poulets locaux et pintades":["local chickens and guinea fowl","polli locali e faraone","pollos locales y pintadas"],"porcs":["pigs","suini","cerdos"],"moutons et chèvres":["sheep and goats","pecore e capre","ovejas y cabras"],"chèvres laitières":["dairy goats","capre da latte","cabras lecheras"],"bovins":["cattle","bovini","bovinos"],"couvée":["incubation batch","covata","incubación"],"culture":["crop","coltura","cultivo"],"Couvée : {0} œufs":["Batch: {0} eggs","Covata: {0} uova","Incubación: {0} huevos"],"{0} œufs":["{0} eggs","{0} uova","{0} huevos"],"Jour {0} sur {1}":["Day {0} of {1}","Giorno {0} di {1}","Día {0} de {1}"],"Jour {0} depuis le semis":["Day {0} since sowing","Giorno {0} dalla semina","Día {0} desde la siembra"],
+"poulets locaux et pintades":["local chickens and guinea fowl","polli locali e faraone","pollos locales y pintadas"],"porcs":["pigs","suini","cerdos"],"moutons et chèvres":["sheep and goats","pecore e capre","ovejas y cabras"],"chèvres laitières":["dairy goats","capre da latte","cabras lecheras"],"bovins":["cattle","bovini","bovinos"],"couvée":["incubation batch","covata","incubación"],"Élevage connecté":["Connected farm","Allevamento connesso","Granja conectada"],"Bassin connecté":["Connected pond","Vasca connessa","Estanque conectado"],"Serre connectée":["Connected greenhouse","Serra connessa","Invernadero conectado"],"Couveuse connectée":["Connected incubator","Incubatrice connessa","Incubadora conectada"],"Vue {0}D":["{0}D view","Vista {0}D","Vista {0}D"],"Arrosage":["Watering","Irrigazione","Riego"],"culture":["crop","coltura","cultivo"],"Couvée : {0} œufs":["Batch: {0} eggs","Covata: {0} uova","Incubación: {0} huevos"],"{0} œufs":["{0} eggs","{0} uova","{0} huevos"],"Jour {0} sur {1}":["Day {0} of {1}","Giorno {0} di {1}","Día {0} de {1}"],"Jour {0} depuis le semis":["Day {0} since sowing","Giorno {0} dalla semina","Día {0} desde la siembra"],
 "Couvée : retournement des œufs jusqu'à J{0}, puis humidité d'éclosion.":["Incubation: egg turning until day {0}, then hatching humidity.","Covata: girata delle uova fino al giorno {0}, poi umidità di schiusa.","Incubación: volteo de los huevos hasta el día {0}, luego humedad de eclosión."],"Retournement arrêté : humidité d'éclosion, ne plus ouvrir la couveuse.":["Turning stopped: hatching humidity, do not open the incubator any more.","Girata fermata: umidità di schiusa, non aprire più l'incubatrice.","Volteo detenido: humedad de eclosión, no abrir más la incubadora."],
 "Culture : arrosage selon l'humidité, aération de la serre au-dessus des seuils.":["Crop: watering according to humidity, greenhouse ventilation above the thresholds.","Coltura: irrigazione secondo l'umidità, aerazione della serra sopra le soglie.","Cultivo: riego según la humedad, ventilación del invernadero por encima de los umbrales."],"vaches laitières":["dairy cows","vacche da latte","vacas lecheras"],"poissons":["fish","pesci","peces"],"autres animaux":["other animals","altri animali","otros animales"],
 "vérifier l'état des animaux.":["check the animals.","controllare gli animali.","revisar los animales."],"Eau en baisse de {0} % sur {1} jours : vérifier l'état des animaux.":["Water down {0} % over {1} days: check the animals.","Acqua in calo del {0} % su {1} giorni: controllare gli animali.","Agua en bajada del {0} % en {1} días: revisar los animales."],
@@ -173,6 +173,10 @@ const CMDS={modeAliment:"moteur",modeEau:"vanne",modeEclairage:"lampes",modeHumi
 const ESPECES={pondeuse:[1,"pondeuses"],chair:[2,"poulets de chair"],local:[3,"poulets locaux et pintades"],porc:[4,"porcs"],petitsrum:[5,"moutons et chèvres"],
   chevrelait:[6,"chèvres laitières"],bovin:[7,"bovins"],vachelait:[8,"vaches laitières"],poisson:[9,"poissons"],autre:[10,"autres animaux"],couvee:[11,"couvée"],culture:[12,"culture"]};
 const VOLAILLES=["pondeuse","chair","local"];
+const genre=esp=>esp==="couvee"||esp==="culture"||esp==="poisson"?esp:VOLAILLES.includes(esp)?"volaille":"animal";
+/* alertes qui ne concernent pas le lot choisi (pas d'aliment en serre, pas d'ammoniac dans une couveuse…) */
+const HORS={culture:["alNh3","alVis","alTremie"],couvee:["alNh3","alVis","alTremie","alEauRemplit","alFuite","alEauQualite"],poisson:["alNh3"]};
+const pertinente=k=>!(HORS[genre(infoLot().esp)]||[]).includes(k);
 function especeDe(l){const e=(l&&l.espece)||"";
   return /poisson|tilapia|silure|clarias/i.test(e)?"poisson":/pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade|caille|dinde|canard/i.test(e)?"local":
     /vache/i.test(e)?"vachelait":/chèvre.*lait/i.test(e)?"chevrelait":/chèvre|mouton|brebis|agneau/i.test(e)?"petitsrum":/bovin|veau|taurillon/i.test(e)?"bovin":/porc|truie/i.test(e)?"porc":"autre"}
@@ -447,13 +451,22 @@ async function envoyerConsignes(){
   try{await api.write({espece:ESPECES[I.esp][0]})}catch(e){}   /* envoyé à part : un ancien programme du dispositif qui ne connaît que 1 et 2 ne bloque pas les consignes */
   finally{busy=false}
   renderLot(I,c);refresh()}
+/* n'affiche que ce qui concerne le lot choisi */
+function adapter(I){
+  const g=genre(I.esp),sec=id=>$(id)&&$(id).closest("section");
+  const cache={alim:g==="culture"||g==="couvee",eau:g==="couvee",ecl:g==="couvee",hum:g==="poisson",san:g==="culture"||g==="couvee",nh3:g!=="volaille"&&g!=="animal"};
+  sec("pc-s-moteur").hidden=cache.alim;sec("pc-s-vanne").hidden=cache.eau;sec("pc-s-lampes").hidden=cache.ecl;sec("pc-s-humid").hidden=cache.hum;sec("pc-alerts").hidden=cache.san;
+  $("pc-kp-nh3").hidden=cache.nh3;
+  const h=V.querySelector("h2.sec");if(h)h.textContent={volaille:"Poulailler connecté",animal:"Élevage connecté",poisson:"Bassin connecté",culture:"Serre connectée",couvee:"Couveuse connectée"}[g];
+  $("pc-3d").textContent=g==="volaille"?"Vue 3D du poulailler":"Vue 3D";
+  const he=$("pc-s-vanne").closest(".pc-head").querySelector("h2");if(he)he.textContent=g==="culture"?"Arrosage":"Distribution d'eau"}
 function renderLot(I,c){
   const sel=$("pc-lot"),L=lotsPoules();const cur=I.l?I.l.id:"";
   sel.innerHTML=L.length?L.map(l=>`<option value="${l.id}">${String(l.nom||l.espece||"Lot").replace(/[<>&"]/g,"")}</option>`).join(""):`<option value="">Pondeuses (démo)</option>`;sel.value=cur;
   const sem=Math.floor(I.ageJ/7);
   $("pc-lotinfo").textContent=I.esp==="couvee"?`Jour ${I.ageJ} sur ${I.X.d||21} · ${fmt(I.alive,0)} œufs · couvée`:I.esp==="culture"?`Jour ${I.ageJ} depuis le semis · culture`:
     (I.ageJ<14?`Âge : ${I.ageJ} jours`:`Âge : ${sem} semaines`)+` · ${fmt(I.alive,0)} animaux · `+ESPECES[I.esp][1];
-  $("pc-seg-sante").hidden=I.esp==="couvee"||I.esp==="culture";
+  $("pc-seg-sante").hidden=I.esp==="couvee"||I.esp==="culture";adapter(I);
   $("pc-k-ct").textContent=fmt(c.tCible);$("pc-k-ch").textContent=c.hrBasse+" – "+c.hrHaute;$("pc-k-cl").textContent=fmt(c.dureeLumiere,c.dureeLumiere%1?1:0);
   $("pc-k-cv").textContent=fmt(c.seuilVent1,c.seuilVent1%1?1:0)+" / "+fmt(c.seuilVent2,c.seuilVent2%1?1:0);
   document.querySelectorAll("#pc-seg-sante button").forEach(b=>b.classList.toggle("sel",Number(b.dataset.v)===I.sante));
@@ -475,7 +488,7 @@ async function notifier(titre,texte){
   try{const p=await LN.checkPermissions();if(p.display!=="granted")await LN.requestPermissions();
     await LN.schedule({notifications:[{id:Date.now()%2147483647,title:titre,body:texte}]})}catch(e){}}
 function renderAlertes(){
-  const list=[];Object.entries(ALARMES).forEach(([k,a])=>{if(data[k])list.push({k,n:a[0],t:a[1],x:a[2]})});
+  const list=[];Object.entries(ALARMES).forEach(([k,a])=>{if(data[k]&&pertinente(k))list.push({k,n:a[0],t:a[1],x:a[2]})});
   if(horsLigne&&Date.now()-horsLigne>(demo?15e3:3e5))list.push({k:"horsLigne",n:3,t:"Dispositif injoignable",x:"Vérifier le routeur 4G, le VPN et l'alimentation à la ferme"});
   list.sort((a,b)=>b.n-a.n);const now=new Date();
   list.forEach(a=>{if(!vues[a.k]){vues[a.k]=now;toast("⚠ "+tr(a.t));notifier(tr(a.n===3?"Urgence au poulailler":"Attention au poulailler"),tr(a.t)+". "+tr(a.x));if(a.n===3)bip()}});
@@ -572,7 +585,7 @@ const VER=(()=>{const e=document.querySelector('script[src*="poulailler.js"]');c
 $("pc-3d").onclick=async()=>{const b=$("pc-3d");if(b.disabled)return;b.disabled=true;b.style.opacity=".6";
   try{if(!window.THREE)await loadScript("libs/three.min.js?v="+VER);if(!window.THREE.OrbitControls)await loadScript("libs/OrbitControls.js?v="+VER);
     if(!window.B2A_PC3D)await loadScript("poulailler3d.js?v="+VER);if(!started)start();
-    window.B2A_PC3D.open({data:()=>data,refresh,send,demo:()=>demo,ALARMES})}
+    window.B2A_PC3D.open({data:()=>data,refresh,send,demo:()=>demo,ALARMES,lot:()=>{const I=infoLot();return{genre:genre(I.esp),esp:I.esp,x:I.esp==="culture"?I.X:I.esp==="couvee"?(I.l&&I.l.__couv&&I.l.__couv.espece)||"":""}},pertinente})}
   catch(e){toast(tr("La vue 3D n'a pas pu se charger."))}
   finally{b.disabled=false;b.style.opacity=""}};
 
