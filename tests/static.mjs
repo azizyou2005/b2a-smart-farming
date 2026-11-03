@@ -37,7 +37,8 @@ ok(!/<script src="dict/.test(index), "index.html : les traductions se chargent p
 // 4. manifeste
 try { const m = JSON.parse(readFileSync(join(WWW, "manifest.json"), "utf8")); ok(m.name && m.icons && m.icons.length, "manifest.json incomplet"); } catch (e) { fails.push("manifest.json invalide : " + e.message); }
 // 5. politique de sécurité du contenu sur chaque page
-for (const f of readdirSync(WWW).filter(f => f.endsWith(".html"))) {
+// Les fichiers de vérification Google (googleXXXX.html) ne doivent pas être modifiés : on les ignore ici.
+for (const f of readdirSync(WWW).filter(f => f.endsWith(".html") && !/^google[0-9a-f]+\.html$/.test(f))) {
   ok(readFileSync(join(WWW, f), "utf8").includes("Content-Security-Policy"), `${f} : pas de Content-Security-Policy`);
 }
 // 6. aucun secret dans le dépôt (clé de signature, clé Anthropic, clé privée)
