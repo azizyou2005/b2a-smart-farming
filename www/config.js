@@ -33,5 +33,5 @@ window.B2A_NOTIFY_ID = null;
 
 /* 5. E-mail de contact affiché aux utilisateurs (Réglages, conditions du Marché, suppression du compte).
    À remplacer par contact@b2a-tech.com dès que cette boîte existe : c'est le seul endroit à changer dans l'application
-   (et aussi dans confidentialite.html et suppression-compte.html). */
+   (et aussi dans confidentialite.html, suppression-compte.html et marche-cgu.js, article 14, avec sa traduction). */
 window.B2A_CONTACT_EMAIL = "azizyou2005@yahoo.fr";
