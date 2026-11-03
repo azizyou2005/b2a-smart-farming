@@ -325,7 +325,7 @@ V.innerHTML=`<style>
 #v-poulailler .pc-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
 #v-poulailler .pc-note.warn{color:var(--warn)} #v-poulailler .pc-note.bad{color:var(--bad)} #v-poulailler .pc-note.ok{color:var(--ok)}
 #v-poulailler .pc-sim{display:flex;flex-wrap:wrap;gap:8px}
-#pc-toast{position:fixed;left:50%;top:12px;transform:translateX(-50%);width:min(92%,440px);background:var(--bad-bg);color:var(--bad);border:1px solid var(--bad);border-radius:12px;padding:10px 14px;font-weight:700;z-index:90;display:none}
+#pc-toast{position:fixed;left:50%;top:12px;transform:translateX(-50%);width:min(92%,440px);background:var(--bad-bg);color:var(--bad);border:1px solid var(--bad);border-radius:12px;padding:10px 14px;font-weight:700;z-index:90;display:none;pointer-events:none}
 </style>
 <section class="card">
   <div class="pc-head"><div><h2 class="sec">Poulailler connecté</h2><p class="note">Dispositif de contrôle B2A Smart Building</p></div><span class="pc-st" id="pc-status">Démo</span></div>
@@ -468,7 +468,8 @@ function renderLot(I,c){
 function bip(){if(!sonActif||!audio)return;
   try{[0,0.35].forEach(t=>{const o=audio.createOscillator(),g=audio.createGain();o.type="square";o.frequency.value=t?660:880;
     g.gain.setValueAtTime(0.15,audio.currentTime+t);g.gain.exponentialRampToValueAtTime(0.001,audio.currentTime+t+0.3);o.connect(g);g.connect(audio.destination);o.start(audio.currentTime+t);o.stop(audio.currentTime+t+0.3)})}catch(e){}}
-function toast(t){toastEl.textContent=t;toastEl.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(()=>toastEl.style.display="none",6000)}
+function toast(t){if(document.getElementById("p3"))return;   /* vue 3D ouverte : elle affiche déjà ses alertes, le bandeau cacherait « Fermer » */
+  toastEl.textContent=t;toastEl.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(()=>toastEl.style.display="none",6000)}
 async function notifier(titre,texte){
   const C=window.Capacitor;const LN=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.LocalNotifications;if(!LN)return;
   try{const p=await LN.checkPermissions();if(p.display!=="granted")await LN.requestPermissions();
