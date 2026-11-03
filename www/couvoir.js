@@ -427,7 +427,7 @@ let kwhT=null;$("cv-kwh").addEventListener("input",()=>{kwh=N($("cv-kwh").value)
 
 window.renderCouvoir=render;
 /* pour le bilan annuel (bilan.js) */
-window.B2A_COUV={batches:()=>batches,sale:b=>sale(b)};
+window.B2A_COUV={batches:()=>batches,sale:b=>sale(b),sp:()=>SP};
 /* l'onglet marche seul, même si le téléphone garde encore une ancienne copie de app.js */
 function openTab(){const v=$("v-couvoir");if(!v)return;
   document.querySelectorAll('.wrap > .view[id^="v-"]').forEach(x=>{x.hidden=x!==v});

@@ -80,7 +80,9 @@ const T={
 "Âge : {0} semaines":["Age: {0} weeks","Età: {0} settimane","Edad: {0} semanas"],"Âge : {0} jours":["Age: {0} days","Età: {0} giorni","Edad: {0} días"],
 "{0} semaines":["{0} weeks","{0} settimane","{0} semanas"],"{0} jours":["{0} days","{0} giorni","{0} días"],
 "{0} animaux":["{0} animals","{0} animali","{0} animales"],"pondeuses":["layers","ovaiole","ponedoras"],"poulets de chair":["broilers","polli da carne","pollos de engorde"],
-"poulets locaux et pintades":["local chickens and guinea fowl","polli locali e faraone","pollos locales y pintadas"],"porcs":["pigs","suini","cerdos"],"moutons et chèvres":["sheep and goats","pecore e capre","ovejas y cabras"],"chèvres laitières":["dairy goats","capre da latte","cabras lecheras"],"bovins":["cattle","bovini","bovinos"],"vaches laitières":["dairy cows","vacche da latte","vacas lecheras"],"poissons":["fish","pesci","peces"],"autres animaux":["other animals","altri animali","otros animales"],
+"poulets locaux et pintades":["local chickens and guinea fowl","polli locali e faraone","pollos locales y pintadas"],"porcs":["pigs","suini","cerdos"],"moutons et chèvres":["sheep and goats","pecore e capre","ovejas y cabras"],"chèvres laitières":["dairy goats","capre da latte","cabras lecheras"],"bovins":["cattle","bovini","bovinos"],"couvée":["incubation batch","covata","incubación"],"culture":["crop","coltura","cultivo"],"Couvée : {0} œufs":["Batch: {0} eggs","Covata: {0} uova","Incubación: {0} huevos"],"{0} œufs":["{0} eggs","{0} uova","{0} huevos"],"Jour {0} sur {1}":["Day {0} of {1}","Giorno {0} di {1}","Día {0} de {1}"],"Jour {0} depuis le semis":["Day {0} since sowing","Giorno {0} dalla semina","Día {0} desde la siembra"],
+"Couvée : retournement des œufs jusqu'à J{0}, puis humidité d'éclosion.":["Incubation: egg turning until day {0}, then hatching humidity.","Covata: girata delle uova fino al giorno {0}, poi umidità di schiusa.","Incubación: volteo de los huevos hasta el día {0}, luego humedad de eclosión."],"Retournement arrêté : humidité d'éclosion, ne plus ouvrir la couveuse.":["Turning stopped: hatching humidity, do not open the incubator any more.","Girata fermata: umidità di schiusa, non aprire più l'incubatrice.","Volteo detenido: humedad de eclosión, no abrir más la incubadora."],
+"Culture : arrosage selon l'humidité, aération de la serre au-dessus des seuils.":["Crop: watering according to humidity, greenhouse ventilation above the thresholds.","Coltura: irrigazione secondo l'umidità, aerazione della serra sopra le soglie.","Cultivo: riego según la humedad, ventilación del invernadero por encima de los umbrales."],"vaches laitières":["dairy cows","vacche da latte","vacas lecheras"],"poissons":["fish","pesci","peces"],"autres animaux":["other animals","altri animali","otros animales"],
 "vérifier l'état des animaux.":["check the animals.","controllare gli animali.","revisar los animales."],"Eau en baisse de {0} % sur {1} jours : vérifier l'état des animaux.":["Water down {0} % over {1} days: check the animals.","Acqua in calo del {0} % su {1} giorni: controllare gli animali.","Agua en bajada del {0} % en {1} días: revisar los animales."],
 "Température cible":["Target temperature","Temperatura obiettivo","Temperatura objetivo"],"Lumière par jour":["Light per day","Luce al giorno","Luz por día"],
 "Ventilation étages {0} / {1}":["Ventilation stages {0} / {1}","Ventilazione stadi {0} / {1}","Ventilación etapas {0} / {1}"],
@@ -169,13 +171,21 @@ const CMDS={modeAliment:"moteur",modeEau:"vanne",modeEclairage:"lampes",modeHumi
 /* ================= consignes selon l'espèce, l'âge et la santé (repères de départ, à valider avec le guide de la souche) ================= */
 /* espèce du lot : clé, nom affiché et code envoyé au dispositif (point espece) */
 const ESPECES={pondeuse:[1,"pondeuses"],chair:[2,"poulets de chair"],local:[3,"poulets locaux et pintades"],porc:[4,"porcs"],petitsrum:[5,"moutons et chèvres"],
-  chevrelait:[6,"chèvres laitières"],bovin:[7,"bovins"],vachelait:[8,"vaches laitières"],poisson:[9,"poissons"],autre:[10,"autres animaux"]};
+  chevrelait:[6,"chèvres laitières"],bovin:[7,"bovins"],vachelait:[8,"vaches laitières"],poisson:[9,"poissons"],autre:[10,"autres animaux"],couvee:[11,"couvée"],culture:[12,"culture"]};
 const VOLAILLES=["pondeuse","chair","local"];
 function especeDe(l){const e=(l&&l.espece)||"";
   return /poisson|tilapia|silure|clarias/i.test(e)?"poisson":/pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade|caille|dinde|canard/i.test(e)?"local":
     /vache/i.test(e)?"vachelait":/chèvre.*lait/i.test(e)?"chevrelait":/chèvre|mouton|brebis|agneau/i.test(e)?"petitsrum":/bovin|veau|taurillon/i.test(e)?"bovin":/porc|truie/i.test(e)?"porc":"autre"}
-function consignes(ageJ,esp,sante){
+const num=x=>Number(String(x==null?"":x).replace(",","."));
+const plage=x=>{const m=String(x||"").match(/(\d+)\D+(\d+)/);return m?[+m[1],+m[2]]:[50,55]};
+function consignes(ageJ,esp,sante,X){
   const s=Math.floor(ageJ/7)+1;let t,hb=50,hh=70,lum=12,v1,v2;
+  if(esp==="couvee"){ /* couveuse : paramètres de l'espèce du couvoir ; après l'arrêt du retournement, humidité d'éclosion */
+    const p=X||{t:"37,7",h1:"50–55 %",h2:"65–70 %",stop:18},fin=ageJ>=(p.stop||18);t=num(p.t)||37.7;if(fin)t=Math.round((t-0.2)*10)/10;
+    [hb,hh]=plage(fin?p.h2:p.h1);return{tCible:t,hrBasse:hb,hrHaute:hh,dureeLumiere:0,seuilVent1:+(t+0.5).toFixed(1),seuilVent2:+(t+1.5).toFixed(1),modeSante:0}}
+  if(esp==="culture"){ /* serre ou parcelle : maraîchage plus humide, jeunes plants (moins de 3 semaines) protégés */
+    const g=X||"autre",jeune=ageJ<21;t=g==="mara"?24:25;hb=jeune?70:g==="mara"?60:50;hh=jeune?90:g==="mara"?80:85;
+    return{tCible:t,hrBasse:hb,hrHaute:hh,dureeLumiere:12,seuilVent1:g==="mara"?28:30,seuilVent2:g==="mara"?32:34,modeSante:0}}
   if(esp==="pondeuse"){
     if(ageJ<=3){t=33;hb=60;hh=70;lum=22.5}else if(s===1){t=31.5;hb=60;hh=70;lum=20}else if(s===2){t=29.5;hb=55;hh=65;lum=16}
     else if(s===3){t=27.5;hb=50;hh=65;lum=14}else if(s===4){t=25.5;hb=50;hh=70;lum=12}else{t=23;hb=50;hh=70;lum=s<=16?11:Math.min(16,11+0.5*(s-16))}
@@ -396,10 +406,17 @@ const toastEl=document.createElement("div");toastEl.id="pc-toast";toastEl.setAtt
 let api=null,data={},busy=false,demo=true,horsLigne=null,envoye=null,timer=null,santeForcee=null;
 const vues={};let sonActif=false,audio=null;
 
-function lotsPoules(){return (A.lots()||[]).filter(l=>!A.isCrop||!A.isCrop(l))}
+function couveesEnCours(){let b=[];try{b=(window.B2A_COUV&&window.B2A_COUV.batches()||[]).filter(x=>(x.statut||"encours")==="encours")}catch(e){}
+  return b.map(x=>({id:"couv:"+x.id,nom:`Couvée : ${fmt(x.oeufs,0)} œufs`,__couv:x}))}
+function lotsPoules(){return (A.lots()||[]).concat(couveesEnCours())}
 function lotChoisi(){const L=lotsPoules();return L.find(l=>l.id===cfg.lotId)||L.find(l=>A.isLayer(l))||L[0]||null}
+const jours=d=>{if(!d)return 0;const n=Math.floor((new Date(A.today()+"T12:00")-new Date(d+"T12:00"))/864e5);return n>0?n:0};
 function infoLot(){
   const l=lotChoisi();if(!l)return{l:null,ageJ:109,esp:"pondeuse",ponte:true,alive:430,sante:0};
+  if(l.__couv){const b=l.__couv;let p=null;try{p=(window.B2A_COUV.sp&&window.B2A_COUV.sp()||{})[b.espece]||null}catch(e){}
+    return{l,ageJ:jours(b.debut),esp:"couvee",X:p||{t:"37,7",h1:"50–55 %",h2:"65–70 %",stop:18,d:21},ponte:false,alive:Number(b.oeufs)||0,sante:0}}
+  if(A.isCrop&&A.isCrop(l)){let g="autre";try{const C=window.B2A_CULT&&window.B2A_CULT.crops;g=(C&&(C[l.culture]||C.autre)||{}).g||"autre"}catch(e){}
+    return{l,ageJ:jours(l.dateSemis||l.datePlantation),esp:"culture",X:g,ponte:false,alive:0,sante:0}}
   let ageJ=Math.round((Number(l.ageArrivee)||0)*7);
   if(l.arrivee){const d=Math.floor((new Date(A.today()+"T12:00")-new Date(l.arrivee+"T12:00"))/864e5);if(d>0)ageJ+=d}
   let s=null;try{s=A.stats(l)}catch(e){}
@@ -414,16 +431,17 @@ function connect(){
   setStatus(demo?"warn":"on",demo?"Démo":cfg.ip);$("pc-demo-note").hidden=!demo;$("pc-simbox").hidden=!demo;
   $("pc-c-demo").checked=demo;$("pc-c-ip").value=cfg.ip||"";$("pc-c-user").value=cfg.user||"";$("pc-c-pw").value=cfg.password||"";
   envoyerConsignes()}
-let tick=0;
+let tick=0,lotsSig="";
 async function refresh(){
   if(!api)return;if(V.hidden&&(demo||(tick++%10)))return;   // écran fermé : la démo s'arrête, le vrai dispositif est surveillé toutes les 30 s pour les alertes
+  {const sig=lotsPoules().map(l=>l.id).join();if(sig!==lotsSig){const premier=lotsSig==="";lotsSig=sig;if(!premier&&!busy){envoyerConsignes();return}}}
   try{data=await api.readAll();horsLigne=null;render();if($("pc-status").classList.contains("bad"))setStatus(demo?"warn":"on",demo?"Démo":cfg.ip)}
   catch(e){setStatus("bad","Hors ligne");$("pc-updated").textContent="Dispositif injoignable (VPN actif ?)";if(!horsLigne)horsLigne=Date.now();renderAlertes()}}
 async function send(vals){busy=true;try{await api.write(vals);await refresh()}catch(e){setStatus("bad","Commande non envoyée")}finally{busy=false}}
 
 /* consignes de l'âge et de la santé, envoyées au dispositif avec les données du lot */
 async function envoyerConsignes(){
-  const I=infoLot(),c=consignes(I.ageJ,I.esp,I.sante);
+  const I=infoLot(),c=consignes(I.ageJ,I.esp,I.sante,I.X);
   const vals=Object.assign({},c,{ageJours:I.ageJ,effectif:I.alive});
   busy=true;try{await api.write(vals);envoye=new Date()}catch(e){envoye=null}
   try{await api.write({espece:ESPECES[I.esp][0]})}catch(e){}   /* envoyé à part : un ancien programme du dispositif qui ne connaît que 1 et 2 ne bloque pas les consignes */
@@ -433,7 +451,9 @@ function renderLot(I,c){
   const sel=$("pc-lot"),L=lotsPoules();const cur=I.l?I.l.id:"";
   sel.innerHTML=L.length?L.map(l=>`<option value="${l.id}">${String(l.nom||l.espece||"Lot").replace(/[<>&"]/g,"")}</option>`).join(""):`<option value="">Pondeuses (démo)</option>`;sel.value=cur;
   const sem=Math.floor(I.ageJ/7);
-  $("pc-lotinfo").textContent=(I.ageJ<14?`Âge : ${I.ageJ} jours`:`Âge : ${sem} semaines`)+` · ${fmt(I.alive,0)} animaux · `+ESPECES[I.esp][1];
+  $("pc-lotinfo").textContent=I.esp==="couvee"?`Jour ${I.ageJ} sur ${I.X.d||21} · ${fmt(I.alive,0)} œufs · couvée`:I.esp==="culture"?`Jour ${I.ageJ} depuis le semis · culture`:
+    (I.ageJ<14?`Âge : ${I.ageJ} jours`:`Âge : ${sem} semaines`)+` · ${fmt(I.alive,0)} animaux · `+ESPECES[I.esp][1];
+  $("pc-seg-sante").hidden=I.esp==="couvee"||I.esp==="culture";
   $("pc-k-ct").textContent=fmt(c.tCible);$("pc-k-ch").textContent=c.hrBasse+" – "+c.hrHaute;$("pc-k-cl").textContent=fmt(c.dureeLumiere,c.dureeLumiere%1?1:0);
   $("pc-k-cv").textContent=fmt(c.seuilVent1,c.seuilVent1%1?1:0)+" / "+fmt(c.seuilVent2,c.seuilVent2%1?1:0);
   document.querySelectorAll("#pc-seg-sante button").forEach(b=>b.classList.toggle("sel",Number(b.dataset.v)===I.sante));
@@ -441,7 +461,8 @@ function renderLot(I,c){
   const n=$("pc-c-note");
   if(!envoye){n.className="note pc-note bad";n.textContent="Consignes non envoyées : dispositif injoignable. Il garde les dernières reçues.";return}
   n.className="note pc-note"+(I.sante?" warn":"");
-  n.textContent=(I.sante?"Mode santé : température plus haute, ventilation forte seulement en grosse chaleur, lumière inchangée en ponte. ":"")+`Envoyées au dispositif à ${heure(envoye)}.`}
+  n.textContent=(I.esp==="couvee"?(I.ageJ>=(I.X.stop||18)?"Retournement arrêté : humidité d'éclosion, ne plus ouvrir la couveuse. ":`Couvée : retournement des œufs jusqu'à J${I.X.stop||18}, puis humidité d'éclosion. `):
+    I.esp==="culture"?"Culture : arrosage selon l'humidité, aération de la serre au-dessus des seuils. ":I.sante?"Mode santé : température plus haute, ventilation forte seulement en grosse chaleur, lumière inchangée en ponte. ":"")+`Envoyées au dispositif à ${heure(envoye)}.`}
 
 /* ================= alertes ================= */
 function bip(){if(!sonActif||!audio)return;
