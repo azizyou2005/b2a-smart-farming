@@ -6,6 +6,12 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    # Capacitor (core, cli, android, plugins) doit toujours avoir la même version : une seule demande de mise à jour
+    groups:
+      capacitor:
+        patterns:
+          - "@capacitor/*"
+          - "@capacitor-community/*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
