@@ -163,3 +163,15 @@ test("ferme sans propriétaire : il faut être membre actif ; admin seulement av
   await assertFails(as("y", { email: "azizyou2005@yahoo.fr", firebase: { sign_in_provider: "google.com" } }).doc("inscriptions/alice").update({ statut: "bloque" }));
   await assertSucceeds(as("x", ADMIN).doc("inscriptions/alice").update({ statut: "bloque" }));
 });
+
+test("signalements : tout inscrit signale en son nom ; seul B2A lit et efface", async () => {
+  await setup();
+  const ok = { type: "annonce", cible: "a1", vendeur: "vendeur", nom: "Boutique", titre: "Œufs", motif: "arnaque", detail: "Prix trop bas", auteur: "alice", creeLe: new Date() };
+  await assertSucceeds(as("alice").collection("signalements").add(ok));
+  await assertFails(as("alice").collection("signalements").add({ ...ok, auteur: "bob" }));
+  await assertFails(as("alice").collection("signalements").add({ ...ok, motif: "n'importe" }));
+  await assertFails(as("alice").collection("signalements").add({ ...ok, extra: 1 }));
+  await assertFails(anon().collection("signalements").add(ok));
+  await assertFails(as("alice").collection("signalements").get());
+  await assertSucceeds(as("b2a", ADMIN).collection("signalements").get());
+});

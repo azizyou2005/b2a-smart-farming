@@ -285,6 +285,20 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // ---------- Signalements (exigence Google Play : contenus publiés par les utilisateurs) ----------
+    // Tout inscrit peut signaler une annonce, une boutique ou un prestataire ; seul B2A lit et efface les signalements.
+    match /signalements/{id} {
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['type','cible','vendeur','nom','titre','motif','detail','auteur','creeLe'])
+        && request.resource.data.auteur == request.auth.uid
+        && request.resource.data.type in ['annonce','vendeur','prestataire']
+        && request.resource.data.motif in ['arnaque','interdit','choquant','faux','autre']
+        && txt(request.resource.data.cible, 80) && txt(request.resource.data.vendeur, 80)
+        && txt(request.resource.data.nom, 80) && txt(request.resource.data.titre, 120)
+        && txt(request.resource.data.detail, 500);
+      allow read, delete: if isAdmin();
+    }
+
     // ---------- Erreurs de l'application ----------
     // Chaque téléphone peut signaler une erreur technique (message court, sans données de la ferme) ; seul B2A les lit et les efface.
     match /erreurs/{id} {

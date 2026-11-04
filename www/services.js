@@ -70,7 +70,8 @@ function render(Bd){listen();
   if(view==="pro"){Bd.append(proSpace());return}
   if(view==="detail"){const p=visibles().find(x=>x.id===openId)||(mine&&mine.id===openId?mine:null);if(p){Bd.append(detail(p));return}view="list"}
   renderList(Bd)}
-const visibles=()=>pros.filter(enLigne);
+const SG=()=>window.B2A_SIGNAL;
+const visibles=()=>pros.filter(p=>enLigne(p)&&!(SG()&&SG().blocked(p.id)));
 
 /* --- trouver un service --- */
 function renderList(Bd){
@@ -124,6 +125,7 @@ function detail(p){const own=S&&p.id===S.uid;const c=el("div","card m-det");cons
   r.append(a1,a2);if(p.geoExacte&&GEO()&&GEO().valid(p.geo)){const a3=el("a","btn ghost","Itinéraire");a3.href=GEO().route(p.geo);a3.target="_blank";a3.rel="noopener";r.append(a3)}c.append(r);
   c.append(el("p","note","B2A met en relation : convenez du prix, du rendez-vous et du paiement directement avec le prestataire."));
   if(own)c.append(el("p","note","C'est votre fiche. Modifiez-la dans « Mon espace prestataire »."));
+  else if(SG())c.append(SG().box({type:"prestataire",cible:p.id,vendeur:p.id,nom:p.nom||"",titre:MN(p.metier)||"",onBlock:()=>go("list")}));
   return c}
 
 /* --- espace prestataire --- */

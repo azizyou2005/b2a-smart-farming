@@ -24,6 +24,7 @@ const sec=el("section","card");sec.id="mk-admin";sec.innerHTML=`<h2>Marché B2A 
     <button class="btn small" id="mk-save" type="button">Enregistrer</button><span class="msg" id="mk-msg"></span>
   </div>
   <h3 style="margin-top:14px">Demandes de suppression de compte</h3><div id="mk-sup" class="note">Chargement…</div>
+  <h3 style="margin-top:14px">Signalements des utilisateurs</h3><div id="mk-sig" class="note">Chargement…</div>
   <details class="mk-rates"><summary>Taux de change indicatifs (valeur en FCFA de 1 unité)</summary>
     <p class="note">Servent aux équivalences affichées aux acheteurs et aux totaux en FCFA de cette page. L'euro est fixe (655,957 F).</p>
     <div class="mk-cfg" id="mk-rates"></div></details>
@@ -45,6 +46,18 @@ firebase.auth().onAuthStateChanged(u=>{offs.forEach(f=>f());offs=[];if(!u||u.isA
     s.docs.forEach(d=>{const x=d.data(),r=document.createElement("div");r.style.cssText="display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap";
       const t=document.createElement("span");t.textContent=(x.nom||"(sans nom)")+" · ferme "+(x.ferme||"—")+" · "+(x.demandeLe&&x.demandeLe.toDate?x.demandeLe.toDate().toLocaleDateString("fr-FR"):"")+" · id "+d.id;
       const b=document.createElement("button");b.className="btn small ghost";b.type="button";b.textContent="Traité (retirer)";b.onclick=()=>db.doc("suppressions/"+d.id).delete();r.append(t,b);B.append(r)})},()=>{}));
+  offs.push(db.collection("signalements").onSnapshot(s=>{note("signal",{n:s.size});const G=document.getElementById("mk-sig");if(!G)return;G.innerHTML="";
+    if(!s.size){G.textContent="Aucun signalement.";return}
+    const MO={arnaque:"Arnaque ou fraude",interdit:"Produit interdit ou dangereux",choquant:"Contenu choquant ou insultant",faux:"Fausse annonce",autre:"Autre raison"};
+    const TY={annonce:"Annonce",vendeur:"Boutique",prestataire:"Prestataire"};
+    s.docs.sort((a,b)=>ms(b.data().creeLe)-ms(a.data().creeLe)).forEach(d=>{const x=d.data();const r=el("div","u");
+      r.append(el("b",null,`${TY[x.type]||x.type} · ${MO[x.motif]||x.motif}`));
+      r.append(el("small",null,[x.nom,x.titre,ms(x.creeLe)?new Date(ms(x.creeLe)).toLocaleDateString("fr-FR"):null,"id "+(x.vendeur||"—")].filter(Boolean).join(" · ")));
+      if(x.detail)r.append(el("small",null,"« "+x.detail+" »"));
+      const rr=el("div","row");const m=el("span","msg");
+      if(x.type==="annonce"&&x.cible){const b=el("button","btn small bad","Retirer l'annonce");b.type="button";b.onclick=async()=>{b.disabled=true;try{await db.doc("marche_annonces/"+x.cible).update({statut:"retire"});m.textContent="Annonce retirée.";m.className="msg good"}catch(e){b.disabled=false;m.textContent="Échec.";m.className="msg err"}};rr.append(b)}
+      if(x.type!=="prestataire")rr.append(el("small","note","Pour suspendre la boutique : liste des vendeurs ci-dessous."));
+      const t=el("button","btn small ghost","Traité (retirer)");t.type="button";t.onclick=()=>db.doc("signalements/"+d.id).delete();rr.append(t,m);r.append(rr);G.append(r)})},()=>{}));
   offs.push(db.collection("marche_paiements").onSnapshot(s=>{pay=s.docs.map(d=>({id:d.id,...d.data()}));render()},err))});
 $("mk-save").onclick=async()=>{const t=Number(String($("mk-taux").value).replace(",","."));const m=$("mk-msg");
   if(!(t>=0&&t<=50)){m.textContent="Taux invalide.";m.className="msg err";return}

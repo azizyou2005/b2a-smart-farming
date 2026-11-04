@@ -66,3 +66,9 @@ La demande de suppression faite dans l'app arrive dans la page d'administration 
 - Nouvelles captures (version 60.16) dans `store/`.
 - Politique de confidentialité complétée (italien et anglais, e-mail facultatif, dispositif connecté).
 - Dispositif connecté : pour se connecter au vrai dispositif, installer son certificat HTTPS sur le téléphone (Réglages Android > Sécurité > Chiffrement et identifiants > Installer un certificat > Certificat CA). L'application l'accepte.
+
+## Mise à jour novembre 2026 (version 60.18) : signaler et bloquer
+- Exigence Google Play (contenus publiés par les utilisateurs) : chaque annonce, boutique et fiche de prestataire a les boutons « ⚑ Signaler » et « Bloquer ce vendeur / ce prestataire ».
+- Les signalements arrivent dans la page d'administration (Marché > Signalements des utilisateurs) : retirer l'annonce, suspendre la boutique, puis « Traité ».
+- **À faire une fois** : publier le nouveau `firestore.rules` dans la console Firebase (Firestore > Règles > coller > Publier), sinon les signalements sont refusés.
+- Questionnaire de classification (Play Console) : répondre **Oui** à « bloquer des utilisateurs ou des contenus » et à « signaler des utilisateurs ou des contenus ».

@@ -177,7 +177,8 @@ function render(){try{const sh=$("x-set");if(sh&&!sh.hidden)renderSetM()}catch(e
   window.scrollTo(0,keepY)}
 
 /* --- acheter : les acheteurs voient seulement les produits en vente et la fiche publique du vendeur --- */
-const enVente=()=>annonces.filter(a=>a.statut==="actif"&&!(a.qte!=null&&Number(a.qte)<=0));
+const SG=()=>window.B2A_SIGNAL;const bloque=uid=>!!SG()&&SG().blocked(uid);
+const enVente=()=>annonces.filter(a=>a.statut==="actif"&&!(a.qte!=null&&Number(a.qte)<=0)&&!bloque(a.vendeur));
 const shop=a=>boutiques[a.vendeur]||{nom:a.vendeurNom,ville:a.ville};
 function renderBuy(Bd){
   if(openB){Bd.append(shopView(openB));return}
@@ -192,7 +193,7 @@ function renderBuy(Bd){
   const eqR=el("div","row m-eqsel");const eqL=el("label",null,"Voir aussi les prix en");const eqS=el("select");eqS.id="m-voir";eqL.htmlFor=eqS.id;eqS.append(new Option("— monnaie du vendeur seulement —",""));
   Object.entries(CUR).forEach(([k,c])=>eqS.append(new Option(`${c[0]} (${c[1]})`,k)));eqS.value=voirEn;eqS.onchange=()=>{voirEn=eqS.value;B.lsSet("b2a-m-voir",voirEn||null);renderList(L)};eqR.append(eqL,eqS);f.append(eqR);
   const ch=el("div","m-chips");[["","Tout"],...CATS].forEach(([k,n])=>{const b=el("button","chip",n);b.type="button";b.setAttribute("aria-pressed",cat===k);b.onclick=()=>{cat=k;ch.querySelectorAll(".chip").forEach(x=>x.setAttribute("aria-pressed",x===b));renderList(L)};ch.append(b)});
-  f.append(ch);const L=el("div","m-grid");f.append(L);Bd.append(f);renderList(L)}
+  f.append(ch);const L=el("div","m-grid");f.append(L);{const mb=SG()&&SG().manage();if(mb)f.append(mb)}Bd.append(f);renderList(L)}
 function renderList(L){L.innerHTML="";const qq=q.trim().toLowerCase(),vv=ville.trim().toLowerCase();
   const list=enVente().filter(a=>(!cat||a.cat===cat)&&(!qq||[a.titre,a.desc,CN(a.cat),a.vendeurNom].join(" ").toLowerCase().includes(qq))&&(!vv||String(a.ville||"").toLowerCase().includes(vv)));
   if(near&&GEO()){const me0=GEO().mine();const dd=a=>{const d=GEO().dist(me0,a.geo);return d==null?1e9:d};list.sort((a,b)=>dd(a)-dd(b))}
@@ -216,6 +217,7 @@ function detail(a){needShop(a.vendeur);const own=S&&a.vendeur===S.uid;const c=el
   if(own){c.append(el("p","note","C'est votre annonce. Modifiez-la dans « Vendre »."));return c}
   const sh=shop(a);
   c.append(sellerBox(a.vendeur,sh,`Bonjour, je suis intéressé(e) par « ${a.titre} » vu sur le Marché B2A Smart Farming.`,true));
+  if(SG())c.append(SG().box({type:"annonce",cible:a.id,vendeur:a.vendeur,nom:sh.nom||a.vendeurNom||"",titre:a.titre||"",onBlock:()=>{open=null;openB=null;render();window.scrollTo(0,0)}}));
   /* commande */
   c.append(el("h3","sec","Commander"));const g=el("div","grid2");const fld=(lab,inp)=>{const f=el("div","field");const l=el("label",null,lab);inp.id="m-o-"+Math.random().toString(36).slice(2,7);l.htmlFor=inp.id;f.append(l,inp);g.append(f);return inp};
   const qt=fld(`Quantité (${a.unite||"unité"})`,Object.assign(el("input"),{type:"number",inputMode:"decimal",min:"0",value:"1"}));
@@ -250,7 +252,8 @@ function sellerBox(uid,sh,msg,link,own){const w=el("div","m-shop");const h=el("d
   w.append(r);return w}
 function shopView(uid){needShop(uid);needSellerAnn(uid);const list=(sellerAnn[uid]&&sellerAnn[uid].length?sellerAnn[uid]:enVente().filter(a=>a.vendeur===uid));const sh=boutiques[uid]||(list[0]?shop(list[0]):{nom:"Vendeur"});
   const c=el("section","card");const bk=el("button","back","‹ Retour aux produits");bk.type="button";bk.onclick=()=>{openB=null;render()};c.append(bk);
-  c.append(sellerBox(uid,sh,null,false));c.append(el("h3","sec",`Produits en vente (${list.length})`));
+  c.append(sellerBox(uid,sh,null,false));if(SG()&&!(S&&uid===S.uid))c.append(SG().box({type:"vendeur",cible:uid,vendeur:uid,nom:sh.nom||"",titre:"",onBlock:()=>{openB=null;open=null;render();window.scrollTo(0,0)}}));
+  c.append(el("h3","sec",`Produits en vente (${list.length})`));
   if(!list.length)c.append(el("p","note","Aucun produit en vente pour le moment."));const G=el("div","m-grid");list.forEach(a=>G.append(cardA(a)));c.append(G);return c}
 
 /* --- vendre --- */
