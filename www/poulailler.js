@@ -121,7 +121,7 @@ const T={
 "Auto : étage {0} au-dessus de {1} °C, étage {2} au-dessus de {3} °C ; aussi si l'ammoniac dépasse {4} ppm ou le CO₂ {5} ppm.":["Auto: stage {0} above {1} °C, stage {2} above {3} °C; also if ammonia exceeds {4} ppm or CO₂ {5} ppm.","Auto: stadio {0} oltre {1} °C, stadio {2} oltre {3} °C; anche se l'ammoniaca supera {4} ppm o la CO₂ {5} ppm.","Auto: etapa {0} por encima de {1} °C, etapa {2} por encima de {3} °C; también si el amoníaco supera {4} ppm o el CO₂ {5} ppm."],
 "Au-dessus de {0} °C, la ventilation repart d'elle-même.":["Above {0} °C, ventilation restarts on its own.","Oltre {0} °C, la ventilazione riparte da sola.","Por encima de {0} °C, la ventilación vuelve a arrancar sola."],
 "Analyse santé":["Health analysis","Analisi salute","Análisis de salud"],"journée d'hier":["yesterday","ieri","ayer"],
-"Eau / aliment":["Water / feed","Acqua / mangime","Agua / pienso"],"repère ≈ {0}":["benchmark ≈ {0}","riferimento ≈ {0}","referencia ≈ {0}"],"g/poule":["g/hen","g/gallina","g/gallina"],"ml/poule":["ml/hen","ml/gallina","ml/gallina"],
+"Eau / aliment":["Water / feed","Acqua / mangime","Agua / pienso"],"repère ≈ {0}":["benchmark ≈ {0}","riferimento ≈ {0}","referencia ≈ {0}"],"g/poule":["g/hen","g/gallina","g/gallina"],"ml/poule":["ml/hen","ml/gallina","ml/gallina"],"g/poisson":["g/fish","g/pesce","g/pez"],"kg/porc":["kg/pig","kg/suino","kg/cerdo"],"L/porc":["L/pig","L/suino","L/cerdo"],"kg/animal":["kg/animal","kg/animale","kg/animal"],"L/animal":["L/animal","L/animale","L/animal"],"g/animal":["g/animal","g/animale","g/animal"],"ml/animal":["ml/animal","ml/animale","ml/animal"],
 "+{0} % sur {1} jours":["+{0} % over {1} days","+{0} % su {1} giorni","+{0} % en {1} días"],"−{0} % sur {1} jours":["−{0} % over {1} days","−{0} % su {1} giorni","−{0} % en {1} días"],
 "Eau en baisse de {0} % sur {1} jours : vérifier l'état des poules.":["Water down {0} % over {1} days: check the hens.","Acqua in calo del {0} % su {1} giorni: controllare le galline.","Agua en bajada del {0} % en {1} días: revisar las gallinas."],
 "Eau en baisse de {0} % sur {1} jours":["Water down {0} % over {1} days","Acqua in calo del {0} % su {1} giorni","Agua en bajada del {0} % en {1} días"],"vérifier l'état des poules.":["check the hens.","controllare le galline.","revisar las gallinas."],
@@ -552,14 +552,19 @@ function render(){
   const nv=$("pc-n-vent");
   if(d.tMoy>35&&d.modeVentil===3){nv.className="note pc-note warn";nv.textContent="Plus de 35 °C : la ventilation tourne malgré l'arrêt manuel (sécurité chaleur)."}
   else{nv.className="note";nv.textContent=d.modeVentil===1?`Auto : étage 1 au-dessus de ${fmt(d.seuilVent1)} °C, étage 2 au-dessus de ${fmt(d.seuilVent2)} °C ; aussi si l'ammoniac dépasse 20 ppm ou le CO₂ 3000 ppm.`:manuel(d.modeVentil,d.modeVentil===3?"Au-dessus de 35 °C, la ventilation repart d'elle-même.":"")}
-  const n=I.alive||430,gp=d.alimHier*1000/n,ml=d.eauHier*1000/n,ra=d.eauHier/d.alimHier,ve=(d.eauHier/refE-1)*100,va=(d.alimHier/refA-1)*100;
-  setK("ap",fmt(gp,0));setK("ep",fmt(ml,0));setK("ra",fmt(ra));
+  /* unités et repères selon l'espèce du lot (poules, porcs, ruminants, poissons) */
+  const e0=I.esp,gros=/porc|petitsrum|chevrelait|bovin|vachelait/.test(e0),pois=e0==="poisson";
+  const U=VOLAILLES.includes(e0)?["g/poule","ml/poule","repère ≈ 2"]:e0==="porc"?["kg/porc","L/porc","repère ≈ 3"]:gros?["kg/animal","L/animal","repère ≈ 4"]:pois?["g/poisson","",""]:["g/animal","ml/animal",""];
+  {const u=(id,t)=>{const x=$("pc-kp-"+id);const sm=x&&x.querySelector("b small");if(sm)sm.textContent=t};u("ap",U[0]);u("ep",U[1]);if($("pc-ks-ra"))$("pc-ks-ra").textContent=U[2];
+   $("pc-kp-ep").hidden=pois;$("pc-kp-ra").hidden=pois||!U[2]}
+  const n=I.alive||430,gp=d.alimHier*1000/n/(gros?1000:1),ml=d.eauHier*1000/n/(gros?1000:1),ra=d.eauHier/d.alimHier,ve=(d.eauHier/refE-1)*100,va=(d.alimHier/refA-1)*100;
+  setK("ap",fmt(gp,gros?1:0));setK("ep",fmt(ml,gros?1:0));setK("ra",fmt(ra));
   setS("ap",`${va>=0?"+":"−"}${fmt(Math.abs(va),0)} % sur 7 jours`);setS("ep",`${ve>=0?"+":"−"}${fmt(Math.abs(ve),0)} % sur 7 jours`);
   flag("ap",lvl(va,-5,10,-15,20));flag("ep",lvl(ve,-5,15,-15,30));{const e=infoLot().esp,R=VOLAILLES.includes(e)?[1.6,2.6,1.3,3.2]:e==="porc"?[2,4,1.5,5]:/petitsrum|chevrelait|bovin|vachelait/.test(e)?[3,6,2,8]:null;flag("ra",R?lvl(ra,...R):"")}
   const Al=[];
-  if(ve<-15)Al.push(["bad",`Eau en baisse de ${fmt(-ve,0)} % sur 7 jours : vérifier l'état des ${VOLAILLES.includes(infoLot().esp)?"poules":"animaux"}.`]);
+  if(ve<-15&&!pois)Al.push(["bad",`Eau en baisse de ${fmt(-ve,0)} % sur 7 jours : vérifier l'état des ${VOLAILLES.includes(infoLot().esp)?"poules":"animaux"}.`]);
   if(va<-15)Al.push(["bad",`Aliment en baisse de ${fmt(-va,0)} % sur 7 jours.`]);
-  if(d.nh3>20)Al.push(["warn","Ammoniac élevé : litière à changer."]);
+  if(d.nh3>20&&pertinente("alNh3"))Al.push(["warn","Ammoniac élevé : litière à changer."]);
   if(d.ph<6||d.ph>8)Al.push(["bad","pH de l'eau hors de 6 à 8."]);
   if(d.tds>1000)Al.push(["bad","Trop de sels dissous dans l'eau."]);
   if(!Al.length)Al.push(["ok","Consommations normales, air et eau dans les limites."]);

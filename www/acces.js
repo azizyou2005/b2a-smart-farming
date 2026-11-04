@@ -8,7 +8,7 @@ const $=id=>document.getElementById(id);
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 const pad=n=>String(n).padStart(2,"0");
 const today=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
-/* même numéro que version.json (pris dans l'adresse du script : acces.js?v=60.16) */
+/* même numéro que version.json (pris dans l'adresse du script : acces.js?v=60.17) */
 const VERSION=((document.currentScript&&/[?&]v=([\d.]+)/.exec(document.currentScript.src))||[])[1]||"web";
 const plateforme=()=>{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()?"android":/iphone|ipad/i.test(navigator.userAgent)?"iphone (web)":/android/i.test(navigator.userAgent)?"android (web)":"ordinateur (web)"};
 let acc=null;try{acc=JSON.parse(B.lsGet(LS_ACC)||"null")}catch(e){acc=null}
