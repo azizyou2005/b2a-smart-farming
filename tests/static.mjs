@@ -15,7 +15,7 @@ for (const f of readdirSync(WWW).filter(f => f.endsWith(".js"))) {
 }
 // 2. versions : version.json = ?v= dans index.html = cache du service worker
 const v = String(JSON.parse(readFileSync(join(WWW, "version.json"), "utf8")).v);
-ok(/^\d+(\.\d+)?$/.test(v), `version.json : ${v} n'est pas un numéro de version (ex. 60.1)`);
+ok(/^\d+(\.\d+){0,2}$/.test(v), `version.json : ${v} n'est pas un numéro de version (ex. 1.0.0)`);
 const index = readFileSync(join(WWW, "index.html"), "utf8");
 const sw = readFileSync(join(WWW, "sw.js"), "utf8");
 const scripts = [...index.matchAll(/<script src="([^"?]+)\?v=([\d.]+)"/g)];

@@ -319,7 +319,7 @@ if("serviceWorker" in navigator&&!window.Capacitor&&(location.protocol==="https:
 if(window.Capacitor&&navigator.onLine){
   Promise.all([fetch("version.json",{cache:"no-store"}).then(r=>r.ok?r.json():null).catch(()=>null),
     fetch("https://azizyou2005.github.io/b2a-smart-farming/version.json",{cache:"no-store"}).then(r=>r.ok?r.json():null)]).then(([loc,v])=>{
-    /* numéros du type 60.1, 60.2 … 60.10 : comparés morceau par morceau (60.10 est plus récent que 60.9) */
+    /* numéros du type 1.0.0, 1.0.1 … 1.0.10 : comparés morceau par morceau (1.0.10 est plus récent que 1.0.9) */
     const parts=x=>String(x==null?"":x).split(".").map(n=>parseInt(n,10)||0);
     const newer=(a,b)=>{const A=parts(a),B=parts(b);for(let i=0;i<Math.max(A.length,B.length);i++){if((A[i]||0)!==(B[i]||0))return (A[i]||0)>(B[i]||0)}return false};
     const APP_VERSION=(loc&&loc.v)||26;
