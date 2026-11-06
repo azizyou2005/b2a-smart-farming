@@ -97,7 +97,7 @@ service cloud.firestore {
     // Il n'existe aucune règle pour lister "farms" : personne ne peut voir la liste des fermes ni leurs codes.
     match /farms/{farm}/{col}/{doc} {
       allow read, write: if canUse(farm)
-        && col in ['lots', 'saisies', 'soins', 'analyses', 'previsions', 'formules', 'factures', 'reglages', 'contacts', 'depenses', 'couveuses', 'couvees'];
+        && col in ['lots', 'saisies', 'soins', 'analyses', 'previsions', 'formules', 'factures', 'reglages', 'contacts', 'depenses', 'couveuses', 'couvees', 'mesures'];
     }
 
     // ---------- Marché B2A (partie payante) ----------
@@ -283,6 +283,75 @@ service cloud.firestore {
         && request.resource.data.montant is number && request.resource.data.montant > 0
         && txt(request.resource.data.ref, 40) && txt(request.resource.data.telPayeur, 30) && txt(request.resource.data.get('nom',''), 60);
       allow update, delete: if isAdmin();
+    }
+
+    // ---------- Version Pro (payante) ----------
+    // pro_fermes/<clé> : { finLe, formule, majLe } posé par B2A après vérification du paiement.
+    // La clé est le code de la ferme (10 caractères) ou « u_ » + identifiant de l'utilisateur sans ferme.
+    function proCle(c) { return c is string && c.matches('^([A-Z0-9]{10}|u_[A-Za-z0-9]{10,40})$'); }
+    match /pro_fermes/{cle} {
+      allow read: if approved() || isAdmin();
+      allow write: if isAdmin();
+    }
+    // Paiements de l'abonnement Pro : déclarés par l'utilisateur (référence Orange Money / Moov Money), validés par B2A.
+    match /pro_paiements/{id} {
+      allow read: if isAdmin() || (request.auth != null && resource.data.uid == request.auth.uid);
+      allow create: if approved() && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid','cle','nom','formule','mois','montant','ref','telPayeur','statut','creeLe'])
+        && request.resource.data.statut == 'attente' && proCle(request.resource.data.cle)
+        && request.resource.data.formule in ['m1','m3','m12'] && request.resource.data.mois in [1,3,12]
+        && request.resource.data.montant is number && request.resource.data.montant > 0
+        && txt(request.resource.data.ref, 40) && txt(request.resource.data.telPayeur, 30) && txt(request.resource.data.get('nom',''), 60);
+      allow update, delete: if isAdmin();
+    }
+    // Contenus de formation (vidéos et PDF) : publiés par B2A, lus par les inscrits (l'application les réserve à la version Pro).
+    match /formations/{id} {
+      allow read: if approved() || isAdmin();
+      allow write: if isAdmin();
+    }
+    // Validation des vaccins par un vétérinaire (service payant) :
+    // l'éleveur envoie la demande à un vétérinaire en ligne dans Services ; le vétérinaire accepte avec son tarif,
+    // l'éleveur le paie directement et donne la référence ; le vétérinaire valide ; la commission B2A est due à la validation.
+    function svcPro(uid) { return get(/databases/$(database)/documents/services_pros/$(uid)).data; }
+    function vetoActif(uid) { return exists(/databases/$(database)/documents/services_pros/$(uid))
+      && svcPro(uid).metier == 'veto' && svcPro(uid).statut == 'actif'; }
+    function tauxVeto() { return exists(/databases/$(database)/documents/marche_config/global) ? mcfg().get('vetoTaux', 10) : 10; }
+    function vdKeys() { return request.resource.data.diff(resource.data).affectedKeys(); }
+    function vetoUpd() {
+      let a = resource.data.statut; let b = request.resource.data.statut;
+      return (a == 'attente' && b == 'acceptee' && vdKeys().hasOnly(['statut','tarif','telPaiement','reponse','majLe'])
+          && request.resource.data.tarif is number && request.resource.data.tarif > 0 && request.resource.data.tarif <= 1000000
+          && txt(request.resource.data.telPaiement, 30) && txt(request.resource.data.get('reponse',''), 300))
+        || (a in ['attente','acceptee','payee'] && b == 'refusee' && vdKeys().hasOnly(['statut','reponse','majLe'])
+          && txt(request.resource.data.get('reponse',''), 300))
+        || (a in ['acceptee','payee'] && b == 'validee'
+          && vdKeys().hasOnly(['statut','resultats','commentaire','signature','valideLe','taux','commission','comStatut','majLe'])
+          && request.resource.data.resultats is map && txt(request.resource.data.get('commentaire',''), 500)
+          && txt(request.resource.data.signature, 120)
+          && request.resource.data.taux == tauxVeto()
+          && request.resource.data.commission == resource.data.tarif * tauxVeto() / 100
+          && request.resource.data.comStatut == 'due');
+    }
+    function eleveurUpd() {
+      let a = resource.data.statut; let b = request.resource.data.statut;
+      return (a == 'acceptee' && b == 'payee' && vdKeys().hasOnly(['statut','refPaiement','majLe']) && txt(request.resource.data.refPaiement, 40))
+        || (a in ['attente','acceptee'] && b == 'annulee' && vdKeys().hasOnly(['statut','majLe']));
+    }
+    match /veto_demandes/{id} {
+      allow read: if isAdmin() || (request.auth != null
+        && (resource.data.eleveur == request.auth.uid || resource.data.veto == request.auth.uid));
+      allow create: if approved() && request.resource.data.eleveur == request.auth.uid
+        && request.resource.data.keys().hasOnly(['eleveur','eleveurNom','eleveurTel','cle','lotId','lot','vaccins','veto','vetoNom','statut','message','creeLe','majLe'])
+        && request.resource.data.statut == 'attente' && request.resource.data.veto != request.auth.uid
+        && vetoActif(request.resource.data.veto)
+        && txt(request.resource.data.eleveurNom, 60) && txt(request.resource.data.eleveurTel, 30) && txt(request.resource.data.vetoNom, 60)
+        && txt(request.resource.data.lotId, 60) && txt(request.resource.data.get('message',''), 500)
+        && request.resource.data.lot is map
+        && request.resource.data.vaccins is list && request.resource.data.vaccins.size() > 0 && request.resource.data.vaccins.size() <= 20;
+      allow update: if isAdmin()
+        || (request.auth != null && resource.data.veto == request.auth.uid && vetoUpd())
+        || (request.auth != null && resource.data.eleveur == request.auth.uid && eleveurUpd());
+      allow delete: if isAdmin();
     }
 
     // ---------- Signalements (exigence Google Play : contenus publiés par les utilisateurs) ----------
