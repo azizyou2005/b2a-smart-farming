@@ -1,0 +1,978 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://formsubmit.co https://*.googleapis.com https://*.workers.dev https://fonts.googleapis.com https://fonts.gstatic.com https://www.gstatic.com; worker-src 'self'; manifest-src 'self'; frame-src https://*.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="description" content="Carnet d'élevage, prévisions de bénéfice, calendrier sanitaire, formules d'aliment, factures et guide santé. Gratuit, fonctionne sans internet.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>B2A Smart Farming</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=Source+Sans+3:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: B2A brand band (original logo on black) on top, then tabs — Tableau, Saisie, Soins & alertes, Diagnostic */
+:root{
+  --bg:#f2f4f8; --surface:#ffffff; --ink:#132036; --muted:#5b6577; --line:#dce1ea;
+  --leaf:#1b2e4c; --leaf-soft:#e4eaf4; --millet:#deab50; --millet-soft:#fbf1dc;
+  --brand-green:#72ac48; --brand-gold:#deab50; --band:#ffffff; --band-ink:#7a8396;
+  --navy:#1b2e4c; --heading:#1b2e4c; --green-ink:#3b7520; --green-soft:#e8f3de; --on-primary:#ffffff;
+  --ok:#3b7520; --warn:#9a6a10; --bad:#b3372a; --ok-bg:#e8f3de; --warn-bg:#fbf1dc; --bad-bg:#f8e1dc;
+  --display:"Archivo",ui-sans-serif,system-ui,sans-serif;
+  --body:"Source Sans 3",ui-sans-serif,system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#05080f; --surface:#101b2e; --ink:#e8edf5; --muted:#93a0b8; --line:#23314b;
+  --leaf:#7dbb52; --leaf-soft:#1a2b45; --millet:#deab50; --millet-soft:#33290f;
+  --heading:#e8edf5; --green-ink:#8ccb60; --green-soft:#1b2f1d; --on-primary:#08111f;
+  --ok:#8ccb60; --warn:#e8b860; --bad:#f08a7a; --ok-bg:#1b2f1d; --warn-bg:#33290f; --bad-bg:#3a1d1a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#05080f; --surface:#101b2e; --ink:#e8edf5; --muted:#93a0b8; --line:#23314b;
+  --leaf:#7dbb52; --leaf-soft:#1a2b45; --millet:#deab50; --millet-soft:#33290f;
+  --heading:#e8edf5; --green-ink:#8ccb60; --green-soft:#1b2f1d; --on-primary:#08111f;
+  --ok:#8ccb60; --warn:#e8b860; --bad:#f08a7a; --ok-bg:#1b2f1d; --warn-bg:#33290f; --bad-bg:#3a1d1a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--body)}
+.wrap{max-width:780px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+h1,h2,h3,.kpi b,.lot b{font-stretch:108%}
+.band{background:var(--band);padding-block:18px 16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.band-in{max-width:780px;margin:0 auto;display:flex;align-items:center;gap:14px}
+.band .ic{width:64px;height:64px;flex:none;border-radius:14px}
+.band .lock{display:grid;gap:6px;min-width:0}
+.band .wm{height:38px;width:auto;max-width:100%;justify-self:start}
+.band .sl{width:min(250px,100%);height:auto}
+.band .app{margin-left:auto;text-align:right;color:#c9d2e3;font:600 12px/1.3 var(--body);letter-spacing:.12em;text-transform:uppercase}
+.band .app b{display:block;color:#ffffff;font:800 17px/1.1 var(--display);font-stretch:112%;letter-spacing:.02em;text-transform:none}
+.band .app b span{color:var(--brand-green)}
+@media (max-width:520px){.band .app{display:none}.band .ic{width:56px;height:56px}.band .wm{height:32px}}
+header h1{font:800 clamp(24px,6vw,32px)/1.1 var(--display);font-stretch:112%;margin:0;letter-spacing:-.01em}
+header h1 span{color:var(--brand-green)}
+header p{margin:4px 0 0;color:var(--muted);max-width:60ch}
+.foot{display:flex;align-items:center;gap:10px;justify-content:center;color:var(--muted);font:600 11px var(--body);letter-spacing:.16em;text-transform:uppercase;padding-top:8px;border-top:1px solid var(--line)}
+.foot img{width:28px;height:28px;border-radius:7px}
+nav.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:var(--surface);border:1px solid var(--line);padding:4px;border-radius:12px}
+nav.tabs button{border:0;background:transparent;color:var(--muted);font:700 13px/1.2 var(--body);padding:10px 2px;border-radius:8px;cursor:pointer}
+nav.tabs button[aria-selected="true"]{background:var(--leaf);color:var(--surface);box-shadow:inset 0 -3px 0 var(--brand-green)}
+.view{display:grid;gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;min-width:0}
+.label{font:600 12px/1.2 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h2.sec,h3.sec{font:700 20px/1.2 var(--display);margin:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.row.between{justify-content:space-between}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg);padding:4px;border-radius:10px}
+.seg button{border:0;background:transparent;color:var(--muted);font:700 15px var(--body);padding:10px;border-radius:7px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--leaf);box-shadow:0 1px 2px rgb(0 0 0/.12)}
+.drop{position:relative;border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;display:grid;gap:10px;justify-items:center;color:var(--muted)}
+.drop input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.pick{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.pick .btn{display:inline-block}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.thumbs div{position:relative}
+.thumbs img{width:84px;height:84px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.thumbs button{position:absolute;top:-6px;right:-6px;width:24px;height:24px;border-radius:50%;border:0;background:var(--ink);color:var(--surface);cursor:pointer;font-weight:700}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.field{display:grid;gap:6px;min-width:0;align-content:start}
+.field label{font-weight:600;font-size:14px}
+.field small{color:var(--muted);font-size:13px}
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=date],select,textarea{width:100%;font:16px var(--body);padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);min-width:0}
+input[type=number]{font-family:var(--mono);font-variant-numeric:tabular-nums}
+textarea{min-height:72px;resize:vertical}
+:focus-visible{outline:3px solid var(--millet);outline-offset:2px}
+.btn{border:0;border-radius:10px;padding:12px 18px;font:700 16px var(--body);cursor:pointer;background:var(--leaf);color:var(--surface);text-align:center}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.small{padding:8px 12px;font-size:14px}
+.cam-row{display:flex;align-items:center;gap:12px}
+.cam-ico{flex:none;width:44px;height:44px;border-radius:12px;background:var(--navy);display:grid;place-items:center}
+.cam-ico svg{width:24px;height:24px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linejoin:round}
+.cam-txt{min-width:0}.cam-txt p{margin:2px 0 0;color:var(--muted,#5b6578);font-size:14px}
+.msg{font-size:14px;color:var(--muted)}
+.msg.err{color:var(--bad)} .msg.good{color:var(--ok)}
+.empty{text-align:center;color:var(--muted);padding:12px;display:grid;gap:10px;justify-items:center}
+.empty strong{color:var(--ink);font:700 18px var(--display)}
+/* lots list */
+.lots{display:grid;gap:8px}
+.lot{display:grid;grid-template-columns:1fr auto;gap:4px 10px;text-align:left;background:var(--bg);border:2px solid transparent;border-radius:12px;padding:12px 14px;cursor:pointer;color:var(--ink);font:inherit}
+.lot[aria-pressed="true"]{border-color:var(--leaf);background:var(--leaf-soft)}
+.lot b{font:700 17px var(--display);min-width:0;overflow-wrap:anywhere}
+.lot small{color:var(--muted);grid-column:1}
+.lot .pill{grid-row:1/span 2;grid-column:2;align-self:center}
+.pill{justify-self:start;font:700 13px var(--body);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.s-ok{background:var(--ok-bg);color:var(--ok)} .s-warn{background:var(--warn-bg);color:var(--warn)} .s-bad{background:var(--bad-bg);color:var(--bad)} .s-none{background:var(--bg);color:var(--muted)}
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.kpi{background:var(--surface);padding:12px 14px;display:grid;gap:2px;min-width:0}
+.kpi span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.kpi b{font:500 24px/1.15 var(--mono);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.kpi small{color:var(--muted);font-size:13px}
+.kpi .up{color:var(--ok)} .kpi .down{color:var(--bad)}
+.alerts{display:grid;gap:6px;list-style:none;margin:0;padding:0}
+.alerts li{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;font-size:15px}
+.alerts .dot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:7px;background:currentColor}
+.chart{width:100%;height:auto;display:block}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .axis{fill:var(--muted);font:12px var(--mono)}
+.chart .line{fill:none;stroke:var(--leaf);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.chart .area{fill:var(--leaf);opacity:.12}
+.chart .end{fill:var(--leaf);stroke:var(--surface);stroke-width:2}
+.chart .endlbl{fill:var(--ink);font:600 13px var(--mono)}
+.chart .mort{fill:var(--bad);opacity:.7}
+.chart .ref{fill:none;stroke:var(--millet);stroke-width:2;stroke-dasharray:6 5}
+.chart .pos{fill:var(--ok);opacity:.16} .chart .neg{fill:var(--bad);opacity:.14}
+.chart .band{fill:var(--leaf);opacity:.1}
+.chart .zero{stroke:var(--ink);stroke-width:1.2;opacity:.55}
+.chart .phase{fill:var(--bg)} .chart .phaselbl{fill:var(--muted);font:600 11px var(--body);letter-spacing:.06em;text-transform:uppercase}
+.chart .belbl{fill:var(--ok);font:700 13px var(--body)}
+.chart .tip rect{fill:var(--surface);stroke:var(--line)} .chart .tip text{fill:var(--ink);font:600 12px var(--mono)}
+.chart .cursor{stroke:var(--ink);stroke-width:1;opacity:.4}
+.chart .hit{fill:transparent;cursor:crosshair;touch-action:pan-y}
+.s-info{background:var(--leaf-soft);color:var(--leaf)}
+.alerts li .lotname{font-weight:700}
+.cal{display:grid;gap:6px;list-style:none;margin:0;padding:0}
+.cal li{display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 12px 12px 10px;border-radius:10px;background:var(--bg);border-left:4px solid var(--line)}
+.cal li.late{border-left-color:var(--bad)} .cal li.soon{border-left-color:var(--warn)} .cal li.done{opacity:.6;border-left-color:var(--ok)}
+.cal .d{font:600 12px/1.3 var(--body);color:var(--muted);font-variant-numeric:tabular-nums}
+.cal .d b{display:block;font:800 16px/1.2 var(--display);color:var(--heading)}
+.cal .w{min-width:0;display:grid;gap:3px} .cal .w b{display:grid;gap:4px;justify-items:start;overflow-wrap:break-word;font-size:15px;line-height:1.3} .cal .w small{color:var(--muted);font-size:13px}
+.cal .t{font:600 11px var(--body);letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;margin-right:6px}
+.t-vaccin{background:var(--leaf-soft);color:var(--leaf)} .t-traitement{background:var(--millet-soft);color:var(--ink)} .t-conduite{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.ftable input{width:78px;padding:6px 8px;font-size:15px;text-align:right}
+.ftable td{vertical-align:middle}
+.ftable tfoot td{font-weight:700;border-top:2px solid var(--line)}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap}
+.inglist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.inglist li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--bg)}
+.inglist .ix{display:grid;gap:2px;min-width:0}
+.inglist .st span{white-space:nowrap}
+.inglist .st{font:500 13px var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.inglist small{color:var(--muted);font-size:13px;line-height:1.35}
+.btn.dur[aria-pressed="true"]{background:var(--leaf);color:var(--surface);border-color:var(--leaf)}
+select:disabled,input:disabled{opacity:.6}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:18px;height:0;border-top:3px solid var(--leaf)}
+.legend i.d{border-top:2px dashed var(--millet)} .legend i.b{height:10px;border:0;background:var(--leaf);opacity:.25;border-radius:2px}
+.tablewrap{overflow-x:auto}
+table.data{width:100%;border-collapse:collapse;font-size:14px}
+table.data th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.data td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+table.data td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+table.data th.n{text-align:right}
+details.box{border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+details.box summary{cursor:pointer;font-weight:700}
+details.box[open] summary{margin-bottom:12px}
+/* Report */
+.report-head{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.report-head img{width:96px;height:96px;object-fit:cover;border-radius:10px;flex:none}
+.report-head .id{flex:1;min-width:0}
+.tag{display:inline-block;font:600 12px var(--body);letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--millet-soft);color:var(--ink)}
+.report-head h2{font:800 26px/1.1 var(--display);margin:6px 0 2px}
+.sci{font-style:italic;color:var(--muted)}
+.conf{font:500 13px var(--mono);color:var(--muted);margin-top:4px}
+.alts{font-size:14px;color:var(--muted)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:0}
+.facts div{background:var(--surface);padding:10px 12px;min-width:0}
+.facts dt{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.facts dd{margin:2px 0 0;font-weight:700;overflow-wrap:anywhere}
+.meters{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.meter{border-radius:12px;padding:14px;display:grid;gap:8px;border:1px solid var(--line)}
+.meter h3{margin:0;font:700 18px var(--display);display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.meter .score{font:500 22px var(--mono);font-variant-numeric:tabular-nums}
+.bar{height:10px;border-radius:5px;background:var(--bg);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:5px}
+.meter p{margin:0;font-size:15px}
+.meter ul{margin:0;padding-left:18px;font-size:15px}
+.signs{display:grid;gap:6px;list-style:none;padding:0;margin:0}
+.signs li{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:8px;background:var(--bg)}
+.signs .dot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:7px}
+.priority{border-left:4px solid var(--millet);background:var(--millet-soft);padding:12px 14px;border-radius:0 10px 10px 0}
+.priority strong{display:block;font:700 13px var(--body);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.plan td:first-child{font-weight:700;color:var(--leaf);white-space:nowrap}
+.plan td:last-child{font:500 13px var(--mono);color:var(--muted)}
+.note{font-size:13px;color:var(--muted);margin:0}
+.hist{display:grid;gap:8px}
+.hist button{display:flex;gap:10px;align-items:center;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px;cursor:pointer;color:var(--ink);font:inherit}
+.hist img{width:48px;height:48px;object-fit:cover;border-radius:6px;flex:none}
+.hist .t{min-width:0;flex:1}
+.hist .t b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist small{color:var(--muted)}
+.spinner{width:18px;height:18px;border:3px solid var(--line);border-top-color:var(--leaf);border-radius:50%;animation:sp .9s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spinner{animation:none}}
+
+/* ===== interface mobile ===== */
+body{padding-bottom:calc(78px + env(safe-area-inset-bottom,0px))}
+.band{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;padding-block:10px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:31;background:var(--band)}
+.band .ic{width:44px;height:44px;border-radius:11px}
+.band .wm{height:24px}
+.band .sl{width:min(190px,100%)}
+.band .lock{gap:4px}
+.band .apptitle{margin-left:auto;text-align:right;color:#fff;font:800 15px/1.1 var(--display);font-stretch:112%;white-space:nowrap}
+@media (max-width:520px){.band .apptitle{font-size:13px}.band .apptitle span{display:none}.band .sl{display:none}}
+.band .apptitle span{display:block;color:var(--brand-green);font:600 11px/1.3 var(--body);letter-spacing:.1em;text-transform:uppercase}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;border-radius:0;border:0;border-top:1px solid var(--line);background:var(--surface);
+  padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px));gap:2px;box-shadow:0 -4px 16px rgb(0 0 0/.06)}
+nav.tabs button{display:grid;justify-items:center;gap:3px;font:700 11px/1.15 var(--body);padding:6px 2px;border-radius:10px;color:var(--muted)}
+nav.tabs button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button[aria-selected="true"]{background:var(--leaf-soft);color:var(--leaf);box-shadow:none}
+@media (min-width:820px){nav.tabs{max-width:780px;margin:0 auto 12px;border:1px solid var(--line);border-radius:16px;bottom:0}}
+.hello{display:grid;gap:2px}
+.hello h1{font:800 26px/1.15 var(--display);font-stretch:110%;margin:0}
+.hello p{margin:0;color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (min-width:640px){.tiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:2px;min-width:0;text-align:left;font:inherit;color:inherit}
+button.tile{cursor:pointer}
+.tile span{font:600 11px/1.3 var(--body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.tile b{font:800 24px/1.15 var(--display);font-stretch:105%;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tile small{color:var(--muted);font-size:13px}
+.tile.bad b{color:var(--bad)} .tile.warn b{color:var(--warn)} .tile.ok b{color:var(--ok)}
+.kpis{gap:8px;background:transparent;border:0;border-radius:0;overflow:visible;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.kpi{border:1px solid var(--line);border-radius:12px}
+.kpi b{font:800 20px/1.2 var(--display);font-stretch:104%;font-variant-numeric:tabular-nums;overflow-wrap:normal}
+.lot{grid-template-columns:auto 1fr auto;align-items:center;gap:4px 12px;padding:12px;border:1px solid var(--line);background:var(--surface)}
+.lot .av{grid-row:1/span 2;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--leaf-soft);color:var(--leaf);font:800 15px var(--display)}
+.lot b{grid-column:2} .lot small{grid-column:2}
+.lot .pill{grid-column:3;grid-row:1}
+.lot .go{grid-column:3;grid-row:2;justify-self:end;color:var(--muted);font-size:20px;line-height:1}
+.detail-head{display:grid;gap:10px}
+.back{justify-self:start;background:none;border:0;color:var(--leaf);font:700 15px var(--body);padding:4px 0;cursor:pointer}
+.subtabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--bg);padding:4px;border-radius:10px}
+.subtabs button{border:0;background:transparent;color:var(--muted);font:700 14px var(--body);padding:9px 4px;border-radius:7px;cursor:pointer}
+.subtabs button[aria-pressed="true"]{background:var(--surface);color:var(--leaf);box-shadow:0 1px 2px rgb(0 0 0/.12)}
+.more{background:none;border:0;color:var(--leaf);font:700 14px var(--body);padding:4px 0;cursor:pointer;justify-self:start}
+.chart .axis{font-size:19px}.chart .endlbl{font-size:21px}.chart .phaselbl{font-size:17px}.chart .belbl{font-size:20px}.chart .tip text{font-size:19px}
+.suggest{display:grid;gap:6px;padding:12px 14px;border-radius:12px;background:var(--leaf-soft)}
+.suggest b{font:700 15px var(--display)}
+
+/* ===== couleurs B2A ===== */
+:root{--page:#f6ebd5;--glow-a:rgb(222 171 80/.45);--glow-b:rgb(27 46 76/.08);--glow-c:rgb(222 171 80/.30)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--page:#0b0905;--glow-a:rgb(222 171 80/.16);--glow-b:rgb(27 46 76/.45);--glow-c:rgb(222 171 80/.10)}}
+:root[data-theme="dark"]{--page:#0b0905;--glow-a:rgb(222 171 80/.16);--glow-b:rgb(27 46 76/.45);--glow-c:rgb(222 171 80/.10)}
+body{background-color:var(--page);background-image:radial-gradient(60rem 36rem at 105% -5%,var(--glow-a),transparent 60%),radial-gradient(50rem 40rem at -15% 10%,var(--glow-b),transparent 60%),radial-gradient(46rem 30rem at 50% 110%,var(--glow-c),transparent 60%);background-attachment:fixed;background-repeat:no-repeat}
+.card,.tile:not(.hero .tile),.lot,.kpi{box-shadow:0 1px 2px rgb(19 32 54/.04),0 6px 18px rgb(19 32 54/.05)}
+nav.tabs{background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+h2.sec,h3.sec,.hello h1,.report-head h2{color:var(--heading)}
+.btn{background:var(--leaf);color:var(--on-primary)}
+.btn.ghost{background:transparent;color:var(--heading);border:1.5px solid var(--line)}
+.btn.ghost:hover{border-color:var(--leaf)}
+.btn:not(.ghost):hover{filter:brightness(1.12)}
+nav.tabs button[aria-selected="true"]{background:var(--navy);color:#fff}
+nav.tabs button[aria-selected="true"] svg{stroke:var(--brand-green)}
+:root:not([data-theme="light"]) nav.tabs button[aria-selected="true"]{background:var(--navy)}
+.seg button[aria-pressed="true"],.subtabs button[aria-pressed="true"]{color:var(--heading);box-shadow:inset 0 -3px 0 var(--brand-green),0 1px 2px rgb(0 0 0/.1)}
+.chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.back,.more{color:var(--green-ink)}
+.hero{background:var(--navy);color:#fff;border-radius:18px;padding:18px 16px 16px;display:grid;gap:14px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:var(--brand-gold);opacity:.2;pointer-events:none}
+.hero .hello h1{color:#fff}.hero .hello h1 span{color:var(--brand-green)}
+.hero .hello p{color:#b9c6dc}
+.hero .tile{background:rgb(255 255 255/.07);border-color:rgb(255 255 255/.13);color:#fff}
+.hero button.tile:hover{background:rgb(255 255 255/.12)}
+.hero .tile span{color:#aebcd6}.hero .tile small{color:#c9d3e4}
+.hero .tile b{color:#fff}.hero .tile.bad b{color:#ff9d8c}.hero .tile.warn b{color:var(--brand-gold)}.hero .tile.ok b{color:#a6dc7f}
+.lot .av{background:var(--navy);color:var(--brand-green)}
+.lot:hover{border-color:var(--brand-green)}
+.suggest{background:var(--green-soft)}
+.suggest .label{color:var(--green-ink)}
+.priority{border-left-color:var(--brand-gold)}
+.kpi small.up{color:var(--green-ink)}
+.foot{color:var(--muted)}
+.tag{background:var(--millet-soft)}
+.s-info{background:var(--leaf-soft);color:var(--heading)}
+.chart .line{stroke:var(--heading)}
+.chart .area{fill:var(--heading)}
+.chart .end{fill:var(--heading)}
+.chart .ref{stroke:var(--brand-gold)}
+.legend i{border-top-color:var(--heading)} .legend i.d{border-top-color:var(--brand-gold)}
+
+/* ===== finitions pro ===== */
+.lot .av svg{width:24px;height:24px;fill:none;stroke:var(--brand-green);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.lot .av svg ellipse{fill:var(--brand-gold);stroke:none}
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=date],select,textarea{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;min-height:46px;transition:border-color .15s}
+input:hover,select:hover,textarea:hover{border-color:color-mix(in srgb,var(--heading) 35%,var(--line))}
+input:focus,select:focus,textarea:focus{border-color:var(--heading);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--brand-gold) 35%,transparent)}
+.field label{color:var(--heading);font-size:14px}
+.field small{font-size:12.5px}
+.card{border-radius:18px;padding:20px 18px;gap:16px}
+.label{color:var(--green-ink)}
+.drop{background:var(--bg);border-color:color-mix(in srgb,var(--heading) 20%,var(--line))}
+.cal li{background:var(--surface);border:1px solid var(--line);border-left-width:4px}
+.signs li,.hist button{background:var(--bg)}
+table.data th{color:var(--heading);opacity:.75}
+table.data tbody tr:hover{background:color-mix(in srgb,var(--leaf-soft) 60%,transparent)}
+.pill{letter-spacing:.02em}
+.btn{min-height:46px;border-radius:12px}
+.btn.small{min-height:36px;border-radius:10px}
+.alerts li{border:1px solid color-mix(in srgb,currentColor 18%,transparent)}
+.priority{border-radius:0 12px 12px 0}
+@media (prefers-reduced-motion:no-preference){.view:not([hidden]){animation:fadein .18s ease-out}@keyframes fadein{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+
+/* ===== formulaire par étapes ===== */
+.wiz{gap:18px}
+.wiz-head{display:grid;gap:10px}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;counter-reset:none}
+.steps li{display:grid;justify-items:center;gap:6px;font:600 12px/1.2 var(--body);color:var(--muted);text-align:center;cursor:pointer;position:relative}
+.steps li span{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:800 14px var(--display);background:var(--bg);color:var(--muted);border:2px solid var(--line);position:relative;z-index:1}
+.steps li:not(:last-child)::after{content:"";position:absolute;top:15px;left:calc(50% + 18px);right:calc(-50% + 18px);height:2px;background:var(--line)}
+.steps li.done span{background:var(--brand-green);border-color:var(--brand-green);color:#fff}
+.steps li.done:not(:last-child)::after{background:var(--brand-green)}
+.steps li.on span{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 0 0 4px color-mix(in srgb,var(--brand-gold) 35%,transparent)}
+.steps li.on{color:var(--heading)}
+.wiz-intro{margin:0;color:var(--muted)}
+.wiz-step{display:grid;gap:16px}
+.wiz-step[hidden]{display:none}
+#lotform-card #l-msg:not(:empty){padding:10px 12px;border-radius:10px;background:var(--bad-bg)}
+.wiz-foot{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;position:sticky;bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--surface);padding-top:8px}
+.wiz-foot .btn{width:100%}
+.btn.danger{color:var(--bad);justify-self:start}
+
+.langbox{position:relative;margin-left:8px}
+.langbtn{display:flex;align-items:center;gap:5px;background:transparent;border:1px solid #3a4560;color:#e6ebf5;border-radius:999px;padding:6px 10px;font:700 12px var(--body);cursor:pointer}
+.langbtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8}
+.langmenu{position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgb(0 0 0/.25);padding:6px;display:grid;min-width:150px;z-index:50}
+.langmenu button{background:none;border:0;text-align:left;padding:10px 12px;border-radius:8px;font:600 15px var(--body);color:var(--ink);cursor:pointer}
+.langmenu button:hover{background:var(--leaf-soft)}
+.langmenu button[aria-checked="true"]{color:var(--heading);background:var(--leaf-soft)}
+.langmenu button[aria-checked="true"]::after{content:" ✓";color:var(--green-ink)}
+@media (max-width:520px){.band .apptitle{display:none}.langbox{margin-left:auto}}
+
+/* ===== ventes ===== */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 14px;font:600 14px var(--body);cursor:pointer}
+
+nav.tabs{grid-template-columns:repeat(6,1fr)}
+nav.tabs button{font-size:10.5px}
+.vtiles{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:440px){.vtiles{grid-template-columns:repeat(2,minmax(0,1fr))}.vtiles .tile:first-child{grid-column:1/-1}}
+.invlist{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.inv{border:1px solid var(--line);border-radius:12px;background:var(--surface);display:grid;gap:4px;padding:10px 12px}
+.inv-top{display:flex;justify-content:space-between;gap:10px;align-items:center;background:none;border:0;padding:0;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.inv-a,.inv-b{display:grid;gap:2px;min-width:0}.inv-b{justify-items:end}
+.inv-a b{font:700 13px var(--mono);color:var(--muted)}.inv-a span{font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inv-b b{font:800 17px var(--display);font-variant-numeric:tabular-nums;color:var(--heading)}
+.inv-sub{display:flex;gap:10px;color:var(--muted);font-size:13px}
+.inv-act{padding-top:6px;border-top:1px solid var(--line)}
+.vlines{display:grid;gap:10px}
+.vline{border:1px solid var(--line);border-radius:12px;padding:10px;display:grid;gap:8px;background:var(--bg)}
+.vl1{display:grid;grid-template-columns:1fr auto;gap:8px}
+.vl2{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}
+.vl2 label{display:grid;gap:4px;font-size:12px;color:var(--muted);min-width:0;position:relative}
+.vq input{padding-right:52px}.vunit{position:absolute;right:10px;bottom:13px;font-size:12px;color:var(--muted)}
+.vlt{font:800 16px var(--display);font-variant-numeric:tabular-nums;color:var(--heading);padding-bottom:12px;white-space:nowrap}
+.seg3{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--bg);padding:4px;border-radius:10px}
+.seg3 button{border:0;background:transparent;color:var(--muted);font:700 14px var(--body);padding:10px 4px;border-radius:7px;cursor:pointer}
+.seg3 button[aria-pressed="true"]{background:var(--surface);color:var(--heading);box-shadow:inset 0 -3px 0 var(--brand-green),0 1px 2px rgb(0 0 0/.1)}
+.vtotals{display:grid;gap:4px;justify-self:end;min-width:230px;background:var(--bg);border-radius:12px;padding:12px 14px}
+.vt{display:flex;justify-content:space-between;gap:20px;font-variant-numeric:tabular-nums}.vt.big b{font:800 20px var(--display);color:var(--heading)}.vt.due b{color:var(--bad)}
+
+/* ===== version hors ligne ===== */
+html{-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+.band{padding-top:max(14px,calc(env(safe-area-inset-top,0px) + 8px))}
+.gearbtn{display:grid;place-items:center;width:36px;height:36px;flex:none;background:transparent;border:1px solid #3a4560;color:#e6ebf5;border-radius:999px;cursor:pointer;margin-left:6px}
+.gearbtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.gearbtn:focus-visible,.langbtn:focus-visible{outline:2px solid var(--brand-gold);outline-offset:2px}
+.sheet{position:fixed;inset:0;z-index:100;background:rgb(10 16 28/.55);display:grid;align-items:end;justify-items:center;overflow:auto;padding:24px 0 0}
+.sheet-in{width:min(780px,100%);background:var(--page,var(--bg));border-radius:18px 18px 0 0;padding:16px 16px calc(24px + env(safe-area-inset-bottom,0px));display:grid;gap:12px;max-height:calc(100dvh - 24px);overflow:auto;box-shadow:0 -10px 40px rgb(0 0 0/.3)}
+.sheet .card h3.sec{margin:0}
+.seg4{display:flex;flex-wrap:wrap;gap:6px}
+.seg4 button{border:1px solid var(--line);background:var(--surface);color:var(--muted);font:700 14px var(--body);padding:9px 12px;border-radius:9px;cursor:pointer}
+.seg4 button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:inset 0 -3px 0 var(--brand-green)}
+.chip[aria-pressed="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.urgent{background:var(--bad-bg);color:var(--bad);border-left:5px solid var(--bad);padding:12px 14px;border-radius:0 10px 10px 0;display:grid;gap:4px}
+.dis{display:grid;gap:8px}
+.dis ul{margin:0;padding-left:20px}
+.farmcode{font:500 26px var(--mono);letter-spacing:.18em;padding:10px 14px;background:var(--bg);border-radius:10px;justify-self:start}
+.members{margin:0;padding-left:18px}
+.iacard{border-top:4px solid var(--brand-gold)}
+@media (max-width:520px){.langbox{margin-left:auto}}
+
+/* ===== Adaptation téléphone / tablette / ordinateur ===== */
+html,body{margin:0}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+img,svg,video,canvas{max-width:100%}
+@media (max-width:360px){nav.tabs button{font-size:10px;padding:6px 0}nav.tabs button svg{width:22px;height:22px}.card{padding:14px}}
+@media (min-width:640px) and (max-width:1023px){.wrap,.band-in{max-width:900px}nav.tabs{max-width:900px}}
+@media (min-width:1024px){
+  :root{--side:max(24px,calc((100vw - 1240px)/2));--navw:220px}
+  body{padding-bottom:24px}
+  .band-in{max-width:none;margin:0;padding-left:calc(var(--side) - 16px);padding-right:calc(var(--side) - 16px)}
+  .wrap{max-width:none;margin:0;padding-left:calc(var(--side) + var(--navw) + 28px);padding-right:var(--side);padding-top:28px}
+  nav.tabs{position:fixed;top:92px;bottom:auto;left:var(--side);right:auto;width:var(--navw);max-width:none;margin:0;
+    display:grid;grid-template-columns:1fr;grid-auto-rows:auto;gap:4px;padding:10px;border:1px solid var(--line);border-radius:16px;box-shadow:0 6px 24px rgb(0 0 0/.06)}
+  nav.tabs button{display:flex;align-items:center;justify-content:flex-start;gap:12px;font-size:14px;padding:12px 14px;text-align:left;min-height:48px}
+  nav.tabs button svg{flex:none}
+  .sheet{align-items:center;padding:24px}
+  .sheet-in{border-radius:18px}
+}
+@media (min-width:1024px) and (max-height:560px){nav.tabs{top:84px;max-height:calc(100vh - 100px);overflow:auto}}
+
+/* Bandeau clair : le logo B2A (bleu marine et vert) reste lisible */
+.band{border-bottom:1px solid #dfe3ea;box-shadow:0 2px 10px rgb(27 46 76/.06)}
+.band .app{color:#5b6475}.band .app b,.band .apptitle{color:#1b2e4c}
+.band .apptitle span{color:#3f7a24}
+.langbtn,.gearbtn{border-color:#c5ccd8;color:#1b2e4c}
+.langbtn:hover,.gearbtn:hover{border-color:#1b2e4c;background:#f2f4f8}
+</style>
+</head>
+<body>
+
+<style id="b2a-no-overflow">
+/* Empêche tout débordement horizontal, y compris sur Safari (iPhone) */
+html,body{max-width:100%;overflow-x:clip}
+.wrap,.view,.card,.hero,.suggest,.detail-head,.wiz-step,.hello{grid-template-columns:minmax(0,1fr)}
+.wrap>*,.view>*,.card>*,.hero>*,.suggest>*,.detail-head>*,.row>*,.btnrow>*,.kpi>*,.tile>*,.field>*,.tiles>*,.kpis>*,.grid2>*,.grid3>*,.subtabs>*,.seg>*,.seg3>*,.lot>*,.cal li>*,.inv>*{min-width:0}
+.kpis{grid-template-columns:repeat(auto-fill,minmax(min(150px,100%),1fr))}
+.subtabs{grid-template-columns:repeat(3,minmax(0,1fr))}
+.alerts li>*{min-width:0}.alerts li>span:not(.dot){flex:1 1 0;overflow-wrap:anywhere}
+h1,h2,h3,p,li,small,b,.note,.msg,.kpi small,.alerts li{overflow-wrap:break-word;word-break:normal}
+.tablewrap{max-width:100%}
+/* Diagnostic, rapport IA et guide santé */
+.grid2{grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))}
+.grid3{grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr))}
+.facts{grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr))}
+.meters{grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr))}
+.report-head>*,.facts>*,.meters>*,.meter>*,.meter h3>*,.signs li>*,.priority>*,.hist button>*,.drop>*,.pick>*,.chips>*,.legend>*,details.box>*,label{min-width:0}
+.signs li>span:not(.dot){flex:1 1 0}
+.report-head .id,.report-head h2,.sci,.conf,.alts,.signs li,.meter p,.meter li,.priority,.facts dd,.chip,label,summary,.drop,.hist .t{overflow-wrap:anywhere}
+.chip{max-width:100%;white-space:normal;text-align:left}
+.drop,.thumbs,.pick,.chips{max-width:100%}
+#v-diagnostic,#v-diagnostic>*{min-width:0;max-width:100%}
+/* Historique des diagnostics photo (accueil, fiche du lot, onglet Photo IA) */
+.hist{grid-template-columns:minmax(0,1fr)}
+.hist>*,.hist button{min-width:0;max-width:100%;width:100%}
+.hist .t{min-width:0;flex:1 1 0;display:grid;gap:2px}
+.hist .t b{white-space:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.hist small{overflow-wrap:anywhere}
+button{max-width:100%}
+/* ===== couvoir ===== */
+nav.tabs{grid-template-columns:repeat(8,minmax(0,1fr))}
+nav.tabs button{font-size:10px}
+@media (max-width:360px){nav.tabs button{font-size:9.5px}nav.tabs button svg{width:21px;height:21px}}
+.cvtiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:700px){.cvtiles{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.tile.bad b{color:var(--bad)}.tile.warn b{color:var(--warn)}.tile.ok b{color:var(--ok)}
+.lot .cvprog,.lot .cvsp{grid-column:1/-1}
+.cvprog{display:grid;gap:4px;position:relative;margin-top:6px}
+.cvprog small{color:var(--muted);font-size:13px}
+.cvmarks{position:absolute;left:0;right:0;top:0;height:10px;pointer-events:none}
+.cvmarks span{position:absolute;top:-2px;width:2px;height:14px;background:var(--brand-gold);border-radius:1px;transform:translateX(-1px)}
+.cvsp{color:var(--muted);font-size:12.5px;font-family:var(--mono);overflow-wrap:anywhere}
+.priority.cvbad{border-left-color:var(--bad);background:var(--bad-bg)}
+.priority span{display:block}
+.cvtips{margin:0;padding-left:18px;display:grid;gap:4px}
+#cv-bdetail .btnrow .btn{flex:1 1 auto}
+.kpi b.pos,td.pos{color:var(--ok)}.kpi b.neg,td.neg{color:var(--bad)}
+.cvsale>*,.cvsale .kpis>*{min-width:0}
+.cvsale .grid3{grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))}
+.cvsale .field small{overflow-wrap:anywhere}
+.cvsale{display:grid;grid-template-columns:minmax(0,1fr);min-width:0;gap:12px;border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg)}
+.cvsale h3{margin:0;font:700 17px var(--display)}
+.cvsale .kpi{background:var(--surface)}
+#cv-stab tr.tot td{font-weight:700;border-top:2px solid var(--line)}
+#cv-stab tbody tr{cursor:pointer}
+/* ===== fond bleu B2A (couleur du logo) sur toutes les pages ===== */
+html:root{--logo-bg:#1b2e4c;--page-muted:#c3cee0;--hero:#25416b}
+html,html body{background:var(--logo-bg);background-image:none}
+.hero{background:var(--hero);box-shadow:inset 0 0 0 1px rgb(255 255 255/.12)}
+#dbmsg,.wrap>.note,.view>.note,.view>.view>.note{color:var(--page-muted)}
+#dbmsg.err{color:#ffb3a7}
+.foot{color:var(--page-muted);border-top-color:rgb(255 255 255/.16)}
+.card,.tile:not(.hero .tile),.kpi{box-shadow:0 1px 2px rgb(0 0 0/.14),0 8px 22px rgb(0 0 0/.16)}
+/* barre du haut et barre du bas en bleu B2A ; le logo garde ses couleurs d'origine sur une pastille claire */
+html:root{--band:var(--logo-bg)}
+.band{border-bottom:1px solid rgb(255 255 255/.10)}
+.band .ic{box-shadow:0 0 0 1.5px rgb(255 255 255/.55)}
+.band .wm{background:#ffffff;border-radius:10px;padding:3px 8px;box-sizing:content-box}
+html .langbtn,html .gearbtn{border-color:rgb(255 255 255/.35);color:#ffffff}
+html .langbtn:hover,html .gearbtn:hover{border-color:#ffffff;background:rgb(255 255 255/.08)}
+html nav.tabs{background:var(--logo-bg);border-top-color:rgb(255 255 255/.14);backdrop-filter:none;-webkit-backdrop-filter:none}
+html nav.tabs button{color:var(--page-muted)}
+html nav.tabs button[aria-selected="true"],html:root:not([data-theme="light"]) nav.tabs button[aria-selected="true"]{background:var(--hero);color:#ffffff;box-shadow:inset 0 0 0 1px rgb(255 255 255/.16)}
+html nav.tabs button[aria-selected="true"] svg{stroke:var(--brand-green)}
+@media (min-width:820px){html nav.tabs{border-color:rgb(255 255 255/.14)}}
+
+/* propriétaire */
+.ownl{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:0}
+.ownl>div{background:var(--surface);padding:10px 12px;min-width:0}
+.ownl dt{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.ownl dd{margin:2px 0 0;font-weight:700;overflow-wrap:anywhere}
+.foot{flex-wrap:wrap;text-align:center}.foot .own{flex-basis:100%;letter-spacing:.06em;text-transform:none;font-weight:600}
+
+/* accès sur autorisation */
+html.acces-on,html.acces-on body{overflow:hidden}
+.acces{position:fixed;inset:0;z-index:1000;background:var(--logo-bg,#1b2e4c);overflow:auto;-webkit-overflow-scrolling:touch;
+  padding-top:calc(env(safe-area-inset-top,0px) + 20px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 24px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.acces-in{max-width:560px;margin:0 auto;display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+.acc-head{display:flex;align-items:center;gap:12px;color:#fff}
+.acc-head img{width:52px;height:52px;border-radius:13px;background:#fff}
+.acc-head b{display:block;font:800 20px/1.1 var(--display)}.acc-head small{color:#c3cee0;font-size:13px}
+.acces .card>.btn{width:100%}
+.acces .card>.acc-alt{margin-top:10px}
+.acc-sub{font:700 15px var(--body);margin:18px 0 4px;color:var(--heading)}
+.acc-wait{display:flex;align-items:center;gap:10px;font-weight:600}
+.acc-mail{font:600 17px var(--body);margin:0;user-select:all;overflow-wrap:anywhere}
+.acc-own{color:#c3cee0;font-size:13px;text-align:center;margin:0}
+.acc-toast{position:fixed;left:50%;transform:translateX(-50%);width:max-content;bottom:calc(96px + env(safe-area-inset-bottom,0px));z-index:1001;background:var(--ok,#3b7520);color:#fff;padding:12px 16px;border-radius:12px;font-weight:700;max-width:calc(100% - 32px);box-shadow:0 8px 22px rgb(0 0 0/.25)}
+
+/* ===== tablette / ordinateur : menu latéral sur une seule colonne (corrige la superposition en haut à gauche) ===== */
+@media (min-width:1024px){
+  nav.tabs{grid-template-columns:1fr !important;top:calc(var(--bandh,72px) + 20px);max-height:calc(100vh - var(--bandh,72px) - 36px);overflow:auto}
+  nav.tabs button{font-size:14px !important;display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:12px 14px;text-align:left;min-height:48px;line-height:1.2}
+  nav.tabs button svg{width:24px;height:24px;flex:none}
+}
+
+/* réglages : bouton Fermer toujours visible, sous la barre d'état */
+.sheet{padding-top:max(24px,calc(env(safe-area-inset-top,0px) + 12px))}
+.sheet-in{padding-top:0;max-height:calc(100dvh - max(24px,calc(env(safe-area-inset-top,0px) + 12px)))}
+.sheet-head{position:sticky;top:0;z-index:5;background:var(--page,var(--bg));padding:14px 0 10px;margin:0 -2px;gap:10px;align-items:center;border-bottom:1px solid var(--line)}
+.sheet-head h2{flex:1;margin:0}
+.sheet-head .back{margin:0}
+
+/* en-tête : collé tout en haut (la marge de la barre d'état est déjà dans son padding).
+   Avant, le décalage « top: safe-area » poussait l'en-tête vers le bas et cachait le haut de chaque écran sur Android. */
+.band{top:0 !important}
+.view{scroll-margin-top:calc(var(--bandh,72px) + 8px)}
+
+/* rappel de sauvegarde avant désinstallation */
+.x-warn{display:grid;gap:6px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,#e2a83a 16%,var(--surface));border:1px solid color-mix(in srgb,#e2a83a 55%,transparent);color:var(--ink)}
+.x-warn b{color:var(--heading)}.x-warn ol{margin:0;padding-left:20px;display:grid;gap:4px}
+.x-ios{display:grid;gap:6px;margin-top:10px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--surface) 92%,#1f5fa8);border:1px solid color-mix(in srgb,#1f5fa8 30%,transparent);color:var(--ink)}
+.x-ios b{color:var(--heading)}.x-ios ol{margin:0;padding-left:20px;display:grid;gap:4px}.x-ios.on{margin:0 0 10px;border-color:color-mix(in srgb,#1f5fa8 60%,transparent)}
+.x-bkp{border:2px solid #e2a83a}
+
+/* rattrapage de poids */
+ul.plain{margin:0;padding-left:18px;display:grid;gap:4px}
+</style>
+<div class="band" role="banner">
+  <div class="band-in">
+    <img class="ic" src="icons/b2a-logo.png" alt="Logo B2A">
+    <div class="lock">
+      <img class="wm" src="icons/b2a-nom.png" alt="B2A">
+      <img class="sl" src="icons/b2a-slogan.png" alt="Smart Building · Smart Farming">
+    </div>
+    <div class="apptitle">Agro Diagnostic<span>Élevage &amp; cultures</span></div>
+  </div>
+</div>
+<div class="wrap">
+
+  <nav class="tabs" role="tablist" aria-label="Navigation">
+    <button type="button" role="tab" id="tab-tableau" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Accueil</button>
+    <button type="button" role="tab" id="tab-saisie" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Saisie du jour</button>
+    <button type="button" role="tab" id="tab-calendrier" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M12 13v5M9.5 15.5h5"/></svg>Soins</button>
+    <button type="button" role="tab" id="tab-formules" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10l2 13H5L7 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/><path d="M9 13h6"/></svg>Formules</button>
+    <button type="button" role="tab" id="tab-ventes" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Ventes</button>
+    <button type="button" role="tab" id="tab-couvoir" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M8 3v3M16 3v3"/><ellipse cx="12" cy="15" rx="2.6" ry="3.2"/></svg>Couvoir</button>
+    <button type="button" role="tab" id="tab-poulailler" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M9 20v-5h6v5"/><circle cx="17.5" cy="6.5" r="1.2"/></svg>Poulailler</button>
+    <button type="button" role="tab" id="tab-marche" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9l1.5-5h13L20 9"/><path d="M4 9h16v2a3 3 0 0 1-5.3 1.9A3 3 0 0 1 12 14a3 3 0 0 1-2.7-1.1A3 3 0 0 1 4 11z"/><path d="M5 13.5V20h14v-6.5"/><path d="M10 20v-4h4v4"/></svg>Marché</button>
+    <button type="button" role="tab" id="tab-diagnostic" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Photo IA</button>
+  </nav>
+
+  <p class="msg" id="dbmsg" hidden></p>
+
+  <!-- TABLEAU -->
+  <div class="view" id="v-tableau">
+    <div class="view" id="home">
+    <section class="hero">
+    <div class="hello"><h1 id="hello-t">Bonjour</h1><p id="hello-d"></p></div>
+    <div class="tiles" id="tiles"></div>
+    </section>
+    <section class="card" id="alertcard" hidden>
+      <div class="row between"><h2 class="sec">Alertes du jour</h2><button class="btn small ghost" type="button" id="goCal">Voir le calendrier</button></div>
+      <div id="globalAlerts"></div>
+    </section>
+    <section class="card">
+      <div class="row between"><h2 class="sec">Mes lots</h2><button class="btn small ghost" id="btn-newlot" type="button">+ Nouveau lot</button></div>
+      <div class="lots" id="lots"></div>
+    </section>
+    <section class="card cam-card">
+      <div class="cam-row">
+        <span class="cam-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg></span>
+        <div class="cam-txt"><h2 class="sec">Caméras de la ferme</h2><p>Voir vos caméras en direct dans l'app EseeCloud.</p></div>
+      </div>
+      <button class="btn" type="button" id="btn-cameras">Ouvrir les caméras</button>
+    </section>
+    </div>
+
+    <section class="card wiz" id="lotform-card" hidden>
+      <div class="wiz-head">
+        <button class="back" type="button" id="l-cancel">‹ Annuler</button>
+        <h2 class="sec" id="lotform-title">Nouveau lot</h2>
+        <ol class="steps" id="l-steps">
+          <li data-i="0"><span>1</span>Le lot</li><li data-i="1"><span>2</span>Ventes</li><li data-i="2"><span>3</span>Coûts</li><li data-i="3"><span>4</span>Départ</li>
+        </ol>
+        <span class="msg" id="l-msg"></span>
+      </div>
+      <div class="wiz-step" data-step="0">
+        <p class="wiz-intro">Les informations de base sur vos animaux.</p>
+        <div class="grid2">
+          <div class="field"><label for="l-nom">Nom du lot</label><input type="text" id="l-nom" placeholder="ex. Bande 1 – Pondeuses"></div>
+          <div class="field"><label for="l-espece">Espèce</label><select id="l-espece">
+            <option>Poules pondeuses</option><option>Poulets de chair</option><option>Poulets locaux</option><option>Pintades</option><option>Moutons</option><option>Chèvres (viande)</option><option>Chèvres laitières</option><option>Bovins (embouche)</option><option>Vaches laitières</option><option>Porcs</option><option>Poissons (tilapia, silure)</option><option>Autre</option></select></div>
+          <div class="field"><label for="l-race">Race / souche</label><input type="text" id="l-race" placeholder="ex. ISA Brown"></div>
+          <div class="field"><label for="l-effectif">Nombre d'animaux au départ</label><input type="number" id="l-effectif" inputmode="numeric" min="0" min="1"></div>
+          <div class="field"><label for="l-arrivee">Date d'arrivée</label><input type="date" id="l-arrivee"></div>
+          <div class="field"><label for="l-age">Âge à l'arrivée (semaines)</label><input type="number" id="l-age" inputmode="numeric" min="0" value="0"><small>0 pour des poussins d'un jour</small></div>
+        </div>
+      </div>
+      <div class="wiz-step" data-step="1" hidden>
+        <p class="wiz-intro">Ce que vous payez pour nourrir et ce que vous vendez. Ces prix servent à calculer le bénéfice.</p>
+        <div class="grid2">
+          <div class="field"><label for="l-paliment">Prix de l'aliment acheté (FCFA / kg)</label><input type="number" id="l-paliment" inputmode="decimal" min="0"></div>
+          <div class="field"><label for="l-pvente" id="l-pvente-lbl">Prix de vente d'un œuf (FCFA)</label><input type="number" id="l-pvente" inputmode="decimal" min="0"><small>Œuf pour les pondeuses, litre de lait pour les laitières.</small></div>
+          <div class="field"><label for="l-pkg">Prix de vente au kg vif (FCFA)</label><input type="number" id="l-pkg" inputmode="decimal" min="0"><small>Si vous vendez au poids. Sinon, utilisez le prix par animal ci-dessous.</small></div>
+          <div class="field"><label for="l-pfin">Prix de vente par animal en fin de cycle (FCFA)</label><input type="number" id="l-pfin" inputmode="decimal" min="0"><small>Poule de réforme, poulet ou animal vendu</small></div>
+          <div class="field"><label for="l-agefin">Fin du cycle (âge en semaines)</label><input type="number" id="l-agefin" inputmode="numeric" min="1"><small>ex. 80 pour des pondeuses, 7 pour des poulets de chair</small></div>
+        </div>
+      </div>
+      <div class="wiz-step" data-step="2" hidden>
+        <p class="wiz-intro">Vos dépenses en dehors de l'aliment. Laissez vide ce que vous ne connaissez pas.</p>
+        <div class="grid2">
+          <div class="field"><label for="l-psujet">Prix d'achat par animal (FCFA)</label><input type="number" id="l-psujet" inputmode="decimal" min="0"><small>ex. poussin, poulette prête à pondre</small></div>
+          <div class="field"><label for="l-invest">Investissement de départ (FCFA)</label><input type="number" id="l-invest" inputmode="decimal" min="0"><small>Bâtiment, mangeoires, abreuvoirs… (sans l'achat des animaux)</small></div>
+          <div class="field"><label for="l-dureeinv">Durée d'utilisation du bâtiment et du matériel (années)</label><input type="number" id="l-dureeinv" inputmode="decimal" min="0.1" step="0.5" placeholder="5"><small>Le lot ne paie que sa part de l'investissement : sa durée divisée par cette durée (5 ans si vide)</small></div>
+          <div class="field"><label for="l-charges">Autres charges par mois (FCFA)</label><input type="number" id="l-charges" inputmode="decimal" min="0"><small>Salaire, vaccins, électricité, eau, transport</small></div>
+          <div class="field"><label for="l-palt">Prix de l'aliment maison (FCFA / kg)</label><input type="number" id="l-palt" inputmode="decimal" min="0"><small>Facultatif : pour comparer avec l'aliment acheté</small></div>
+          <div class="field"><label for="l-mortprev">Mortalité prévue (% par semaine)</label><input type="number" id="l-mortprev" inputmode="decimal" min="0" step="0.05" placeholder="0,1"><small>Mortalité normale attendue. Les 4 prochaines semaines suivent la mortalité réelle de vos saisies, ensuite ce taux.</small></div>
+        </div>
+      </div>
+      <div class="wiz-step" data-step="3" hidden>
+        <p class="wiz-intro">Ce qui s'est passé avant votre première saisie quotidienne. Ces totaux comptent dans les coûts et l'effectif, sans fausser les alertes.</p>
+        <div class="grid2">
+          <div class="field"><label for="l-aavant">Aliment déjà consommé (kg)</label><input type="number" id="l-aavant" inputmode="decimal" min="0"></div>
+          <div class="field"><label for="l-mavant">Morts déjà comptés</label><input type="number" id="l-mavant" inputmode="numeric" min="0"></div>
+          <div class="field"><label for="l-oavant">Œufs déjà ramassés</label><input type="number" id="l-oavant" inputmode="numeric" min="0"></div>
+          <div class="field"><label for="l-stock">Stock d'aliment en magasin (kg)</label><input type="number" id="l-stock" inputmode="decimal" min="0"><small>Ensuite, notez chaque achat dans la saisie du jour.</small></div>
+        </div>
+      </div>
+      <div class="wiz-foot">
+        <button class="btn ghost" id="l-prev" type="button">Précédent</button>
+        <button class="btn" id="l-next" type="button">Suivant</button>
+        <button class="btn" id="l-save" type="button">Enregistrer le lot</button>
+      </div>
+      <button class="btn small ghost danger" id="l-close" type="button" hidden>Clôturer ce lot</button>
+    </section>
+
+    <section class="card" id="lotdetail" hidden></section>
+  </div>
+
+  <!-- SAISIE -->
+  <div class="view" id="v-saisie" hidden>
+    <section class="card">
+      <h2 class="sec">Saisie du jour</h2>
+      <p class="note">Une fiche par lot et par jour. Si la fiche du jour existe déjà, elle s'affiche et vous pouvez la corriger.</p>
+      <div class="grid2">
+        <div class="field"><label for="s-lot">Lot</label><select id="s-lot"></select></div>
+        <div class="field"><label for="s-date">Date</label><input type="date" id="s-date"></div>
+      </div>
+      <div class="grid3">
+        <div class="field"><label for="s-oeufs">Œufs ramassés</label><input type="number" id="s-oeufs" inputmode="numeric" min="0"></div>
+        <div class="field"><label for="s-morts">Morts</label><input type="number" id="s-morts" inputmode="numeric" min="0" value="0"></div>
+        <div class="field"><label for="s-aliment">Aliment distribué (kg)</label><input type="number" id="s-aliment" inputmode="decimal" min="0" step="0.1"><small id="s-ration" hidden style="cursor:pointer"></small></div>
+        <div class="field"><label for="s-recu">Aliment reçu (kg)</label><input type="number" id="s-recu" inputmode="decimal" min="0"><small>Entrée en stock ce jour</small></div>
+        <div class="field"><label for="s-poids">Poids moyen (g)</label><input type="number" id="s-poids" inputmode="numeric" min="0"><small>Facultatif, 1 fois / semaine.</small></div>
+      </div>
+      <div class="field"><label for="s-note">Remarques</label><textarea id="s-note" placeholder="ex. vaccin Newcastle fait, fientes vertes, coupure d'eau…"></textarea></div>
+      <div class="row"><button class="btn" id="s-save" type="button">Enregistrer</button><button class="btn ghost danger" id="s-del" type="button" hidden>Supprimer cette fiche</button><span class="msg" id="s-msg"></span></div>
+    </section>
+  </div>
+
+  <!-- CALENDRIER -->
+  <div class="view" id="v-calendrier" hidden>
+    <section class="card">
+      <h2 class="sec">Les 30 prochains jours</h2>
+      <p class="note">Vaccins, traitements, achats d'aliment et travaux pour tous vos lots.</p>
+      <ul class="cal" id="upcoming"></ul>
+    </section>
+    <section class="card">
+      <div class="row between"><h2 class="sec">Calendrier sanitaire</h2><div class="row"><select id="c-lot" style="max-width:220px"></select><button class="btn small ghost" type="button" id="c-pdf">PDF</button></div></div>
+      <div id="feedbox"></div>
+      <div id="calbody"></div>
+      <details class="box" id="c-add">
+        <summary>Ajouter un soin ou un rappel</summary>
+        <div class="grid2">
+          <div class="field"><label for="c-nom">Quoi</label><input type="text" id="c-nom" placeholder="ex. Visite vétérinaire, vitamines, débecquage"></div>
+          <div class="field"><label for="c-date">Date prévue</label><input type="date" id="c-date"></div>
+          <div class="field"><label for="c-type">Type</label><select id="c-type"><option value="vaccin">Vaccin</option><option value="traitement" selected>Traitement</option><option value="conduite">Travaux / achat</option></select></div>
+        </div>
+        <div class="row"><button class="btn" type="button" id="c-save">Ajouter</button><span class="msg" id="c-msg"></span></div>
+      </details>
+      <p class="note">Programme type pour l'Afrique de l'Ouest. Faites-le valider par votre vétérinaire : les vaccins disponibles et les maladies présentes changent selon la zone.</p>
+    </section>
+  </div>
+
+  <!-- FORMULES -->
+  <div class="view" id="v-formules" hidden>
+    <section class="card">
+      <h2 class="sec">Formules d'aliment et fumure</h2>
+      <p class="note">Formules à fabriquer soi-même pour chaque espèce et chaque âge, et plans d'engrais pour les cultures. Mettez vos propres prix : le coût se calcule tout seul.</p>
+      <div class="seg" role="group" aria-label="Type"><button type="button" id="f-animal" aria-pressed="true">Animaux</button><button type="button" id="f-plante" aria-pressed="false">Cultures</button></div>
+    </section>
+
+    <div class="view" id="f-animal-box">
+      <section class="card">
+        <div class="grid2">
+          <div class="field"><label for="f-lot">Pour un lot</label><select id="f-lot"></select><small>Choisit l'espèce, l'âge et la quantité automatiquement.</small></div>
+          <div class="field"><label for="f-sp">Espèce</label><select id="f-sp"></select></div>
+          <div class="field"><label for="f-age">Âge des animaux</label><div class="row" style="flex-wrap:nowrap"><input type="number" id="f-age" min="0" step="1" inputmode="decimal" placeholder="ex. 12" style="max-width:110px"><select id="f-ageu" style="max-width:140px" aria-label="Unité de l'âge"><option value="sem">semaines</option><option value="mois">mois</option></select></div><small>Choisit la formule qui correspond à l'âge.</small></div>
+          <div class="field"><label for="f-phase">Formule</label><select id="f-phase"></select></div>
+          <div class="field"><label for="f-nb">Nombre d'animaux</label><input type="number" id="f-nb" min="0" step="1" inputmode="numeric" placeholder="ex. 500"><small>Pour les poissons : nombre de poissons.</small></div>
+          <div class="field"><label for="f-qty">Quantité à préparer (kg)</label><input type="number" id="f-qty" min="1" value="100">
+            <div class="btnrow" role="group" aria-label="Durée"><button class="btn small ghost dur" type="button" data-days="7" aria-pressed="false">1 semaine</button><button class="btn small ghost dur" type="button" data-days="14" aria-pressed="false">2 semaines</button><button class="btn small ghost dur" type="button" data-days="30" aria-pressed="false">1 mois</button><button class="btn small ghost dur" type="button" data-days="90" aria-pressed="false">3 mois</button></div></div>
+          <div class="field"><label for="f-fab">Fabrication et sacs (F par kg)</label><input type="number" id="f-fab" min="0" step="1" inputmode="decimal"><small>Ajouté au coût du mélange. SAPRA : 500 F de fabrication par sac de 50 kg + 200 F le sac vide = 14 F/kg.</small></div>
+          <div class="field"><label for="f-trans">Transport (F par kg)</label><input type="number" id="f-trans" min="0" step="1" inputmode="decimal"><small>Ajouté au coût du mélange. 10 000 F de transport pour 500 kg = 20 F/kg.</small></div>
+        </div>
+        <div id="f-lotinfo"></div>
+        <p class="note" id="f-need" aria-live="polite"></p>
+        <div class="tablewrap"><table class="data ftable">
+          <thead><tr><th>Ingrédient</th><th class="n">%</th><th class="n">kg</th><th class="n">Prix F/kg</th><th class="n">Coût F</th><th></th></tr></thead>
+          <tbody id="f-body"></tbody><tfoot id="f-total"></tfoot></table></div>
+        <p class="msg err" id="f-warn" hidden></p>
+        <ul class="msg err" id="f-warn2" hidden style="margin:0;padding-left:18px"></ul>
+        <div class="row"><select id="f-add" style="max-width:260px"></select><button class="btn small ghost" type="button" id="f-reset">Revenir à la formule de départ</button><button class="btn small" type="button" id="f-opt">Calculer la formule la moins chère</button></div>
+        <p class="note" id="f-optmsg" aria-live="polite">Utilise les ingrédients du tableau et vos prix. Ajoutez d'abord les ingrédients que vous avez.</p>
+        <div class="kpis" id="f-kpis"></div>
+        <div class="priority"><strong>Distribution</strong><span id="f-dist"></span></div>
+        <div class="row"><input type="text" id="f-nom" placeholder="Nom de ma formule" style="max-width:240px"><button class="btn small" type="button" id="f-save">Enregistrer ma formule</button>
+          <button class="btn small ghost" type="button" id="f-del" hidden>Supprimer cette formule</button><span class="msg" id="f-msg"></span></div>
+        <div class="row"><button class="btn" type="button" id="f-pdf">Télécharger la formule en PDF</button></div>
+        <p class="note">Les valeurs nutritives sont estimées à partir de compositions moyennes. Les prix proposés sont indicatifs : remplacez-les par vos prix d'achat.</p>
+      </section>
+      <section class="card">
+        <h3 class="sec" id="f-ingtitle">Ingrédients utilisables</h3>
+        <div id="f-inglist"></div>
+      </section>
+    </div>
+
+    <div class="view" id="f-plante-box" hidden>
+      <section class="card">
+        <div class="grid2">
+          <div class="field"><label for="f-cult">Culture</label><select id="f-cult"></select></div>
+          <div class="field" id="f-surfbox"><label for="f-surf">Surface</label><div class="row"><input type="number" id="f-surf" min="0" step="0.25" value="1" style="max-width:120px"><select id="f-unit" style="max-width:110px"><option value="ha">hectares</option><option value="m2">m²</option></select></div></div>
+          <div class="field" id="f-arbrebox" hidden><label for="f-arbres">Nombre d'arbres et âge (ans)</label><div class="row"><input type="number" id="f-arbres" min="0" value="100" style="max-width:110px"><input type="number" id="f-agearbre" min="0" value="6" style="max-width:90px" aria-label="Âge des arbres en années"></div></div>
+        </div>
+        <div class="tablewrap"><table class="data"><thead><tr><th>Moment</th><th>Engrais</th><th class="n">Dose</th><th class="n">Quantité</th><th class="n">Sacs 50 kg</th><th class="n">Coût</th></tr></thead><tbody id="f-plan"></tbody>
+          <tfoot><tr><td colspan="5"><b>Coût total</b></td><td class="n"><b id="f-plantot"></b></td></tr></tfoot></table></div>
+        <div class="priority"><strong>Conseils</strong><span id="f-pland"></span></div>
+        <span class="label">Vos prix</span><div class="grid3" id="f-prixeng"></div>
+        <div class="row"><button class="btn" type="button" id="f-planpdf">Télécharger le plan en PDF</button></div>
+        <p class="note">Doses générales pour l'Afrique de l'Ouest. Adaptez-les à votre sol avec l'agent agricole de votre zone.</p>
+      </section>
+    </div>
+  </div>
+
+  <!-- VENTES -->
+  <div class="view" id="v-ventes" hidden>
+    <div class="tiles vtiles" id="v-tiles"></div>
+    <section class="card" id="v-listcard">
+      <div class="row between"><h2 class="sec">Factures</h2><button class="btn small" id="v-new" type="button">+ Nouvelle facture</button></div>
+      <div class="chips" id="v-filters"><button class="chip" type="button" data-f="all">Toutes</button><button class="chip" type="button" data-f="apayer">À encaisser</button><button class="chip" type="button" data-f="payees">Payées</button></div>
+      <ul class="invlist" id="v-list"></ul>
+    </section>
+    <section class="card" id="v-form" hidden>
+      <div class="wiz-head"><button class="back" type="button" id="v-cancel">‹ Annuler</button>
+        <div class="row between"><h2 class="sec" id="v-ftitle">Nouvelle facture</h2><span class="tag" id="v-num" data-notr></span></div></div>
+      <div class="grid2">
+        <div class="field"><label for="v-cnom">Client</label><input type="text" id="v-cnom" list="v-clients" placeholder="Nom du client ou de la boutique" autocomplete="off"><datalist id="v-clients"></datalist></div>
+        <div class="field"><label for="v-ctel">Téléphone du client</label><input type="tel" id="v-ctel" inputmode="tel" placeholder="ex. 70 12 34 56"></div>
+        <div class="field"><label for="v-cadr">Adresse (facultatif)</label><input type="text" id="v-cadr" placeholder="Quartier, ville"></div>
+        <div class="field"><label for="v-date">Date de la vente</label><input type="date" id="v-date"></div>
+        <div class="field"><label for="v-lot">Lot vendu (facultatif)</label><select id="v-lot"></select><small>Les prix du lot sont proposés automatiquement.</small></div>
+      </div>
+      <span class="label">Produits vendus</span>
+      <div id="v-lines" class="vlines"></div>
+      <button class="btn small ghost" type="button" id="v-addline" style="justify-self:start">+ Ajouter une ligne</button>
+      <div class="grid2"><div class="field"><label for="v-remise">Remise (FCFA)</label><input type="number" id="v-remise" min="0" inputmode="decimal" placeholder="0"></div></div>
+      <span class="label">Paiement</span>
+      <div class="seg3" id="v-stat" role="group" aria-label="Paiement"><button type="button" data-s="payee">Payée</button><button type="button" data-s="acompte">Acompte</button><button type="button" data-s="apayer">À payer</button></div>
+      <div class="grid2">
+        <div class="field" id="v-payebox" hidden><label for="v-paye">Montant déjà payé (FCFA)</label><input type="number" id="v-paye" min="0" inputmode="decimal"></div>
+        <div class="field" id="v-modebox"><label for="v-mode">Mode de paiement</label><select id="v-mode"></select></div>
+      </div>
+      <div class="field"><label for="v-note">Remarque sur la facture (facultatif)</label><textarea id="v-note" placeholder="ex. Livraison au marché, plateaux à rendre"></textarea></div>
+      <div class="vtotals" id="v-totals"></div>
+      <span class="msg" id="v-msg"></span>
+      <div class="wiz-foot"><button class="btn ghost" type="button" id="v-save">Enregistrer</button><button class="btn" type="button" id="v-savepdf">Enregistrer et PDF</button></div>
+    </section>
+    <details class="box card" id="v-entbox">
+      <summary>Mes informations sur les factures</summary>
+      <div class="grid2">
+        <div class="field"><label for="e-nom">Nom de l'entreprise</label><input type="text" id="e-nom"></div>
+        <div class="field"><label for="e-adresse">Adresse</label><input type="text" id="e-adresse"></div>
+        <div class="field"><label for="e-tel">Téléphone</label><input type="tel" id="e-tel"></div>
+        <div class="field"><label for="e-ifu">Numéro IFU (facultatif)</label><input type="text" id="e-ifu"></div>
+        <div class="field"><label for="e-rccm">Numéro RCCM (facultatif)</label><input type="text" id="e-rccm"></div>
+        <div class="field"><label for="e-pied">Message en bas de facture</label><input type="text" id="e-pied"></div>
+      </div>
+      <div class="row"><button class="btn small" type="button" id="e-save">Enregistrer</button><span class="msg" id="e-msg"></span></div>
+    </details>
+  </div>
+
+  <!-- COUVOIR -->
+  <div class="view" id="v-poulailler" hidden></div>
+  <div class="view" id="v-couvoir" hidden>
+    <div class="tiles cvtiles" id="cv-tiles"></div>
+    <section class="card" id="cv-todo-card">
+      <h2 class="sec">À faire au couvoir</h2>
+      <ul class="cal" id="cv-todo"></ul>
+    </section>
+
+    <section class="card" id="cv-sales-card">
+      <h2 class="sec">Vente des poussins</h2>
+      <div class="kpis" id="cv-skpis"></div>
+      <div class="tablewrap"><table class="data" id="cv-stab"></table></div>
+      <p class="note">Prévision = œufs mis × taux d'éclosion prévu, moins les pertes avant la vente. Coûts = œufs, électricité et autres frais saisis dans chaque couvée.</p>
+    </section>
+
+    <section class="card" id="cv-batches-card">
+      <div class="row between"><h2 class="sec">Couvées</h2><button class="btn small" id="cv-newbatch" type="button">+ Mettre des œufs</button></div>
+      <div class="chips" id="cv-bfilter"><button class="chip" type="button" data-f="encours" aria-pressed="true">En cours</button><button class="chip" type="button" data-f="terminee" aria-pressed="false">Terminées</button></div>
+      <div class="lots" id="cv-batches"></div>
+    </section>
+
+    <section class="card" id="cv-bform" hidden>
+      <div class="wiz-head"><button class="back" type="button" id="cv-bcancel">‹ Annuler</button><h2 class="sec" id="cv-btitle">Nouvelle couvée</h2></div>
+      <div class="grid2">
+        <div class="field"><label for="cv-bmach">Couveuse</label><select id="cv-bmach"></select></div>
+        <div class="field"><label for="cv-besp">Espèce</label><select id="cv-besp"></select></div>
+        <div class="field"><label for="cv-boeufs">Nombre d'œufs mis</label><input type="number" id="cv-boeufs" min="1" inputmode="numeric" placeholder="ex. 112"></div>
+        <div class="field"><label for="cv-bdate">Date de mise en incubation</label><input type="date" id="cv-bdate"></div>
+        <div class="field"><label for="cv-bprop">D'où viennent les œufs ?</label><select id="cv-bprop"><option value="">Choisir…</option><option value="1">De mes poules (ma ferme)</option><option value="0">Achetés ou donnés</option></select><small>Sert au bilan annuel : les œufs de vos poules ne sont pas comptés comme un achat.</small></div>
+        <div class="field"><label for="cv-borig">Origine des œufs (facultatif)</label><input type="text" id="cv-borig" placeholder="ex. Mes pondeuses, achetés au marché"></div>
+        <div class="field"><label for="cv-bcout">Prix d'un œuf (FCFA, facultatif)</label><input type="number" id="cv-bcout" min="0" inputmode="decimal" placeholder="ex. 150"></div>
+      </div>
+      <div id="cv-bcheck"></div>
+      <span class="msg" id="cv-bmsg"></span>
+      <div class="wiz-foot"><button class="btn ghost" type="button" id="cv-bcancel2">Annuler</button><button class="btn" type="button" id="cv-bsave">Enregistrer la couvée</button></div>
+    </section>
+
+    <section class="card" id="cv-bdetail" hidden></section>
+
+    <section class="card" id="cv-machines-card">
+      <div class="row between"><h2 class="sec">Mes couveuses</h2><button class="btn small ghost" id="cv-newmach" type="button">+ Ajouter une couveuse</button></div>
+      <div class="lots" id="cv-machines"></div>
+    </section>
+
+    <section class="card" id="cv-mform" hidden>
+      <div class="wiz-head"><button class="back" type="button" id="cv-mcancel">‹ Annuler</button><h2 class="sec" id="cv-mtitle">Nouvelle couveuse</h2></div>
+      <div class="field"><label for="cv-mpreset">Modèle de départ</label><select id="cv-mpreset"></select><small>Remplit la capacité, les dimensions et la puissance. Corrigez ensuite avec les chiffres de votre appareil.</small></div>
+      <div class="grid2">
+        <div class="field"><label for="cv-mnom">Nom de la couveuse</label><input type="text" id="cv-mnom" placeholder="ex. Couveuse 1 – magasin"></div>
+        <div class="field"><label for="cv-mmode">Type</label><select id="cv-mmode"><option value="auto">Automatique (retournement et humidité)</option><option value="semi">Semi-automatique (retournement auto)</option><option value="manuelle">Manuelle</option></select></div>
+        <div class="field"><label for="cv-mcap">Capacité (œufs de poule)</label><input type="number" id="cv-mcap" min="1" inputmode="numeric"></div>
+        <div class="field"><label for="cv-mplat">Nombre de plateaux</label><input type="number" id="cv-mplat" min="1" inputmode="numeric"></div>
+      </div>
+      <span class="label">Dimensions extérieures (cm)</span>
+      <div class="grid3">
+        <div class="field"><label for="cv-mL">Longueur</label><input type="number" id="cv-mL" min="0" inputmode="decimal"></div>
+        <div class="field"><label for="cv-ml">Largeur</label><input type="number" id="cv-ml" min="0" inputmode="decimal"></div>
+        <div class="field"><label for="cv-mH">Hauteur</label><input type="number" id="cv-mH" min="0" inputmode="decimal"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label for="cv-mW">Puissance (W)</label><input type="number" id="cv-mW" min="0" inputmode="decimal"></div>
+        <div class="field"><label for="cv-menergie">Alimentation</label><select id="cv-menergie"><option value="secteur">Secteur (SONABEL)</option><option value="mixte">Secteur + batterie 12 V</option><option value="solaire">Solaire</option><option value="petrole">Pétrole / gaz</option></select></div>
+        <div class="field"><label for="cv-metat">État</label><select id="cv-metat"><option value="service">En service</option><option value="arret">À l'arrêt</option><option value="panne">En panne</option></select></div>
+        <div class="field"><label for="cv-mnote">Remarque (facultatif)</label><input type="text" id="cv-mnote" placeholder="ex. sonde d'humidité changée en octobre"></div>
+      </div>
+      <div id="cv-mcalc"></div>
+      <span class="msg" id="cv-mmsg"></span>
+      <div class="row between"><button class="btn small ghost danger" type="button" id="cv-mdel" hidden>Supprimer la couveuse</button></div>
+      <div class="wiz-foot"><button class="btn ghost" type="button" id="cv-mcancel2">Annuler</button><button class="btn" type="button" id="cv-msave">Enregistrer</button></div>
+    </section>
+
+    <details class="box card" id="cv-guide">
+      <summary>Guide des réglages par espèce</summary>
+      <p class="note">Valeurs de référence pour couveuse ventilée. Suivez d'abord la notice de votre appareil. J0 = jour de mise en incubation.</p>
+      <div class="tablewrap"><table class="data" id="cv-guidetab"></table></div>
+      <ul class="note cvtips">
+        <li>Œufs de moins de 7 jours, propres, stockés pointe en bas entre 15 et 18 °C.</li>
+        <li>Laissez les œufs 6 à 8 heures à température ambiante avant de les mettre.</li>
+        <li>Retournement 3 à 5 fois par jour jusqu'à l'arrêt, puis on n'ouvre plus la couveuse.</li>
+        <li>Retirez au mirage les œufs clairs et ceux dont l'embryon est mort.</li>
+        <li>Coupure de courant : gardez la couveuse fermée, une coupure de moins de 4 heures est généralement supportée.</li>
+      </ul>
+      <div class="grid2"><div class="field"><label for="cv-kwh">Prix de l'électricité (FCFA par kWh)</label><input type="number" id="cv-kwh" min="0" inputmode="decimal" placeholder="109"><small>Vide = 109 F/kWh, tarif SONABEL normal (au-delà de 200 kWh par mois, hors taxes).</small></div></div>
+      <div class="chips" id="cv-kwhp"><button class="chip" type="button" data-v="109">Monophasé · 109 F</button><button class="chip" type="button" data-v="114">Triphasé · 114 F</button><button class="chip" type="button" data-v="129">Monophasé + TVA 18 % · 129 F</button><button class="chip" type="button" data-v="135">Triphasé + TVA 18 % · 135 F</button></div>
+      <p class="note">Tarifs SONABEL par kWh, tranche au-delà de 200 kWh par mois. La facture ajoute la prime fixe et les taxes : prenez le prix avec TVA pour un coût plus proche de la réalité.</p>
+    </details>
+  </div>
+
+  <!-- DIAGNOSTIC -->
+  <div class="view" id="v-marche" hidden></div>
+  <div class="view" id="v-diagnostic" hidden>
+    <section class="card">
+      <span class="label">1 · Que voulez-vous analyser ?</span>
+      <div class="seg" role="group" aria-label="Type">
+        <button type="button" id="t-animal" aria-pressed="true">Animal</button>
+        <button type="button" id="t-plante" aria-pressed="false">Plante / culture</button>
+      </div>
+      <span class="label">2 · Photos (jusqu'à 3)</span>
+      <div class="drop" id="drop">
+        <div class="pick">
+          <label class="btn" for="file-cam">Prendre une photo</label>
+          <label class="btn ghost" for="file">Choisir dans la galerie</label>
+        </div>
+        <input type="file" id="file-cam" accept="image/*" capture="environment">
+        <input type="file" id="file" accept="image/*" multiple>
+        <span>Animal de profil, en entier et bien éclairé. Pour une plante : feuilles, tige et fruits.</span>
+      </div>
+      <div class="thumbs" id="thumbs"></div>
+      <span class="label">3 · Informations utiles (facultatif)</span>
+      <div class="grid2">
+        <div class="field"><label for="ctx-lot">Lot concerné</label><select id="ctx-lot"></select><small>Les chiffres du lot sont joints à l'analyse.</small></div>
+        <div class="field"><label for="ctx-pays">Pays / région</label><input type="text" id="ctx-pays" value="Burkina Faso, Ouagadougou"></div>
+        <div class="field"><label for="ctx-obj">Objectif</label><select id="ctx-obj"></select></div>
+        <div class="field"><label for="ctx-age">Âge connu</label><input type="text" id="ctx-age" placeholder="ex. 18 semaines, 45 jours après semis"></div>
+      </div>
+      <div class="field"><label for="ctx-obs">Ce que vous observez</label>
+        <textarea id="ctx-obs" placeholder="ex. mange moins depuis 3 jours, diarrhée verte, taches jaunes sur les feuilles…"></textarea></div>
+      <div class="row">
+        <button class="btn" id="analyse" type="button" disabled>Analyser</button>
+        <button class="btn ghost" id="stop" type="button" hidden>Arrêter</button>
+        <span class="spinner" id="spin" hidden></span>
+        <span class="msg" id="msg">Ajoutez au moins une photo.</span>
+      </div>
+    </section>
+    <section class="card" id="report" aria-live="polite"></section>
+    <section class="card" id="histcard" hidden>
+      <span class="label">Analyses enregistrées</span>
+      <div class="hist" id="hist"></div>
+    </section>
+    <p class="note">L'analyse par photo est une aide à la décision. Pour une mortalité anormale, une maladie contagieuse suspecte ou un traitement, consultez un vétérinaire.</p>
+  </div>
+  <footer class="foot"><img src="icons/b2a-logo.png" alt="">B2A · Smart Building · Smart Farming<span class="own" data-notr>© 2026 B2A-HIGH-TECHNOLOGY-AUTOMATION · Bayere Abdoul Aziz</span></footer>
+</div>
+
+<script src="config.js?v=60.18"></script>
+<script src="shim.js?v=60.18"></script>
+<script src="erreurs.js?v=60.18"></script>
+<script src="acces.js?v=60.18"></script>
+<script src="app.js?v=60.18"></script>
+<script src="guide.js?v=60.18"></script>
+<script src="extra.js?v=60.18"></script>
+<script src="langue.js?v=60.18"></script>
+<script src="couvoir.js?v=60.18"></script>
+<script src="plus.js?v=60.18"></script>
+<script src="poulailler.js?v=60.18"></script>
+<script src="bilan.js?v=60.18"></script>
+<script src="culture.js?v=60.18"></script>
+<script src="geo.js?v=60.18"></script>
+<script src="marche-cgu.js?v=60.18"></script>
+<script src="signaler.js?v=60.18"></script>
+<script src="marche.js?v=60.18"></script>
+<script src="services.js?v=60.18"></script>
+<script src="nav.js?v=60.18"></script>
+<script src="i18n.js?v=60.18"></script>
+
+
+</body>
+</html>
