@@ -1,0 +1,383 @@
+{
+ "version": 1,
+ "formations": [
+  {
+   "id": "bovins-embouche-video",
+   "type": "video",
+   "titre": "Embouche bovine : engraisser et vendre",
+   "desc": "Choix des animaux, santé à l'entrée, ration, eau, suivi du poids et vente.",
+   "duree": 1,
+   "taille": 1483205,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/bovins-embouche.mp4",
+   "ordre": 2,
+   "especes": [
+    "bovin"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
+   "id": "bovins-embouche-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Embouche bovine : engraisser et vendre",
+   "desc": "Choix des animaux, santé à l'entrée, ration, eau, suivi du poids et vente.",
+   "taille": 69944,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/bovins-embouche.pdf",
+   "ordre": 3,
+   "especes": [
+    "bovin"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
+   "id": "chair-6-semaines-video",
+   "type": "video",
+   "titre": "Poulets de chair : réussir une bande en 6 semaines",
+   "desc": "Température, aliments démarrage, croissance et finition, densité, poids de vente et vaccins.",
+   "duree": 1,
+   "taille": 1519644,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/chair-6-semaines.mp4",
+   "ordre": 2,
+   "especes": [
+    "chair"
+   ],
+   "semDe": 0,
+   "semA": 8,
+   "publie": true
+  },
+  {
+   "id": "chair-6-semaines-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Poulets de chair : réussir une bande en 6 semaines",
+   "desc": "Température, aliments démarrage, croissance et finition, densité, poids de vente et vaccins.",
+   "taille": 70396,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/chair-6-semaines.pdf",
+   "ordre": 3,
+   "especes": [
+    "chair"
+   ],
+   "semDe": 0,
+   "semA": 8,
+   "publie": true
+  },
+  {
+   "id": "local-pintades-video",
+   "type": "video",
+   "titre": "Poulets locaux et pintades : produire plus",
+   "desc": "Abri, alimentation complémentaire, soins des pintadeaux, couvaison et vaccins Newcastle.",
+   "duree": 1,
+   "taille": 1626495,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/local-pintades.mp4",
+   "ordre": 2,
+   "especes": [
+    "local"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
+   "id": "local-pintades-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Poulets locaux et pintades : produire plus",
+   "desc": "Abri, alimentation complémentaire, soins des pintadeaux, couvaison et vaccins Newcastle.",
+   "taille": 70905,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/local-pintades.pdf",
+   "ordre": 3,
+   "especes": [
+    "local"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
+   "id": "moutons-chevres-video",
+   "type": "video",
+   "titre": "Moutons et chèvres : santé et alimentation",
+   "desc": "Vaccin PPR, pasteurellose, déparasitage, alimentation, reproduction et embouche pour la Tabaski.",
+   "duree": 1,
+   "taille": 1637795,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/moutons-chevres.mp4",
+   "ordre": 2,
+   "especes": [
+    "petitsrum",
+    "chevrelait"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
+   "id": "moutons-chevres-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Moutons et chèvres : santé et alimentation",
+   "desc": "Vaccin PPR, pasteurellose, déparasitage, alimentation, reproduction et embouche pour la Tabaski.",
+   "taille": 70269,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/moutons-chevres.pdf",
+   "ordre": 3,
+   "especes": [
+    "petitsrum",
+    "chevrelait"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
+   "id": "tilapia-bassin-video",
+   "type": "video",
+   "titre": "Élever le tilapia en bassin",
+   "desc": "Bassin, alevins, densité, alimentation, qualité de l'eau et récolte.",
+   "duree": 1,
+   "taille": 1627224,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/tilapia-bassin.mp4",
+   "ordre": 2,
+   "especes": [
+    "poisson"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
+   "id": "tilapia-bassin-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Élever le tilapia en bassin",
+   "desc": "Bassin, alevins, densité, alimentation, qualité de l'eau et récolte.",
+   "taille": 70153,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/tilapia-bassin.pdf",
+   "ordre": 3,
+   "especes": [
+    "poisson"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
+   "id": "pondeuse-demarrage-video",
+   "type": "video",
+   "titre": "Pondeuses : réussir le démarrage des poussins",
+   "desc": "Préparer le bâtiment, chauffer, nourrir et surveiller les poussins les 4 premières semaines.",
+   "duree": 2,
+   "taille": 2053848,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/pondeuse-demarrage.mp4",
+   "ordre": 2,
+   "especes": [
+    "pondeuse"
+   ],
+   "semDe": 0,
+   "semA": 4,
+   "publie": true
+  },
+  {
+   "id": "pondeuse-demarrage-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Pondeuses : réussir le démarrage des poussins",
+   "desc": "Préparer le bâtiment, chauffer, nourrir et surveiller les poussins les 4 premières semaines.",
+   "taille": 72286,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/pondeuse-demarrage.pdf",
+   "ordre": 3,
+   "especes": [
+    "pondeuse"
+   ],
+   "semDe": 0,
+   "semA": 4,
+   "publie": true
+  },
+  {
+   "id": "pondeuse-vaccins-video",
+   "type": "video",
+   "titre": "Vacciner ses volailles correctement",
+   "desc": "Exemple de programme de vaccination des pondeuses et les règles pour qu'un vaccin protège vraiment.",
+   "duree": 2,
+   "taille": 2020042,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/pondeuse-vaccins.mp4",
+   "ordre": 8,
+   "especes": [
+    "pondeuse",
+    "local"
+   ],
+   "semDe": 0,
+   "semA": 90,
+   "publie": true
+  },
+  {
+   "id": "pondeuse-vaccins-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Vacciner ses volailles correctement",
+   "desc": "Exemple de programme de vaccination des pondeuses et les règles pour qu'un vaccin protège vraiment.",
+   "taille": 70717,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/pondeuse-vaccins.pdf",
+   "ordre": 9,
+   "especes": [
+    "pondeuse",
+    "local"
+   ],
+   "semDe": 0,
+   "semA": 90,
+   "publie": true
+  },
+  {
+   "id": "pondeuse-croissance-video",
+   "type": "video",
+   "titre": "Pondeuses : la croissance et la préparation à la ponte",
+   "desc": "De 5 à 17 semaines : aliment, poids, lumière, déparasitage et installation des pondoirs.",
+   "duree": 1,
+   "taille": 1534723,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/pondeuse-croissance.mp4",
+   "ordre": 4,
+   "especes": [
+    "pondeuse"
+   ],
+   "semDe": 5,
+   "semA": 17,
+   "publie": true
+  },
+  {
+   "id": "pondeuse-croissance-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Pondeuses : la croissance et la préparation à la ponte",
+   "desc": "De 5 à 17 semaines : aliment, poids, lumière, déparasitage et installation des pondoirs.",
+   "taille": 70426,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/pondeuse-croissance.pdf",
+   "ordre": 5,
+   "especes": [
+    "pondeuse"
+   ],
+   "semDe": 5,
+   "semA": 17,
+   "publie": true
+  },
+  {
+   "id": "pondeuse-ponte-video",
+   "type": "video",
+   "titre": "Pondeuses : réussir la ponte",
+   "desc": "Aliment ponte, eau, 16 heures de lumière, collecte des œufs et réaction aux chutes de ponte.",
+   "duree": 1,
+   "taille": 1585273,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/pondeuse-ponte.mp4",
+   "ordre": 6,
+   "especes": [
+    "pondeuse"
+   ],
+   "semDe": 18,
+   "semA": 90,
+   "publie": true
+  },
+  {
+   "id": "pondeuse-ponte-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Pondeuses : réussir la ponte",
+   "desc": "Aliment ponte, eau, 16 heures de lumière, collecte des œufs et réaction aux chutes de ponte.",
+   "taille": 70471,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/pondeuse-ponte.pdf",
+   "ordre": 7,
+   "especes": [
+    "pondeuse"
+   ],
+   "semDe": 18,
+   "semA": 90,
+   "publie": true
+  },
+  {
+   "id": "porcs-elevage-video",
+   "type": "video",
+   "titre": "Élevage de porcs : les bases",
+   "desc": "Bâtiment, alimentation, mise bas, soins des porcelets, sevrage et protection contre la peste porcine africaine.",
+   "duree": 1,
+   "taille": 1648690,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/porcs-elevage.mp4",
+   "ordre": 2,
+   "especes": [
+    "porc"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
+   "id": "porcs-elevage-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Élevage de porcs : les bases",
+   "desc": "Bâtiment, alimentation, mise bas, soins des porcelets, sevrage et protection contre la peste porcine africaine.",
+   "taille": 70225,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/porcs-elevage.pdf",
+   "ordre": 3,
+   "especes": [
+    "porc"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
+   "id": "biosecurite-7-regles-video",
+   "type": "video",
+   "titre": "Biosécurité : 7 règles pour protéger votre élevage",
+   "desc": "Les gestes simples qui empêchent les maladies d'entrer et de circuler dans la ferme.",
+   "duree": 1,
+   "taille": 1440596,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/biosecurite-7-regles.mp4",
+   "ordre": 0,
+   "especes": [
+    "tous"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
+   "id": "biosecurite-7-regles-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Biosécurité : 7 règles pour protéger votre élevage",
+   "desc": "Les gestes simples qui empêchent les maladies d'entrer et de circuler dans la ferme.",
+   "taille": 70095,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/biosecurite-7-regles.pdf",
+   "ordre": 1,
+   "especes": [
+    "tous"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
+   "id": "lait-traite-propre-video",
+   "type": "video",
+   "titre": "Traite propre et lait de qualité",
+   "desc": "Hygiène de la traite, dépistage des mammites, conservation et vente du lait.",
+   "duree": 1,
+   "taille": 1515391,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/lait-traite-propre.mp4",
+   "ordre": 2,
+   "especes": [
+    "vachelait",
+    "chevrelait"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
+   "id": "lait-traite-propre-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Traite propre et lait de qualité",
+   "desc": "Hygiène de la traite, dépistage des mammites, conservation et vente du lait.",
+   "taille": 69967,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/lait-traite-propre.pdf",
+   "ordre": 3,
+   "especes": [
+    "vachelait",
+    "chevrelait"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  }
+ ]
+}

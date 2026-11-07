@@ -1,0 +1,36 @@
+name: Publier les formations (vidéos et PDF)
+
+# Branche formations : vidéos, fiches PDF et catalogue.json de la version Pro de B2A Smart Farming.
+# À chaque ajout, le dossier formations/ du site (branche gh-pages) est mis à jour, sans reconstruire l'application.
+on:
+  push:
+    branches: [formations]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publication
+  cancel-in-progress: false
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: gh-pages
+          fetch-depth: 1
+      - name: Mettre à jour formations/ sur le site
+        run: |
+          git fetch -q origin formations
+          rm -rf formations && mkdir -p formations
+          git archive origin/formations | tar -x -C formations
+          rm -rf formations/.github formations/outils
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A formations
+          if git diff --cached --quiet; then echo "Rien de nouveau"; exit 0; fi
+          git commit -qm "Formations $(git rev-parse --short origin/formations)"
+          for i in 1 2 3; do git push -q origin HEAD:gh-pages && exit 0; git pull -q --rebase origin gh-pages; done; exit 1
