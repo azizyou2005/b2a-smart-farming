@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: publication
+  group: formations-publication
   cancel-in-progress: false
 
 jobs:
