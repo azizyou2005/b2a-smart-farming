@@ -172,7 +172,10 @@ function loadCat(){if(!navigator.onLine)return;fetch(CAT_URL,{cache:"no-cache"})
   catalogue=j.formations.filter(f=>f.publie!==false&&/^https:\/\//.test(f.url||""));try{B.lsSet(LS_CAT,JSON.stringify(catalogue))}catch(e){}rerender()}).catch(()=>{})}
 setTimeout(loadCat,2500);
 const cle=()=>B.farm||(uid?"u_"+uid:null);
-const isPro=()=>proFin>Date.now();
+/* Version d'essai (/essai/) : Pro débloqué pour tester, sans paiement. */
+const ESSAI=/\/essai\//.test(location.pathname);
+const finEff=()=>ESSAI?Math.max(proFin,Date.now()+30*864e5):proFin;
+const isPro=()=>finEff()>Date.now();
 const prixPro=f=>Number(cfg["pro"+f.toUpperCase()])||DEF["pro"+f.toUpperCase()];
 const rerender=()=>{try{const D=$("lotdetail");if(D&&!D.hidden&&(window.B2A.lotTabs||[]).some(x=>x.k===curTab()))A.renderDetail()}catch(e){}};
 const curTab=()=>{const b=document.querySelector("#lotdetail .subtabs button[aria-pressed='true']");return b?b.dataset.k:null};
@@ -218,7 +221,7 @@ function payForm(c){
       await s.col("pro_paiements").add({uid:s.uid,cle:k,nom:(B.lsGet(B.LS_NAME)||"").slice(0,60),formule:plan,mois,montant:prixPro(plan),ref:r.value.trim().slice(0,40),telPayeur:t.value.trim().slice(0,30),statut:"attente",creeLe:s.ts()});
       m.textContent=("Paiement envoyé : B2A le vérifie et active la version Pro.");m.className="msg good"}
     catch(e){console.warn(e);m.textContent=("Envoi impossible. Vérifiez la connexion et réessayez.");m.className="msg err";b.disabled=false}}}
-function proHead(D){const p=el("p","pro-ok");p.append(notr(el("span","pro-badge","PRO")),document.createTextNode((`Version Pro active jusqu'au ${dlong(proFin)}`)));
+function proHead(D){const p=el("p","pro-ok");p.append(notr(el("span","pro-badge","PRO")),document.createTextNode((`Version Pro active jusqu'au ${dlong(finEff())}`)));
   if(proFin-Date.now()<15*864e5){const b=el("button","btn small ghost","Renouveler");b.type="button";b.onclick=()=>{const c=el("div","pro-lock");payForm(c);p.after(c);b.remove()};p.append(b)}D.append(p)}
 
 /* ================= espèce et âge ================= */
