@@ -28,7 +28,9 @@ const nowHM=()=>{const d=new Date();return pad(d.getHours())+":"+pad(d.getMinute
 const N=v=>{if(v===""||v==null)return null;const n=Number(String(v).replace(",","."));return isFinite(n)?n:null};
 const digits=s=>String(s||"").replace(/\D/g,"");
 const okImg=u=>typeof u==="string"&&/^data:image\/(jpeg|png|webp);base64,/.test(u);
-const LS_PRO="b2a-pro-fin",LS_FORM="b2a-formations",CACHE_F="b2a-formations-v1";
+const LS_PRO="b2a-pro-fin",LS_FORM="b2a-formations",LS_CAT="b2a-formations-cat",CACHE_F="b2a-formations-v1";
+/* catalogue des formations créées par B2A (vidéos et PDF publiés sur le site, branche « formations » du dépôt) */
+const CAT_URL="https://azizyou2005.github.io/b2a-smart-farming/formations/catalogue.json";
 
 /* ================= traductions ================= */
 const T={
@@ -164,6 +166,11 @@ async function store(){if(S)return S;if(!B.CFG)return null;
 const DEF={proM1:2500,proM3:6000,proM12:20000,vetoTaux:10,telPaiement:"",nomPaiement:"B2A-HIGH-TECHNOLOGY-AUTOMATION"};
 let cfg={...DEF},proFin=Number(B.lsGet(LS_PRO))||0,mesPaie=[],formations=[],demandes=[],vetos=[],started=false,uid=null;
 try{formations=JSON.parse(B.lsGet(LS_FORM)||"[]")}catch(e){formations=[]}
+let catalogue=[];try{catalogue=JSON.parse(B.lsGet(LS_CAT)||"[]")}catch(e){catalogue=[]}
+const allForm=()=>{const m=new Map();catalogue.concat(formations).forEach(f=>{if(f&&f.id&&f.url)m.set(f.id,f)});return [...m.values()]};
+function loadCat(){if(!navigator.onLine)return;fetch(CAT_URL,{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!Array.isArray(j.formations))return;
+  catalogue=j.formations.filter(f=>f.publie!==false&&/^https:\/\//.test(f.url||""));try{B.lsSet(LS_CAT,JSON.stringify(catalogue))}catch(e){}rerender()}).catch(()=>{})}
+setTimeout(loadCat,2500);
 const cle=()=>B.farm||(uid?"u_"+uid:null);
 const isPro=()=>proFin>Date.now();
 const prixPro=f=>Number(cfg["pro"+f.toUpperCase()])||DEF["pro"+f.toUpperCase()];
@@ -255,7 +262,7 @@ T["semaine {0} à {1}"]=["week {0} to {1}","settimana da {0} a {1}","semana {0} 
 {const D=window.B2A_DICT;["en","it","es"].forEach((l,i)=>{["semaine {0} à {1}","semaine {0} à …"].forEach(k=>{if(D[l][k]==null)D[l][k]=T[k][i]})})}
 function renderFormation(D,l,s){if(!isPro()){lockCard(D,"formation");return}proHead(D);
   const k=espKey(l),w=s&&s.ageW!=null?Math.floor(s.ageW):null;
-  const mine=formations.filter(f=>f.publie!==false&&(!f.especes||!f.especes.length||f.especes.includes(k)||f.especes.includes("tous"))).sort((a,b)=>(a.semDe??0)-(b.semDe??0)||(a.ordre||0)-(b.ordre||0));
+  const mine=allForm().filter(f=>f.publie!==false&&(!f.especes||!f.especes.length||f.especes.includes(k)||f.especes.includes("tous"))).sort((a,b)=>(a.semDe??0)-(b.semDe??0)||(a.ordre||0)-(b.ordre||0));
   D.append(el("h3","sec","Formations pour ce lot"));
   if(!navigator.onLine)D.append(el("p","note","Sans internet, seules les formations gardées sur le téléphone s'ouvrent."));
   if(!mine.length){D.append(el("p","note","Aucune formation n'est encore publiée pour cette espèce. B2A ajoute régulièrement de nouvelles vidéos et fiches."));return}
