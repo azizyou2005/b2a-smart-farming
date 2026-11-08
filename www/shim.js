@@ -43,13 +43,27 @@ function makeLocal(){
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(new Error("load"));document.head.append(s)})}
 /* chargement unique du SDK Firebase (partagé avec l'accès et la ferme) */
 let fbP=null;
-function loadFirebase(cfg){if(!fbP)fbP=(async()=>{const v="10.12.2",b=`https://www.gstatic.com/firebasejs/${v}/`;
+function loadFirebase(cfg){if(!fbP)fbP=(async()=>{const v="10.14.1",b=`https://www.gstatic.com/firebasejs/${v}/`;
   await loadScript(b+"firebase-app-compat.js");await loadScript(b+"firebase-auth-compat.js");await loadScript(b+"firebase-firestore-compat.js");
   if(!firebase.apps.length)firebase.initializeApp(cfg);
   /* cache illimité : les fiches déjà téléchargées restent sur le téléphone (la synchronisation ne relit que ce qui a changé) */
   const fs=firebase.firestore();try{fs.settings({ignoreUndefinedProperties:true,merge:true,cacheSizeBytes:firebase.firestore.CACHE_SIZE_UNLIMITED})}catch(e){}
   try{await fs.enablePersistence({synchronizeTabs:true});window.__b2aPersist=true}catch(e){window.__b2aPersist=false}
   return firebase})();fbP.catch(()=>{fbP=null});return fbP}
+/* iPhone (Safari) : quand l'app reste en arrière-plan, Safari peut fermer la mémoire locale de Firebase (IndexedDB).
+   Firebase s'arrête alors (« ... without an in-progress transaction », « Connection to Indexed Database server lost »,
+   « INTERNAL ASSERTION FAILED ») et la synchronisation ne reprend plus. On relance l'app une seule fois, au bon moment :
+   dès qu'elle revient à l'écran, ou tout de suite si personne n'est en train d'écrire. Les données restent sur le téléphone. */
+(function(){const IDB=/in-progress transaction|indexed database server lost|internal assertion failed|asyncqueue is already failed/i;
+  const K="b2a-idb-relance";let armed=false;
+  const typing=()=>{const a=document.activeElement;return !!a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)};
+  const go=()=>{if(document.visibilityState!=="visible"||typing())return;
+    try{const t=+sessionStorage.getItem(K)||0;if(Date.now()-t<120000)return;sessionStorage.setItem(K,String(Date.now()))}catch(e){}
+    location.reload()};
+  const hit=m=>{if(!window.firebase||!IDB.test(String(m||""))||armed)return;armed=true;
+    setTimeout(go,1500);document.addEventListener("visibilitychange",go);document.addEventListener("focusout",()=>setTimeout(go,800))};
+  addEventListener("error",e=>hit(e&&(e.message||e.error&&e.error.message)));
+  addEventListener("unhandledrejection",e=>{const r=e&&e.reason;hit(r&&r.message||r)})})();
 /* utilisateur Firebase de ce téléphone : on attend la session enregistrée avant d'en créer une */
 let userP=null;
 function ensureUser(cfg){if(!userP)userP=(async()=>{const fb=await loadFirebase(cfg);const a=fb.auth();

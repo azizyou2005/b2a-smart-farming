@@ -1,5 +1,5 @@
 /* B2A Smart Farming : fonctionnement hors ligne */
-const CACHE = "b2a-v60.18";  /* changer ce numéro à chaque nouvelle version : 60.1, 60.2, 60.3… */
+const CACHE = "b2a-v60.19";  /* changer ce numéro à chaque nouvelle version : 60.1, 60.2, 60.3… */
 const CORE = ["./", "index.html", "404.html", "config.js", "shim.js", "erreurs.js", "acces.js", "app.js", "langue.js", "i18n.js", "guide.js", "extra.js", "couvoir.js", "plus.js", "poulailler.js", "bilan.js", "culture.js", "geo.js", "marche-cgu.js", "signaler.js", "marche.js", "services.js", "nav.js", "libs/jspdf.umd.min.js", "libs/jspdf.plugin.autotable.min.js",
   "manifest.json", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png",
   "icons/b2a-logo.png", "icons/b2a-nom.png", "icons/b2a-slogan.png"];
