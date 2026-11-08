@@ -11,7 +11,7 @@
    formations/<id>           { titre, desc, type: video|pdf, especes[], semDe, semA, url, taille, duree, ordre, publie }  (écrit par B2A)
    veto_demandes/<id>        { eleveur, eleveurNom, eleveurTel, cle, lotId, lot{}, vaccins[], veto, vetoNom, statut, message,
                                tarif, telPaiement, reponse, refPaiement, resultats{}, commentaire, signature, valideLe, taux, commission, comStatut }
-   farms/<code>/mesures/<id> { lotId, date, heure, temp, hum, eau, note, by, t }
+   farms/<code>/mesures/<id> { lotId, date, heure, temp, hum, eau, alim, nh3, co2, t1, t2, t3, note, source (dispositif|demo), by, t }
    marche_config/global      { proM1, proM3, proM12, vetoTaux, telPaiement, nomPaiement }  (écrit par B2A) */
 (function(){
 const B=window.B2A;if(!B||!B.app)return;const A=B.app;
@@ -48,10 +48,10 @@ const T={
 "Numéro de paiement":["Payment number","Numero di pagamento","Número de pago"],"Bénéficiaire":["Recipient","Beneficiario","Beneficiario"],
 "Référence du paiement":["Payment reference","Riferimento del pagamento","Referencia del pago"],"Téléphone qui a payé":["Phone that paid","Telefono che ha pagato","Teléfono que pagó"],
 "J'ai payé : envoyer la référence":["I have paid: send the reference","Ho pagato: invia il riferimento","He pagado: enviar la referencia"],
-"Paiement envoyé : B2A le vérifie et active la version Pro.":["Payment sent: B2A checks it and activates the Pro version.","Pagamento inviato: B2A lo verifica e attiva la versione Pro.","Pago enviado: B2A lo verifica y activa la versión Pro."],
-"Paiement en cours de vérification par B2A.":["Payment being checked by B2A.","Pagamento in verifica da parte di B2A.","Pago en verificación por B2A."],
+"Paiement envoyé : B{0}A le vérifie et active la version Pro.":["Payment sent: B{0}A checks it and activates the Pro version.","Pagamento inviato: B{0}A lo verifica e attiva la versione Pro.","Pago enviado: B{0}A lo verifica y activa la versión Pro."],
+"Paiement en cours de vérification par B{0}A.":["Payment being checked by B{0}A.","Pagamento in verifica da parte di B{0}A.","Pago en verificación por B{0}A."],
 "Paiement refusé :":["Payment refused:","Pagamento rifiutato:","Pago rechazado:"],
-"Le numéro de paiement n'est pas encore disponible. Contactez B2A sur WhatsApp.":["The payment number is not available yet. Contact B2A on WhatsApp.","Il numero di pagamento non è ancora disponibile. Contatta B2A su WhatsApp.","El número de pago aún no está disponible. Contacte a B2A por WhatsApp."],
+"Le numéro de paiement n'est pas encore disponible. Contactez B{0}A sur WhatsApp.":["The payment number is not available yet. Contact B{0}A on WhatsApp.","Il numero di pagamento non è ancora disponibile. Contatta B{0}A su WhatsApp.","El número de pago aún no está disponible. Contacte a B{0}A por WhatsApp."],
 "Indiquez la référence du paiement.":["Enter the payment reference.","Indica il riferimento del pagamento.","Indique la referencia del pago."],
 "Indiquez le téléphone qui a payé.":["Enter the phone that paid.","Indica il telefono che ha pagato.","Indique el teléfono que pagó."],
 "Envoi impossible. Vérifiez la connexion et réessayez.":["Sending failed. Check the connection and try again.","Invio impossibile. Verifica la connessione e riprova.","Envío imposible. Compruebe la conexión e inténtelo de nuevo."],
@@ -62,7 +62,7 @@ const T={
 "Formations pour ce lot":["Training for this batch","Formazione per questo lotto","Formación para este lote"],
 "Pour l'âge du lot (semaine {0})":["For the batch age (week {0})","Per l'età del lotto (settimana {0})","Para la edad del lote (semana {0})"],
 "Toutes les formations de l'espèce":["All training for the species","Tutta la formazione della specie","Toda la formación de la especie"],
-"Aucune formation n'est encore publiée pour cette espèce. B2A ajoute régulièrement de nouvelles vidéos et fiches.":["No training is published yet for this species. B2A regularly adds new videos and sheets.","Nessuna formazione ancora pubblicata per questa specie. B2A aggiunge regolarmente nuovi video e schede.","Aún no hay formación publicada para esta especie. B2A añade regularmente nuevos vídeos y fichas."],
+"Aucune formation n'est encore publiée pour cette espèce. B{0}A ajoute régulièrement de nouvelles vidéos et fiches.":["No training is published yet for this species. B{0}A regularly adds new videos and sheets.","Nessuna formazione ancora pubblicata per questa specie. B{0}A aggiunge regolarmente nuovi video e schede.","Aún no hay formación publicada para esta especie. B{0}A añade regularmente nuevos vídeos y fichas."],
 "Vidéo":["Video","Video","Vídeo"],"Fiche PDF":["PDF sheet","Scheda PDF","Ficha PDF"],
 "Regarder":["Watch","Guarda","Ver"],"Lire":["Read","Leggi","Leer"],
 "Garder sur le téléphone":["Keep on the phone","Tieni sul telefono","Guardar en el teléfono"],"Sur le téléphone ✓":["On the phone ✓","Sul telefono ✓","En el teléfono ✓"],
@@ -91,7 +91,7 @@ const T={
 "Température (30 dernières mesures)":["Temperature (last 30 measurements)","Temperatura (ultime 30 misure)","Temperatura (últimas 30 mediciones)"],
 "Bande verte : plage conseillée":["Green band: recommended range","Fascia verde: intervallo consigliato","Banda verde: rango recomendado"],
 "Touchez une ligne pour la supprimer.":["Touch a row to delete it.","Tocca una riga per eliminarla.","Toque una fila para borrarla."],"Supprimer cette mesure ?":["Delete this measurement?","Eliminare questa misura?","¿Borrar esta medición?"],
-"Bientôt : les mesures du dispositif B2A arriveront toutes seules.":["Coming soon: B2A device measurements will arrive automatically.","Presto: le misure del dispositivo B2A arriveranno da sole.","Pronto: las mediciones del dispositivo B2A llegarán solas."],
+"Bientôt : les mesures du dispositif B{0}A arriveront toutes seules.":["Coming soon: B{0}A device measurements will arrive automatically.","Presto: le misure del dispositivo B{0}A arriveranno da sole.","Pronto: las mediciones del dispositivo B{0}A llegarán solas."],
 /* vétérinaire */
 "Vaccins du lot":["Batch vaccines","Vaccini del lotto","Vacunas del lote"],"Validé par":["Validated by","Convalidato da","Validado por"],
 "En attente du vétérinaire":["Waiting for the vet","In attesa del veterinario","Esperando al veterinario"],"Non validé":["Not validated","Non convalidato","No validado"],"Refusé par le vétérinaire":["Refused by the vet","Rifiutato dal veterinario","Rechazado por el veterinario"],
@@ -117,7 +117,7 @@ const T={
 "Partager le carnet validé":["Share the validated record","Condividi il libretto convalidato","Compartir el registro validado"],
 /* espace vétérinaire */
 "Demandes de validation des vaccins":["Vaccine validation requests","Richieste di convalida dei vaccini","Solicitudes de validación de vacunas"],
-"Les éleveurs vous demandent de valider leurs vaccins. Fixez votre tarif, faites-vous payer directement, puis validez. Une commission B2A de {0} % du tarif est due à chaque validation.":["Farmers ask you to validate their vaccines. Set your fee, get paid directly, then validate. A B2A commission of {0} % of the fee is due for each validation.","Gli allevatori ti chiedono di convalidare i loro vaccini. Fissa la tua tariffa, fatti pagare direttamente, poi convalida. Per ogni convalida è dovuta a B2A una commissione del {0} % della tariffa.","Los ganaderos le piden validar sus vacunas. Fije su tarifa, cobre directamente y luego valide. Se debe una comisión B2A del {0} % de la tarifa por cada validación."],
+"Les éleveurs vous demandent de valider leurs vaccins. Fixez votre tarif, faites-vous payer directement, puis validez. Une commission B{0}A de {0} % du tarif est due à chaque validation.":["Farmers ask you to validate their vaccines. Set your fee, get paid directly, then validate. A B{0}A commission of {0} % of the fee is due for each validation.","Gli allevatori ti chiedono di convalidare i loro vaccini. Fissa la tua tariffa, fatti pagare direttamente, poi convalida. Per ogni convalida è dovuta a B{0}A una commissione del {0} % della tariffa.","Los ganaderos le piden validar sus vacunas. Fije su tarifa, cobre directamente y luego valide. Se debe una comisión B{0}A del {0} % de la tarifa por cada validación."],
 "Aucune demande pour le moment.":["No request at the moment.","Nessuna richiesta al momento.","Ninguna solicitud por ahora."],
 "Votre tarif (FCFA)":["Your fee (FCFA)","La tua tariffa (FCFA)","Su tarifa (FCFA)"],"Numéro où l'éleveur vous paie":["Number where the farmer pays you","Numero dove l'allevatore ti paga","Número donde el ganadero le paga"],
 "Message à l'éleveur (facultatif)":["Message to the farmer (optional)","Messaggio all'allevatore (facoltativo)","Mensaje al ganadero (opcional)"],
@@ -125,7 +125,7 @@ const T={
 "Indiquez votre tarif.":["Enter your fee.","Indica la tua tariffa.","Indique su tarifa."],"Référence du paiement de l'éleveur :":["Farmer's payment reference:","Riferimento del pagamento dell'allevatore:","Referencia del pago del ganadero:"],
 "Vérifiez le paiement reçu avant de valider.":["Check the payment received before validating.","Verifica il pagamento ricevuto prima di convalidare.","Verifique el pago recibido antes de validar."],
 "Commentaire (facultatif)":["Comment (optional)","Commento (facoltativo)","Comentario (opcional)"],"Valider les vaccins":["Validate the vaccines","Convalida i vaccini","Validar las vacunas"],
-"Confirmer la validation":["Confirm validation","Conferma la convalida","Confirmar la validación"],"Commission B2A due : {0} FCFA":["B2A commission due: {0} FCFA","Commissione B2A dovuta: {0} FCFA","Comisión B2A debida: {0} FCFA"],
+"Confirmer la validation":["Confirm validation","Conferma la convalida","Confirmar la validación"],"Commission B{0}A due : {0} FCFA":["B{0}A commission due: {0} FCFA","Commissione B{0}A dovuta: {0} FCFA","Comisión B{0}A debida: {0} FCFA"],
 "Commission réglée":["Commission paid","Commissione pagata","Comisión pagada"],"Éleveur":["Farmer","Allevatore","Ganadero"],"Lot":["Batch","Lotto","Lote"],
 "Effectif":["Headcount","Effettivo","Efectivo"],"Effectif {0}":["Headcount {0}","Effettivo {0}","Efectivo {0}"],"âge ≈ {0} sem.":["age ≈ {0} wk","età ≈ {0} sett.","edad ≈ {0} sem."],"fait le {0}":["done on {0}","fatto il {0}","hecho el {0}"],
 "Produit :":["Product:","Prodotto:","Producto:"],"N° de lot :":["Batch no.:","N° di lotto:","N.º de lote:"],"Échec. Réessayez.":["Failed. Try again.","Errore. Riprova.","Error. Inténtelo de nuevo."]
@@ -149,6 +149,7 @@ const css=el("style");css.textContent=`
 .pro-modal video{width:100%;max-height:78vh;background:#000;border-radius:10px}.pro-modal .in{width:min(900px,100%);display:grid;gap:8px}
 .pro-modal button{justify-self:end}
 .me-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.me-form .full{grid-column:1/-1}
+.me-manuel summary{cursor:pointer;padding:2px 0}.me-manuel[open] summary{margin-bottom:10px}.pe-src{margin:8px 0 0;padding-left:18px;display:grid;gap:6px;font-size:.92em}.pe-src a{color:var(--accent,#2f7d32);word-break:break-word}[data-pe] details summary{cursor:pointer;font-weight:600}
 .me-range{font-size:13px;background:var(--bg);border-radius:10px;padding:8px 10px}
 .vd-card{border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px;background:var(--surface)}
 .vd-st{justify-self:start;font:700 12px var(--body);padding:3px 9px;border-radius:999px;background:var(--bg)}
@@ -289,13 +290,40 @@ function lineSVG(rows,key,band){const P=rows.filter(r=>r[key]!=null);if(P.length
   P.forEach((r,i)=>{const out=band&&(r[key]<band[0]||r[key]>band[1]);s+=`<circle cx="${x(i)}" cy="${y(r[key])}" r="3.5" fill="${out?"#c0392b":"#1b2e4c"}"/>`});
   s+=`<text x="${L}" y="${H-5}" font-size="11" fill="#5b6880">${P[0].date.slice(5).split("-").reverse().join("/")}</text><text x="${W-R}" y="${H-5}" font-size="11" text-anchor="end" fill="#5b6880">${P[P.length-1].date.slice(5).split("-").reverse().join("/")}</text>`;
   return s+"</svg>"}
-function csvLot(l,rows){const sep=";";const head=["Date","Heure","Température (°C)","Humidité (%)","Eau (L)","Remarque"].map(tr);
+const srcLbl=r=>r.source==="dispositif"?"Dispositif":r.source==="demo"?"Démo":"Saisie manuelle";
+function csvLot(l,rows){const sep=";";const head=["Date","Heure","Température (°C)","Humidité (%)","Eau (L)","Aliment (kg)","NH3 (ppm)","CO2 (ppm)","Source","Remarque"].map(tr);
   const esc=v=>{const t=v==null?"":String(v);return /[;"\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t};
-  const lines=[head.join(sep),...rows.map(r=>[r.date,r.heure,r.temp!=null?String(r.temp).replace(".",","):"",r.hum!=null?String(r.hum).replace(".",","):"",r.eau!=null?String(r.eau).replace(".",","):"",r.note||""].map(esc).join(sep))];
+  const lines=[head.join(sep),...rows.map(r=>[r.date,r.heure,r.temp!=null?String(r.temp).replace(".",","):"",r.hum!=null?String(r.hum).replace(".",","):"",r.eau!=null?String(r.eau).replace(".",","):"",r.alim!=null?String(r.alim).replace(".",","):"",r.nh3!=null?String(r.nh3).replace(".",","):"",r.co2!=null?String(r.co2):"",tr(srcLbl(r)),r.note||""].map(esc).join(sep))];
   return new Blob(["﻿"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"})}
+/* relevé automatique : chaque lecture du dispositif de contrôle B2A Smart Building (Poulailler connecté)
+   enregistre une mesure par tranche de 30 minutes pour le lot relié au dispositif */
+const AUTO_MIN=30,LS_AUTO="b2a-pro-auto";let lastAuto="";try{lastAuto=B.lsGet(LS_AUTO)||""}catch(e){}
+const live=()=>{const L=window.B2A_PC_LIVE;return L&&Date.now()-L.t<3*60e3?L:null};
+const num1=v=>v==null||v===""||isNaN(+v)?null:Math.round(+v*10)/10;
+function autoMesure(){const L=live();if(!L||!L.lotId||!isPro())return;if(L.demo&&!ESSAI)return;
+  const db=A.db&&A.db();if(!db||!(A.can&&A.can()))return;listenMes();
+  const d=new Date(),m=Math.floor((d.getHours()*60+d.getMinutes())/AUTO_MIN)*AUTO_MIN,heure=pad(Math.floor(m/60))+":"+pad(m%60),date=today();
+  const key=L.lotId+"_"+date+"_"+heure.replace(":","");if(lastAuto===key)return;
+  const x=L.data||{},v={temp:num1(x.tMoy),hum:num1(x.hrMoy),eau:num1(x.eauJour),alim:num1(x.alimJour),nh3:num1(x.nh3),co2:num1(x.co2),t1:num1(x.t1),t2:num1(x.t2),t3:num1(x.t3)};
+  if(v.temp==null&&v.hum==null)return;lastAuto=key;try{B.lsSet(LS_AUTO,key)}catch(e){}
+  db.doc("mesures/"+key).set({lotId:L.lotId,date,heure,...v,note:"",source:L.demo?"demo":"dispositif",by:A.me(),t:Date.now()}).catch(()=>{lastAuto=""})}
+let liveTick=0;window.addEventListener("b2a-pc-data",()=>{try{autoMesure()}catch(e){}
+  if(curTab()==="controle"&&Date.now()-liveTick>15e3){liveTick=Date.now();rerender()}});
+function deviceCard(D,l){const L=live(),c=el("div","card");const h=el("h3","sec","Relevé automatique");c.append(h);
+  if(L&&L.lotId===l.id){const x=L.data||{};const p=el("p","msg good");p.textContent=(L.demo?"Mode démo du dispositif : les mesures de test sont enregistrées toutes seules.":"Dispositif de contrôle B2A Smart Building connecté : les mesures sont enregistrées toutes seules.");c.append(p);
+    const K=el("div","kpis");const f=(v,u,d)=>v==null||isNaN(+v)?"—":fmt(+v,d)+u;
+    K.append(A.kpi("Température moyenne",f(x.tMoy," °C",1),[x.t1,x.t2,x.t3].some(v=>v!=null)?[x.t1,x.t2,x.t3].map(v=>f(v,"°",1)).join(" · "):null));
+    K.append(A.kpi("Humidité moyenne",f(x.hrMoy," %",0)));if(x.nh3!=null)K.append(A.kpi("Ammoniac (NH₃)",f(x.nh3," ppm",1)));if(x.co2!=null)K.append(A.kpi("CO₂",f(x.co2," ppm",0)));
+    if(x.eauJour!=null)K.append(A.kpi("Eau aujourd'hui",f(x.eauJour," L",1)));if(x.alimJour!=null)K.append(A.kpi("Aliment aujourd'hui",f(x.alimJour," kg",1)));c.append(K);
+    const n=el("p","note");n.append(el("span",null,"Dernière lecture :"),document.createTextNode(" "),notr(el("span",null,new Date(L.t).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}))),document.createTextNode(" · "),el("span",null,`Une mesure est gardée toutes les ${AUTO_MIN} minutes.`));c.append(n)}
+  else if(L&&L.lotId){const p=el("p","note");p.append(el("span",null,"Le dispositif est relié à un autre lot :"),document.createTextNode(" "),notr(el("b",null,L.lotNom||"—")),document.createTextNode(". "),el("span",null,"Choisissez ce lot dans Poulailler connecté pour enregistrer ses mesures."));c.append(p)}
+  else c.append(el("p","note","Aucun dispositif connecté pour le moment. Dès que le dispositif de contrôle B2A Smart Building est configuré dans Poulailler connecté, les mesures (température, humidité, eau, aliment, air) arrivent ici toutes seules."));
+  const t=$("tab-poulailler");if(t){const b=el("button","btn small ghost","Ouvrir Poulailler connecté");b.type="button";b.style.justifySelf="start";b.onclick=()=>t.click();c.append(b)}
+  D.append(c)}
 function renderControle(D,l,s){if(!isPro()){lockCard(D,"controle");return}proHead(D);listenMes();
   const db=A.db();const rows=mesures.filter(m=>m.lotId===l.id).sort((a,b)=>mKey(a)<mKey(b)?-1:1);const pl=plage(l,s);
   if(pl){const r=el("p","me-range");r.append(el("b",null,"Plage conseillée pour l'âge du lot :"),document.createTextNode(" "+(`Température ${pl.t[0]} à ${pl.t[1]} °C · humidité ${pl.h[0]} à ${pl.h[1]} %`)));D.append(r)}
+  deviceCard(D,l);
   /* alerte sur la dernière mesure */
   const last=rows[rows.length-1];
   if(last&&pl){const ul=el("ul","alerts");const add=(c,t)=>{const li=el("li","s-"+c);li.append(el("span","dot"),el("span",null,t));ul.append(li)};
@@ -309,10 +337,11 @@ function renderControle(D,l,s){if(!isPro()){lockCard(D,"controle");return}proHea
   if(last)K.append(A.kpi("Dernière mesure",last.temp!=null?fmt(last.temp,1)+" °C":"—",[last.hum!=null?fmt(last.hum)+" %":null,last.date.split("-").reverse().join("/")+" "+(last.heure||"")].filter(Boolean).join(" · ")));
   if(T7.length){K.append(A.kpi("Moyenne 7 j",fmt(T7.reduce((a,b)=>a+b,0)/T7.length,1)+" °C"));K.append(A.kpi("Min / max 7 j",fmt(Math.min(...T7),1)+" / "+fmt(Math.max(...T7),1)+" °C"));
     if(pl)K.append(A.kpi("Hors plage 7 j",fmt(T7.filter(v=>v<pl.t[0]||v>pl.t[1]).length),null,T7.some(v=>v<pl.t[0]||v>pl.t[1])?"down":"up"))}
-  const E7=r7.map(r=>r.eau).filter(v=>v!=null);if(E7.length)K.append(A.kpi("Eau 7 j",fmt(E7.reduce((a,b)=>a+b,0),1)+" L"));
+  const E7={};r7.forEach(r=>{if(r.eau==null)return;const e=E7[r.date]=E7[r.date]||{a:0,m:0};if(r.source)e.a=Math.max(e.a,r.eau);else e.m+=r.eau});   /* dispositif : total du jour (le plus grand relevé) ; saisie : somme */
+  const ET=Object.values(E7);if(ET.length)K.append(A.kpi("Eau 7 j",fmt(ET.reduce((x,e)=>x+e.a+e.m,0),1)+" L"));
   if(K.children.length)D.append(K);
   /* formulaire */
-  if(A.can()&&db){const c=el("div","card");c.append(el("h3","sec","Nouvelle mesure"));const g=el("div","me-form");
+  if(A.can()&&db){const c=el("details","card me-manuel");const sm=el("summary");sm.append(el("b",null,"Saisie manuelle (sans dispositif)"));c.append(sm);const g=el("div","me-form");
     const fld=(lb,type,val,cls)=>{const f=el("div","field"+(cls?" "+cls:""));const id="me-"+Math.random().toString(36).slice(2,8);const L=el("label",null,lb);L.htmlFor=id;const i=el("input");i.type=type;i.id=id;if(val!=null)i.value=val;if(type==="number"){i.inputMode="decimal";i.step="0.1"}f.append(L,i);g.append(f);return i};
     const dt=fld("Date","date",today()),hm=fld("Heure","time",nowHM()),te=fld("Température (°C)","number"),hu=fld("Humidité (%)","number"),ea=fld("Eau consommée (litres)","number"),no=fld("Remarque (facultatif)","text",null,"full");no.maxLength=120;
     c.append(g);const m=el("p","msg");const b=el("button","btn","Enregistrer la mesure");b.type="button";c.append(b,m);
@@ -321,7 +350,7 @@ function renderControle(D,l,s){if(!isPro()){lockCard(D,"controle");return}proHea
       try{await db.doc("mesures/"+l.id+"_"+date+"_"+heure.replace(":","")).set({lotId:l.id,date,heure,...v,note:no.value.trim().slice(0,120),by:A.me(),t:Date.now()});
         m.textContent=("Mesure enregistrée.");m.className="msg good";te.value="";hu.value="";ea.value="";no.value=""}
       catch(e){m.textContent=A.errText?(A.errText(e)):("Échec. Réessayez.");m.className="msg err"}finally{b.disabled=false}};
-    c.append(el("p","note","Bientôt : les mesures du dispositif B2A arriveront toutes seules."));D.append(c)}
+    D.append(c)}
   /* graphique */
   D.append(el("h3","sec","Température (30 dernières mesures)"));const svg=lineSVG(rows.slice(-30),"temp",pl&&pl.t);
   if(svg){const w=el("div");w.innerHTML=svg;D.append(w);if(pl)D.append(el("p","note","Bande verte : plage conseillée"))}else D.append(el("p","note","Le graphique apparaît après 2 mesures."));
@@ -332,7 +361,7 @@ function renderControle(D,l,s){if(!isPro()){lockCard(D,"controle");return}proHea
   const w=el("div","tablewrap");const tb=el("table","data");const hd=el("tr");[["Date"],["Heure"],["Température","n"],["Humidité","n"],["Eau","n"],["Par"],["Remarque"]].forEach(([x,c])=>hd.append(el("th",c||null,x)));
   const th=el("thead");th.append(hd);tb.append(th);const body=el("tbody");
   rows.slice(-40).reverse().forEach(r=>{const tr_=el("tr");const out=pl&&r.temp!=null&&(r.temp<pl.t[0]||r.temp>pl.t[1]);
-    tr_.append(el("td",null,r.date.split("-").reverse().slice(0,2).join("/")),el("td",null,r.heure||""),el("td","n"+(out?" bad":""),r.temp!=null?fmt(r.temp,1)+" °C":"—"),el("td","n",r.hum!=null?fmt(r.hum)+" %":"—"),el("td","n",r.eau!=null?fmt(r.eau,1)+" L":"—"),notr(el("td",null,A.names[r.by]||"—")),notr(el("td",null,r.note||"")));
+    tr_.append(el("td",null,r.date.split("-").reverse().slice(0,2).join("/")),el("td",null,r.heure||""),el("td","n"+(out?" bad":""),r.temp!=null?fmt(r.temp,1)+" °C":"—"),el("td","n",r.hum!=null?fmt(r.hum)+" %":"—"),el("td","n",r.eau!=null?fmt(r.eau,1)+" L":"—"),r.source?el("td",null,srcLbl(r)):notr(el("td",null,A.names[r.by]||"—")),notr(el("td",null,r.note||"")));
     if(A.can()&&db){tr_.style.cursor="pointer";tr_.onclick=async()=>{if(!confirm(tr("Supprimer cette mesure ?")))return;try{await db.doc("mesures/"+r.id).delete();mesures=mesures.filter(x=>x.id!==r.id);A.renderDetail()}catch(e){}}}
     body.append(tr_)});tb.append(body);w.append(tb);D.append(w);if(A.can())D.append(el("p","note","Touchez une ligne pour la supprimer."))}
 
@@ -465,84 +494,113 @@ T["agrément {0}"]=["licence {0}","abilitazione {0}","licencia {0}"];
 /* brancher l'espace vétérinaire en haut de Marché > Services */
 {const SV=window.B2A_SERVICES;if(SV&&SV.render){const orig=SV.render.bind(SV);SV.render=function(Bd){const r=orig(Bd);try{if(B.CFG){vetoHost=el("div");Bd.prepend(vetoHost);listenVeto().catch(()=>{})}}catch(e){}return r}}}
 
-/* ================= 4. Étude du marché en temps réel et prix conseillé ================= */
+/* ================= 4. Étude du marché (prix relevés sur internet) et prix conseillé =================
+   Les prix viennent d'internet (annonces CoinAfrique, Rodwoko…, prix officiels, presse), relevés chaque jour par B2A
+   et publiés dans formations/marche/prix.json. Les annonces du Marché de l'application ne sont pas utilisées. */
 const TM={
 "Prix du marché":["Market prices","Prezzi di mercato","Precios del mercado"],"Étude du marché":["Market study","Studio di mercato","Estudio de mercado"],
 "Prix conseillé":["Suggested price","Prezzo consigliato","Precio aconsejado"],"Fourchette du marché":["Market range","Forbice di mercato","Rango del mercado"],
-"Annonces comparées":["Listings compared","Annunci confrontati","Anuncios comparados"],"Demande":["Demand","Domanda","Demanda"],"Tendance 30 j":["30-day trend","Tendenza 30 g","Tendencia 30 d"],
-"forte":["strong","forte","fuerte"],"normale":["normal","normale","normal"],"faible":["weak","debole","débil"],"{0} % épuisées":["{0} % sold out","{0} % esaurite","{0} % agotadas"],
-"dont {0} dans votre ville":["including {0} in your town","di cui {0} nella tua città","de ellas {0} en su ciudad"],"stable":["stable","stabile","estable"],
-"Catégorie":["Category","Categoria","Categoría"],"Unité":["Unit","Unità","Unidad"],"Mot-clé (facultatif)":["Keyword (optional)","Parola chiave (facoltativa)","Palabra clave (opcional)"],
+"Prix relevés":["Prices found","Prezzi rilevati","Precios encontrados"],"Tendance 30 j":["30-day trend","Tendenza 30 g","Tendencia 30 d"],"stable":["stable","stabile","estable"],
+"dont {0} dans votre ville":["including {0} in your town","di cui {0} nella tua città","de ellos {0} en su ciudad"],
+"Catégorie":["Category","Categoria","Categoría"],"Mot-clé (facultatif)":["Keyword (optional)","Parola chiave (facoltativa)","Palabra clave (opcional)"],
 "Votre ville (facultatif)":["Your town (optional)","La tua città (facoltativa)","Su ciudad (opcional)"],"ex. ISA Brown, couveuse, panneau solaire":["e.g. ISA Brown, incubator, solar panel","es. ISA Brown, incubatrice, pannello solare","p. ej. ISA Brown, incubadora, panel solar"],
-"Pas encore assez d'annonces au Marché pour ce produit. Élargissez la recherche (sans mot-clé ni ville) ou revenez plus tard.":["Not enough Market listings yet for this product. Widen the search (no keyword or town) or come back later.","Non ci sono ancora abbastanza annunci al Mercato per questo prodotto. Allarga la ricerca (senza parola chiave né città) o torna più tardi.","Todavía no hay suficientes anuncios en el Mercado para este producto. Amplíe la búsqueda (sin palabra clave ni ciudad) o vuelva más tarde."],
-"Calculé sur {0} annonces du Marché B2A, mis à jour en temps réel.":["Calculated on {0} B2A Market listings, updated in real time.","Calcolato su {0} annunci del Mercato B2A, aggiornato in tempo reale.","Calculado sobre {0} anuncios del Mercado B2A, actualizado en tiempo real."],
-"Peu d'annonces : prix indicatif.":["Few listings: indicative price.","Pochi annunci: prezzo indicativo.","Pocos anuncios: precio orientativo."],
+"Toutes":["All","Tutte","Todas"],"Rechercher":["Search","Cerca","Buscar"],"Chargement…":["Loading…","Caricamento…","Cargando…"],
+"Médiane des prix trouvés sur internet.":["Median of the prices found online.","Mediana dei prezzi trovati su internet.","Mediana de los precios encontrados en internet."],
+"Peu de prix trouvés : prix indicatif.":["Few prices found: indicative price.","Pochi prezzi trovati: prezzo indicativo.","Pocos precios encontrados: precio orientativo."],
 "Votre coût d'aliment : {0} F par plateau.":["Your feed cost: {0} F per tray.","Il tuo costo del mangime: {0} F per vassoio.","Su coste de pienso: {0} F por bandeja."],
 "Attention : le prix du marché couvre à peine votre coût.":["Warning: the market price barely covers your cost.","Attenzione: il prezzo di mercato copre appena il tuo costo.","Atención: el precio del mercado apenas cubre su coste."],
 "Marge estimée sur l'aliment : {0} %":["Estimated margin over feed: {0} %","Margine stimato sul mangime: {0} %","Margen estimado sobre el pienso: {0} %"],
-"Autre produit ou matériel":["Other product or equipment","Altro prodotto o materiale","Otro producto o material"],"Calculer":["Calculate","Calcola","Calcular"],
-"Demande forte : vous pouvez vendre un peu au-dessus du prix médian.":["Strong demand: you can sell slightly above the median price.","Domanda forte: puoi vendere un po' sopra il prezzo mediano.","Demanda fuerte: puede vender un poco por encima del precio mediano."],
-"Beaucoup d'offres : restez proche du prix médian pour vendre vite.":["Many offers: stay close to the median price to sell fast.","Molte offerte: resta vicino al prezzo mediano per vendere in fretta.","Muchas ofertas: manténgase cerca del precio mediano para vender rápido."],
-"Prix médian des annonces, ajusté selon la demande.":["Median listing price, adjusted for demand.","Prezzo mediano degli annunci, corretto secondo la domanda.","Precio mediano de los anuncios, ajustado según la demanda."],
-"Trouvez le bon prix avant de publier votre annonce : prix conseillé, fourchette et demande, en temps réel.":["Find the right price before publishing your listing: suggested price, range and demand, in real time.","Trova il prezzo giusto prima di pubblicare l'annuncio: prezzo consigliato, forbice e domanda, in tempo reale.","Encuentre el precio correcto antes de publicar su anuncio: precio aconsejado, rango y demanda, en tiempo real."],
-"Voir l'étude du marché":["See the market study","Vedi lo studio di mercato","Ver el estudio de mercado"]
+"Autre produit ou matériel":["Other product or equipment","Altro prodotto o materiale","Otro producto o material"],
+"Sources":["Sources","Fonti","Fuentes"],"annonce":["listing","annuncio","anuncio"],"prix officiel":["official price","prezzo ufficiale","precio oficial"],"presse":["press","stampa","prensa"],"boutique":["shop","negozio","tienda"],
+"Prix relevés sur internet au Burkina Faso (annonces, prix officiels, presse, boutiques), mis à jour chaque jour par B{0}A.":["Prices found online in Burkina Faso (listings, official prices, press, shops), updated every day by B{0}A.","Prezzi rilevati su internet in Burkina Faso (annunci, prezzi ufficiali, stampa, negozi), aggiornati ogni giorno da B{0}A.","Precios encontrados en internet en Burkina Faso (anuncios, precios oficiales, prensa, tiendas), actualizados cada día por B{0}A."],"Mise à jour :":["Updated:","Aggiornamento:","Actualización:"],
+"Pas encore de prix trouvé sur internet pour ce produit. B{0}A ajoute des produits à chaque mise à jour.":["No price found online for this product yet. B{0}A adds products at every update.","Nessun prezzo trovato ancora su internet per questo prodotto. B{0}A aggiunge prodotti a ogni aggiornamento.","Todavía no hay precio en internet para este producto. B{0}A añade productos en cada actualización."],
+"Les prix du marché demandent une connexion internet la première fois.":["Market prices need an internet connection the first time.","I prezzi di mercato richiedono una connessione internet la prima volta.","Los precios del mercado necesitan conexión a internet la primera vez."],
+"Trouvez le bon prix avant de publier votre annonce : prix conseillé et fourchette, d'après les prix trouvés sur internet.":["Find the right price before publishing your listing: suggested price and range, based on prices found online.","Trova il prezzo giusto prima di pubblicare l'annuncio: prezzo consigliato e forbice, secondo i prezzi trovati su internet.","Encuentre el precio correcto antes de publicar su anuncio: precio aconsejado y rango, según los precios encontrados en internet."],
+"Voir l'étude du marché":["See the market study","Vedi lo studio di mercato","Ver el estudio de mercado"],
+"Relevé automatique":["Automatic readings","Rilevazione automatica","Lectura automática"],
+"Dispositif de contrôle B{0}A Smart Building connecté : les mesures sont enregistrées toutes seules.":["B{0}A Smart Building control device connected: measurements are recorded automatically.","Dispositivo di controllo B{0}A Smart Building collegato: le misure vengono registrate da sole.","Dispositivo de control B{0}A Smart Building conectado: las medidas se registran solas."],
+"Mode démo du dispositif : les mesures de test sont enregistrées toutes seules.":["Device demo mode: test measurements are recorded automatically.","Modalità demo del dispositivo: le misure di prova vengono registrate da sole.","Modo demo del dispositivo: las medidas de prueba se registran solas."],
+"Température moyenne":["Average temperature","Temperatura media","Temperatura media"],"Humidité moyenne":["Average humidity","Umidità media","Humedad media"],
+"Ammoniac (NH₃)":["Ammonia (NH₃)","Ammoniaca (NH₃)","Amoníaco (NH₃)"],"Eau aujourd'hui":["Water today","Acqua oggi","Agua hoy"],"Aliment aujourd'hui":["Feed today","Mangime oggi","Pienso hoy"],
+"Dernière lecture :":["Last reading:","Ultima lettura:","Última lectura:"],"Une mesure est gardée toutes les {0} minutes.":["One measurement is kept every {0} minutes.","Una misura viene conservata ogni {0} minuti.","Se guarda una medida cada {0} minutos."],
+"Le dispositif est relié à un autre lot :":["The device is linked to another batch:","Il dispositivo è collegato a un altro lotto:","El dispositivo está vinculado a otro lote:"],
+"Choisissez ce lot dans Poulailler connecté pour enregistrer ses mesures.":["Choose this batch in Connected poultry house to record its measurements.","Scegli questo lotto in Pollaio connesso per registrarne le misure.","Elija este lote en Gallinero conectado para registrar sus medidas."],
+"Aucun dispositif connecté pour le moment. Dès que le dispositif de contrôle B{0}A Smart Building est configuré dans Poulailler connecté, les mesures (température, humidité, eau, aliment, air) arrivent ici toutes seules.":["No device connected yet. As soon as the B{0}A Smart Building control device is set up in Connected poultry house, measurements (temperature, humidity, water, feed, air) arrive here automatically.","Nessun dispositivo collegato per ora. Appena il dispositivo di controllo B{0}A Smart Building è configurato in Pollaio connesso, le misure (temperatura, umidità, acqua, mangime, aria) arrivano qui da sole.","Ningún dispositivo conectado por ahora. En cuanto el dispositivo de control B{0}A Smart Building esté configurado en Gallinero conectado, las medidas (temperatura, humedad, agua, pienso, aire) llegan aquí solas."],
+"Ouvrir Poulailler connecté":["Open Connected poultry house","Apri Pollaio connesso","Abrir Gallinero conectado"],
+"Saisie manuelle (sans dispositif)":["Manual entry (without device)","Inserimento manuale (senza dispositivo)","Entrada manual (sin dispositivo)"],
+"Dispositif":["Device","Dispositivo","Dispositivo"],"Démo":["Demo","Demo","Demo"],"Saisie manuelle":["Manual entry","Inserimento manuale","Entrada manual"],
+"plateau de {0}":["tray of {0}","vassoio da {0}","bandeja de {0}"],"sac de {0} kg":["{0} kg bag","sacco da {0} kg","saco de {0} kg"],"unité":["unit","unità","unidad"],"litre":["litre","litro","litro"],"tête":["head","capo","cabeza"],
+"Aliment (kg)":["Feed (kg)","Mangime (kg)","Pienso (kg)"],"Source":["Source","Fonte","Fuente"]
 };
 {const D=window.B2A_DICT;["en","it","es"].forEach((l,i)=>{for(const k in TM)if(D[l][k]==null)D[l][k]=TM[k][i]})}
 const MCATS=[["aliment","Aliment"],["animaux","Animaux vivants"],["oeufs","Œufs"],["poussins","Poussins"],["viande","Viande et volaille abattue"],["lait","Lait et produits laitiers"],
   ["recoltes","Récoltes (céréales, légumes…)"],["plants","Plants et semences"],["fourrage","Fourrage et foin"],["fumier","Fumier et compost"],["materiel","Matériel"],["autre","Autre"]];
-const MUNITS=["plateau de 30","unité","tête","kg","sac de 50 kg","sac de 100 kg","tine","litre","botte","lot"];
 const normT=t=>String(t||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim();
-let annonces=null,annSub=false;const LS_VILLE="b2a-pe-ville";
-async function listenAnn(){if(annSub)return;const s=await store();if(!s)return;annSub=true;
-  s.col("marche_annonces").where("statut","in",["actif","epuise"]).limit(1500).onSnapshot(q=>{annonces=q.docs.map(d=>({id:d.id,...d.data()}));
-    document.querySelectorAll("[data-pe]").forEach(x=>{try{x.__pe&&x.__pe()}catch(e){}})},()=>{annSub=false})}
+const PRIX_URL="https://azizyou2005.github.io/b2a-smart-farming/formations/marche/prix.json",LS_PRIX="b2a-prix-web",LS_VILLE="b2a-pe-ville";
+let prixWeb=null,prixBusy=false;try{prixWeb=JSON.parse(B.lsGet(LS_PRIX)||"null")}catch(e){prixWeb=null}
+const repaintPe=()=>document.querySelectorAll("[data-pe]").forEach(x=>{try{x.__pe&&x.__pe()}catch(e){}});
+function loadPrix(){if(prixBusy||!navigator.onLine)return;if(prixWeb&&prixWeb.__t&&Date.now()-prixWeb.__t<2*3600e3)return;prixBusy=true;
+  fetch(PRIX_URL,{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{if(!j||!Array.isArray(j.produits)||!Array.isArray(j.releves))return;
+    j.releves=j.releves.filter(r=>r&&Number(r.prix)>0&&/^https:\/\//.test(r.url||""));j.__t=Date.now();prixWeb=j;try{B.lsSet(LS_PRIX,JSON.stringify(j))}catch(e){}repaintPe()})
+  .catch(()=>{}).finally(()=>{prixBusy=false})}
+const langue=()=>{try{return window.B2A_LANG?window.B2A_LANG():"fr"}catch(e){return "fr"}};
+const pNom=p=>(p.nom&&(p.nom[langue()]||p.nom.fr))||p.id;
 const quant=(a,p)=>{if(!a.length)return null;const i=(a.length-1)*p,lo=Math.floor(i),hi=Math.ceil(i);return a[lo]+(a[hi]-a[lo])*(i-lo)};
 const arr=v=>v<1000?Math.round(v/25)*25:v<10000?Math.round(v/50)*50:Math.round(v/500)*500;
-function etude(o){const dev=o.devise||"XOF";const mot=normT(o.mot),vil=normT(o.ville);
-  let base=(annonces||[]).filter(a=>a.cat===o.cat&&(!o.unite||a.unite===o.unite)&&(a.devise||"XOF")===dev&&Number(a.prix)>0);
-  if(mot)base=base.filter(a=>normT(a.titre+" "+(a.desc||"")).includes(mot));
-  const loc=vil?base.filter(a=>normT(a.ville)===vil):[];const use=loc.length>=3?loc:base;if(!use.length)return null;
-  let P=use.map(a=>Number(a.prix)).sort((a,b)=>a-b);
+function etude(pid,ville){if(!prixWeb)return null;const p=prixWeb.produits.find(x=>x.id===pid);if(!p)return null;
+  const all=prixWeb.releves.filter(r=>r.produit===pid),vil=normT(ville),loc=vil?all.filter(r=>normT(r.ville)===vil):[];const use=loc.length>=3?loc:all;
+  if(!use.length)return {p,n:0};
+  let P=use.map(r=>+r.prix).sort((a,b)=>a-b);
   if(P.length>=5){const q1=quant(P,.25),q3=quant(P,.75),iq=q3-q1;P=P.filter(v=>v>=q1-1.5*iq&&v<=q3+1.5*iq)}
-  const med=quant(P,.5),q1=quant(P,.25),q3=quant(P,.75);const ep=use.filter(a=>a.statut==="epuise").length/use.length;
-  const now=Date.now(),D30=30*864e5;const r1=use.filter(a=>now-ms(a.creeLe)<D30).map(a=>+a.prix).sort((a,b)=>a-b),r0=use.filter(a=>now-ms(a.creeLe)>=D30&&now-ms(a.creeLe)<2*D30).map(a=>+a.prix).sort((a,b)=>a-b);
-  const tend=r1.length>=2&&r0.length>=2?(quant(r1,.5)/quant(r0,.5)-1):null;
-  const k=ep>=.3?1.05:(ep<.1&&use.length>=8?.97:1);
-  return {n:use.length,nLoc:loc.length,local:use===loc,med,q1,q3,ep,tend,prix:arr(med*k),dev,k}}
-function peCard(o,cost){const c=el("div","card");c.setAttribute("data-pe","");
-  const paint=()=>{c.innerHTML="";const h=el("h3","sec");h.append(document.createTextNode((MCATS.find(x=>x[0]===o.cat)?.[1]||o.cat)+(o.unite?" · "+o.unite:"")));if(o.mot)h.append(notr(el("span",null," · "+o.mot)));c.append(h);
-    if(annonces==null){c.append(el("p","note","Chargement…"));return}
-    const e=etude(o);if(!e){c.append(el("p","note","Pas encore assez d'annonces au Marché pour ce produit. Élargissez la recherche (sans mot-clé ni ville) ou revenez plus tard."));return}
-    const cur=e.dev==="XOF"?" F":" "+e.dev;const K=el("div","kpis");
-    K.append(A.kpi("Prix conseillé",fmt(e.prix)+cur,("Prix médian des annonces, ajusté selon la demande."),"up"));
-    K.append(A.kpi("Fourchette du marché",fmt(arr(e.q1))+" – "+fmt(arr(e.q3))+cur));
-    K.append(A.kpi("Annonces comparées",fmt(e.n),e.nLoc?(`dont ${fmt(e.nLoc)} dans votre ville`):null));
-    K.append(A.kpi("Demande",(e.ep>=.3?"forte":e.ep<.1?"faible":"normale"),(`${fmt(e.ep*100)} % épuisées`),e.ep>=.3?"up":e.ep<.1?"down":null));
+  const med=quant(P,.5),q1=quant(P,.25),q3=quant(P,.75);
+  let tend=null;const H=(prixWeb.historique||{})[pid]||[];if(H.length>=2){const last=H[H.length-1],lim=new Date(new Date(last.date+"T12:00")-28*864e5).toISOString().slice(0,10);
+    const old=H.filter(h=>h.date<=lim).pop();if(old&&old.med>0)tend=last.med/old.med-1}
+  return {p,n:use.length,nLoc:loc.length,med,q1,q3,prix:arr(med),tend,src:use.slice().sort((a,b)=>a.date<b.date?1:-1)}}
+const TYP={annonce:"annonce",officiel:"prix officiel",presse:"presse",boutique:"boutique"};
+function peCard(pid,cost){const c=el("div","card");c.setAttribute("data-pe","");
+  const paint=()=>{c.innerHTML="";
+    if(!prixWeb){c.append(el("p","note",navigator.onLine?"Chargement…":"Les prix du marché demandent une connexion internet la première fois."));return}
+    const p=prixWeb.produits.find(x=>x.id===pid);const h=el("h3","sec");h.append(notr(el("span",null,p?pNom(p):pid)));if(p&&p.unite&&!normT(p.nom.fr).includes(normT(p.unite)))h.append(document.createTextNode(" · "),el("span",null,p.unite));c.append(h);
+    const e=etude(pid,B.lsGet(LS_VILLE)||"");if(!e||!e.n){c.append(el("p","note","Pas encore de prix trouvé sur internet pour ce produit. B2A ajoute des produits à chaque mise à jour."));return}
+    const K=el("div","kpis");
+    K.append(A.kpi("Prix conseillé",fmt(e.prix)+" F",("Médiane des prix trouvés sur internet."),"up"));
+    K.append(A.kpi("Fourchette du marché",fmt(arr(e.q1))+" – "+fmt(arr(e.q3))+" F"));
+    K.append(A.kpi("Prix relevés",fmt(e.n),e.nLoc?(`dont ${fmt(e.nLoc)} dans votre ville`):null));
     if(e.tend!=null)K.append(A.kpi("Tendance 30 j",Math.abs(e.tend)<.02?("stable"):(e.tend>0?"+":"−")+fmt(Math.abs(e.tend)*100)+" %",null,e.tend>.02?"up":e.tend<-.02?"down":null));
     c.append(K);
-    if(e.k>1)c.append(el("p","note","Demande forte : vous pouvez vendre un peu au-dessus du prix médian."));else if(e.k<1)c.append(el("p","note","Beaucoup d'offres : restez proche du prix médian pour vendre vite."));
     if(cost&&cost.v>0){c.append(el("p","note",cost.lbl));const mg=(e.prix-cost.v)/e.prix;
       c.append(el("p",mg<.1?"msg err":"note",mg<.1?("Attention : le prix du marché couvre à peine votre coût."):(`Marge estimée sur l'aliment : ${fmt(mg*100)} %`)))}
-    c.append(el("p","note",`Calculé sur ${fmt(e.n)} annonces du Marché B2A, mis à jour en temps réel.`));if(e.n<5)c.append(el("p","note","Peu d'annonces : prix indicatif."))};
-  c.__pe=paint;paint();return c}
-function peTool(host,def){const c=el("div","card");const g=el("div","me-form");
+    if(e.n<3)c.append(el("p","note","Peu de prix trouvés : prix indicatif."));
+    const d=el("details");const sm=el("summary",null,"Sources");d.append(sm);const ul=el("ul","pe-src");
+    e.src.slice(0,8).forEach(r=>{const li=el("li");const a=el("a");a.href=r.url;a.target="_blank";a.rel="noopener noreferrer";a.textContent=r.source;notr(a);
+      li.append(notr(el("b",null,fmt(r.prix)+" F")),document.createTextNode(" · "),a,document.createTextNode(" · "),notr(el("span",null,(r.ville||"")+" · "+r.date.split("-").reverse().join("/"))),document.createTextNode(" ("),el("span",null,TYP[r.type]||r.type),document.createTextNode(")"));ul.append(li)});
+    d.append(ul);c.append(d)};
+  c.__pe=paint;paint();loadPrix();return c}
+function peTool(host,def){const c=el("div","card");c.setAttribute("data-pe","");const g=el("div","me-form");
   const mk=(lb,node)=>{const f=el("div","field");const id="pe-"+Math.random().toString(36).slice(2,8);const L=el("label",null,lb);L.htmlFor=id;node.id=id;f.append(L,node);g.append(f);return node};
-  const sc=el("select");MCATS.forEach(([k,n])=>sc.append(new Option(n,k)));sc.value=def&&def.cat||"materiel";
-  const su=el("select");su.append(new Option("—",""));MUNITS.forEach(u=>su.append(new Option(u,u)));su.value=def&&def.unite||"unité";
+  const sc=el("select");sc.append(new Option("Toutes",""));MCATS.forEach(([k,n])=>sc.append(new Option(n,k)));sc.value=def&&def.cat||"";
   const sm=el("input");sm.maxLength=40;sm.placeholder="ex. ISA Brown, couveuse, panneau solaire";const sv=el("input");sv.maxLength=60;sv.value=B.lsGet(LS_VILLE)||"";
-  mk("Catégorie",sc);mk("Unité",su);mk("Mot-clé (facultatif)",sm);mk("Votre ville (facultatif)",sv);c.append(g);
-  const out=el("div");const b=el("button","btn","Calculer");b.type="button";c.append(b,out);
-  b.onclick=()=>{B.lsSet(LS_VILLE,sv.value.trim()||null);out.innerHTML="";out.append(peCard({cat:sc.value,unite:su.value,mot:sm.value.trim(),ville:sv.value.trim()}))};host.append(c);return c}
-function presets(l){const k=espKey(l);return k==="pondeuse"?[["oeufs","plateau de 30",""],["animaux","tête",""]]:k==="chair"?[["animaux","tête",""],["viande","kg",""]]:
-  k==="local"?[["animaux","tête",""],["poussins","tête",""]]:k==="vachelait"||k==="chevrelait"?[["lait","litre",""],["animaux","tête",""]]:k==="poisson"?[["viande","kg","poisson"]]:[["animaux","tête",""]]}
-function renderPrix(D,l,s){if(!isPro()){lockCard(D,"prix");return}proHead(D);if(!B.CFG){D.append(el("p","note","La version Pro demande une connexion internet et un compte (inscription)."));return}listenAnn();const ville=B.lsGet(LS_VILLE)||"";
-  D.append(el("h3","sec","Prix du marché"));
-  presets(l).forEach(([cat,unite,mot])=>{let cost=null;if(cat==="oeufs"&&s&&s.coutOeuf!=null)cost={v:s.coutOeuf*30,lbl:(`Votre coût d'aliment : ${fmt(s.coutOeuf*30)} F par plateau.`)};D.append(peCard({cat,unite,mot,ville},cost))});
-  D.append(el("h3","sec","Autre produit ou matériel"));peTool(D,{cat:"materiel",unite:"unité"})}
+  mk("Catégorie",sc);mk("Mot-clé (facultatif)",sm);mk("Votre ville (facultatif)",sv);c.append(g);
+  const out=el("div");out.style.display="grid";out.style.gap="10px";const b=el("button","btn","Rechercher");b.type="button";c.append(b,out);
+  const run=()=>{B.lsSet(LS_VILLE,sv.value.trim()||null);out.innerHTML="";if(!prixWeb){out.append(el("p","note",navigator.onLine?"Chargement…":"Les prix du marché demandent une connexion internet la première fois."));return}
+    const m=normT(sm.value).split(/\s+/).filter(Boolean);
+    const L=prixWeb.produits.filter(p=>(!sc.value||p.cat===sc.value)&&m.every(w=>normT(pNom(p)+" "+p.nom.fr+" "+(p.mots||[]).join(" ")).includes(w)));
+    if(!L.length){out.append(el("p","note","Pas encore de prix trouvé sur internet pour ce produit. B2A ajoute des produits à chaque mise à jour."));return}
+    L.slice(0,8).forEach(p=>out.append(peCard(p.id)))};
+  b.onclick=run;c.__pe=()=>{if(out.childElementCount&&!out.querySelector("[data-pe]"))run()};loadPrix();host.append(c);return c}
+function presets(l){const k=espKey(l);return {pondeuse:["oeufs-plateau","pondeuse-reforme","aliment-ponte"],chair:["poulet-chair","poussin-chair","aliment-chair"],
+  local:["poulet-local","pintadeau","poussin-local","dinde"],vachelait:["lait","boeuf","aliment-betail"],chevrelait:["lait","chevre"],petitsrum:["mouton","chevre","aliment-betail"],
+  bovin:["boeuf","viande-boeuf","aliment-betail"],poisson:["tilapia"],porc:["porc"]}[k]||[]}
+function prixNote(D){D.append(el("p","note","Prix relevés sur internet au Burkina Faso (annonces, prix officiels, presse, boutiques), mis à jour chaque jour par B2A."));
+  const p=el("p","note");p.setAttribute("data-pe","");p.__pe=()=>{p.innerHTML="";const lb=el("span",null,"Mise à jour :");p.append(lb,document.createTextNode(" "),notr(el("span",null,prixWeb&&prixWeb.maj?new Date(Date.parse(prixWeb.maj)).toLocaleDateString("fr-FR"):"—")))};p.__pe();D.append(p)}
+function renderPrix(D,l,s){if(!isPro()){lockCard(D,"prix");return}proHead(D);loadPrix();
+  D.append(el("h3","sec","Prix du marché"));prixNote(D);
+  presets(l).forEach(id=>{let cost=null;if(id==="oeufs-plateau"&&s&&s.coutOeuf!=null)cost={v:s.coutOeuf*30,lbl:(`Votre coût d'aliment : ${fmt(s.coutOeuf*30)} F par plateau.`)};D.append(peCard(id,cost))});
+  D.append(el("h3","sec","Autre produit ou matériel"));peTool(D,{cat:""})}
 /* carte « Étude du marché » en haut de Marché > Vendre */
 {const body=$("m-body");if(body){let busy=false;new MutationObserver(()=>{if(busy)return;const v=document.querySelector('#m-seg [data-m="vendre"][aria-pressed="true"]');if(!v||$("pe-market"))return;
-  busy=true;try{const c=el("section","card");c.id="pe-market";const h=el("h2","sec");h.append(notr(el("span","pro-badge","PRO")),document.createTextNode(("Étude du marché")));c.append(h,el("p","note","Trouvez le bon prix avant de publier votre annonce : prix conseillé, fourchette et demande, en temps réel."));
-    if(isPro()){listenAnn();const w=el("div");c.append(w);const b=el("button","btn small ghost","Voir l'étude du marché");b.type="button";b.onclick=()=>{b.remove();peTool(w,{cat:"materiel",unite:"unité"})};c.append(b)}
+  busy=true;try{const c=el("section","card");c.id="pe-market";const h=el("h2","sec");h.append(notr(el("span","pro-badge","PRO")),document.createTextNode(("Étude du marché")));c.append(h,el("p","note","Trouvez le bon prix avant de publier votre annonce : prix conseillé et fourchette, d'après les prix trouvés sur internet."));
+    if(isPro()){const w=el("div");c.append(w);const b=el("button","btn small ghost","Voir l'étude du marché");b.type="button";b.onclick=()=>{b.remove();peTool(w,{cat:""})};c.append(b)}
     else lockCard(c,"prix");body.prepend(c)}finally{busy=false}}).observe(body,{childList:true})}}
 
 /* ================= onglets du lot ================= */
