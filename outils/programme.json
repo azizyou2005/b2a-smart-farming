@@ -1,6 +1,6 @@
 {"note":"Programme des prochaines formations ajoutées chaque semaine par la tâche programmée. fait=true quand la formation est publiée.",
  "sujets":[
-  {"id":"pondeuse-coccidiose","especes":["pondeuse","chair","local"],"semDe":2,"semA":12,"titre":"Coccidiose des volailles : reconnaître et prévenir","fait":false},
+  {"id":"pondeuse-coccidiose","especes":["pondeuse","chair","local"],"semDe":2,"semA":12,"titre":"Coccidiose des volailles : reconnaître et prévenir","fait":true},
   {"id":"chair-chaleur","especes":["chair"],"semDe":3,"semA":8,"titre":"Poulets de chair : protéger le lot contre la chaleur","fait":false},
   {"id":"aliment-volaille","especes":["pondeuse","chair","local"],"semDe":null,"semA":null,"titre":"Fabriquer son aliment volaille à la ferme","fait":false},
   {"id":"porc-mise-bas","especes":["porc"],"semDe":null,"semA":null,"titre":"Truie : réussir la mise bas et les premiers jours","fait":false},

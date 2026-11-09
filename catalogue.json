@@ -223,6 +223,41 @@
    "publie": true
   },
   {
+   "id": "pondeuse-coccidiose-video",
+   "type": "video",
+   "titre": "Coccidiose des volailles : reconnaître et prévenir",
+   "desc": "Comprendre la coccidiose, repérer les premiers signes, réagir vite et la prévenir avec une litière sèche.",
+   "duree": 2,
+   "taille": 2147972,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/pondeuse-coccidiose.mp4",
+   "ordre": 10,
+   "especes": [
+    "pondeuse",
+    "chair",
+    "local"
+   ],
+   "semDe": 2,
+   "semA": 12,
+   "publie": true
+  },
+  {
+   "id": "pondeuse-coccidiose-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Coccidiose des volailles : reconnaître et prévenir",
+   "desc": "Comprendre la coccidiose, repérer les premiers signes, réagir vite et la prévenir avec une litière sèche.",
+   "taille": 70852,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/pondeuse-coccidiose.pdf",
+   "ordre": 11,
+   "especes": [
+    "pondeuse",
+    "chair",
+    "local"
+   ],
+   "semDe": 2,
+   "semA": 12,
+   "publie": true
+  },
+  {
    "id": "pondeuse-croissance-video",
    "type": "video",
    "titre": "Pondeuses : la croissance et la préparation à la ponte",
