@@ -2,7 +2,7 @@
  "version": 1,
  "devise": "XOF",
  "pays": "Burkina Faso",
- "maj": "2026-11-08T09:03Z",
+ "maj": "2026-11-09T05:45Z",
  "produits": [
   {
    "id": "oeufs-plateau",
@@ -425,6 +425,123 @@
     "lecher",
     "sel"
    ]
+  },
+  {
+   "id": "mil",
+   "cat": "recoltes",
+   "unite": "sac de 100 kg",
+   "nom": {
+    "fr": "Mil grain",
+    "en": "Millet (grain)",
+    "it": "Miglio (granella)",
+    "es": "Mijo (grano)"
+   },
+   "mots": [
+    "mil",
+    "millet",
+    "petit mil"
+   ]
+  },
+  {
+   "id": "sorgho",
+   "cat": "recoltes",
+   "unite": "sac de 100 kg",
+   "nom": {
+    "fr": "Sorgho grain",
+    "en": "Sorghum (grain)",
+    "it": "Sorgo (granella)",
+    "es": "Sorgo (grano)"
+   },
+   "mots": [
+    "sorgho",
+    "sorgo",
+    "sorghum",
+    "gros mil"
+   ]
+  },
+  {
+   "id": "niebe",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Niébé (haricot)",
+    "en": "Cowpea (beans)",
+    "it": "Fagiolo dall'occhio",
+    "es": "Caupí (frijol)"
+   },
+   "mots": [
+    "niebe",
+    "haricot",
+    "cowpea",
+    "benga"
+   ]
+  },
+  {
+   "id": "riz",
+   "cat": "recoltes",
+   "unite": "sac de 50 kg",
+   "nom": {
+    "fr": "Riz",
+    "en": "Rice",
+    "it": "Riso",
+    "es": "Arroz"
+   },
+   "mots": [
+    "riz",
+    "rice",
+    "paddy"
+   ]
+  },
+  {
+   "id": "tourteau-soja",
+   "cat": "aliment",
+   "unite": "sac de 50 kg",
+   "nom": {
+    "fr": "Tourteau de soja",
+    "en": "Soybean meal",
+    "it": "Panello di soia",
+    "es": "Torta de soja"
+   },
+   "mots": [
+    "tourteau",
+    "soja",
+    "soya",
+    "tourteau de soja"
+   ]
+  },
+  {
+   "id": "seringue",
+   "cat": "materiel",
+   "unite": "unité",
+   "nom": {
+    "fr": "Seringue automatique (vaccination)",
+    "en": "Automatic syringe (vaccination)",
+    "it": "Siringa automatica (vaccinazione)",
+    "es": "Jeringa automática (vacunación)"
+   },
+   "mots": [
+    "seringue",
+    "vaccin",
+    "vaccination",
+    "injection"
+   ]
+  },
+  {
+   "id": "thermometre",
+   "cat": "materiel",
+   "unite": "unité",
+   "nom": {
+    "fr": "Thermomètre / hygromètre d'élevage",
+    "en": "Poultry house thermometer / hygrometer",
+    "it": "Termometro / igrometro per allevamento",
+    "es": "Termómetro / higrómetro de granja"
+   },
+   "mots": [
+    "thermometre",
+    "hygrometre",
+    "temperature",
+    "humidite"
+   ]
   }
  ],
  "releves": [
@@ -753,6 +870,24 @@
    "date": "2026-05-31"
   },
   {
+   "produit": "mais",
+   "prix": 12000,
+   "source": "SONAGESS, prix social (6 000 F le sac de 50 kg, converti en 100 kg)",
+   "url": "https://www.ouestinfo.bf/burkina-faso-la-sonagess-met-en-vente-du-mais-du-mil-du-sorgho-et-du-riz-a-prix-social/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-06-11"
+  },
+  {
+   "produit": "mais",
+   "prix": 18300,
+   "source": "DGEP note n°162 via OuagaNews (183 F/kg, moyenne nationale août 2026, converti en sac de 100 kg)",
+   "url": "https://ouaganews.net/burkina-les-prix-des-cereales-nettement-moins-chers-quun-an-plus-tot/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-10-17"
+  },
+  {
    "produit": "mangeoire",
    "prix": 2500,
    "source": "CoinAfrique",
@@ -805,6 +940,33 @@
    "ville": "Ouagadougou",
    "type": "annonce",
    "date": "2026-11-07"
+  },
+  {
+   "produit": "mil",
+   "prix": 25000,
+   "source": "SONAGESS, prix social (12 500 F le sac de 50 kg, converti en 100 kg)",
+   "url": "https://www.ouestinfo.bf/burkina-faso-la-sonagess-met-en-vente-du-mais-du-mil-du-sorgho-et-du-riz-a-prix-social/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-06-11"
+  },
+  {
+   "produit": "mil",
+   "prix": 28400,
+   "source": "DGEP note n°162 via OuagaNews (284 F/kg, moyenne nationale août 2026, converti en sac de 100 kg)",
+   "url": "https://ouaganews.net/burkina-les-prix-des-cereales-nettement-moins-chers-quun-an-plus-tot/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-10-17"
+  },
+  {
+   "produit": "mouton",
+   "prix": 150000,
+   "source": "Ouest Info, marché à bétail de Kiri (Tabaski 2026)",
+   "url": "https://www.ouestinfo.bf/burkina-tabaski-2026-au-marche-a-betail-de-bobo-les-moutons-se-vendent-entre-50-000-et-250-000-f-cfa/",
+   "ville": "Bobo-Dioulasso",
+   "type": "presse",
+   "date": "2026-05-25"
   },
   {
    "produit": "mouton",
@@ -861,13 +1023,22 @@
    "date": "2026-11-07"
   },
   {
-   "produit": "oeufs-plateau",
-   "prix": 4300,
-   "source": "Combien-coûte / Numbeo (12 œufs ≈ 1 719 F, ramené à 30)",
-   "url": "https://www.combien-coute.net/oeufs/burkina-faso/ouagadougou/",
-   "ville": "Ouagadougou",
-   "type": "boutique",
-   "date": "2026-07-19"
+   "produit": "niebe",
+   "prix": 426,
+   "source": "Horonya Finance, données officielles juin 2026",
+   "url": "https://www.horonyafinance.com/burkina-faso-les-prix-du-riz-et-des-cereales-locales-poursuivent-leur-baisse-en-juin-2026/",
+   "ville": "Burkina Faso",
+   "type": "presse",
+   "date": "2026-08-22"
+  },
+  {
+   "produit": "niebe",
+   "prix": 427,
+   "source": "DGEP note n°162 via OuagaNews (moyenne nationale août 2026)",
+   "url": "https://ouaganews.net/burkina-les-prix-des-cereales-nettement-moins-chers-quun-an-plus-tot/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-10-17"
   },
   {
    "produit": "oeufs-plateau",
@@ -877,6 +1048,15 @@
    "ville": "Burkina Faso",
    "type": "officiel",
    "date": "2026-08-13"
+  },
+  {
+   "produit": "oeufs-plateau",
+   "prix": 3755,
+   "source": "Combien-coûte / Numbeo (1 502 F les 12 œufs, converti en plateau de 30)",
+   "url": "https://www.combien-coute.net/oeufs/burkina-faso/ouagadougou/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-01"
   },
   {
    "produit": "pierre-lecher",
@@ -1088,11 +1268,11 @@
   {
    "produit": "poussin-chair",
    "prix": 750,
-   "source": "Burkina 24 (prix plafond État : Cobb 500, Ross 308, Sasso…)",
-   "url": "https://burkina24.com/2025/10/16/burkina-faso-le-gouvernement-fixe-les-prix-plafonds-des-poussins-chairs-pour-stabiliser-la-filiere-avicole/",
-   "ville": "Burkina Faso",
-   "type": "officiel",
-   "date": "2025-10-16"
+   "source": "CoinAfrique (37 500 F le carton de 50 poussins, soit 750 F/poussin)",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poussin-chair-6090980",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-10-25"
   },
   {
    "produit": "poussin-local",
@@ -1131,6 +1311,64 @@
    "date": "2026-11-07"
   },
   {
+   "produit": "riz",
+   "prix": 20000,
+   "source": "SONAGESS, prix social (10 000 F le sac de 25 kg, converti en 50 kg)",
+   "url": "https://www.ouestinfo.bf/burkina-faso-la-sonagess-met-en-vente-du-mais-du-mil-du-sorgho-et-du-riz-a-prix-social/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-06-11"
+  },
+  {
+   "produit": "riz",
+   "prix": 20252,
+   "source": "Horonya Finance (riz importé, juin 2026)",
+   "url": "https://www.horonyafinance.com/burkina-faso-les-prix-du-riz-et-des-cereales-locales-poursuivent-leur-baisse-en-juin-2026/",
+   "ville": "Burkina Faso",
+   "type": "presse",
+   "date": "2026-08-22",
+   "variante": "importe"
+  },
+  {
+   "produit": "riz",
+   "prix": 22149,
+   "source": "Horonya Finance (riz local étuvé, juin 2026)",
+   "url": "https://www.horonyafinance.com/burkina-faso-les-prix-du-riz-et-des-cereales-locales-poursuivent-leur-baisse-en-juin-2026/",
+   "ville": "Burkina Faso",
+   "type": "presse",
+   "date": "2026-08-22",
+   "variante": "local"
+  },
+  {
+   "produit": "riz",
+   "prix": 22418,
+   "source": "DGEP note n°162 via OuagaNews (riz importé, août 2026)",
+   "url": "https://ouaganews.net/burkina-les-prix-des-cereales-nettement-moins-chers-quun-an-plus-tot/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-10-17",
+   "variante": "importe"
+  },
+  {
+   "produit": "riz",
+   "prix": 23056,
+   "source": "DGEP note n°162 via OuagaNews (riz local étuvé, août 2026)",
+   "url": "https://ouaganews.net/burkina-les-prix-des-cereales-nettement-moins-chers-quun-an-plus-tot/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-10-17",
+   "variante": "local"
+  },
+  {
+   "produit": "seringue",
+   "prix": 32500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/seringue-automatique-pour-animaux-5993002",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-08-09"
+  },
+  {
    "produit": "son",
    "prix": 7000,
    "source": "EspaceAgro (son de riz, Gampela)",
@@ -1140,6 +1378,44 @@
    "date": "2026-11-07"
   },
   {
+   "produit": "sorgho",
+   "prix": 20000,
+   "source": "SONAGESS, prix social (10 000 F le sac de 50 kg, converti en 100 kg)",
+   "url": "https://www.ouestinfo.bf/burkina-faso-la-sonagess-met-en-vente-du-mais-du-mil-du-sorgho-et-du-riz-a-prix-social/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-06-11"
+  },
+  {
+   "produit": "sorgho",
+   "prix": 22300,
+   "source": "DGEP note n°162 via OuagaNews (223 F/kg, moyenne nationale août 2026, converti en sac de 100 kg)",
+   "url": "https://ouaganews.net/burkina-les-prix-des-cereales-nettement-moins-chers-quun-an-plus-tot/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-10-17"
+  },
+  {
+   "produit": "thermometre",
+   "prix": 6000,
+   "source": "CoinAfrique (modèle HTC-1)",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/thermometres-mural-5981996",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-08-09",
+   "variante": "htc1"
+  },
+  {
+   "produit": "thermometre",
+   "prix": 12500,
+   "source": "CoinAfrique (modèle TA218D)",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/thermometres-mural-5981996",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-08-09",
+   "variante": "ta218d"
+  },
+  {
    "produit": "tilapia",
    "prix": 3700,
    "source": "Selina Wamucii (prix de détail 2 669 à 4 745 F/kg)",
@@ -1147,6 +1423,15 @@
    "ville": "Ouagadougou",
    "type": "boutique",
    "date": "2026-11-07"
+  },
+  {
+   "produit": "tourteau-soja",
+   "prix": 16500,
+   "source": "CoinAfrique (sac de 50 kg)",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/tourteau-de-soja-5940610",
+   "ville": "Houndé",
+   "type": "annonce",
+   "date": "2026-06-09"
   },
   {
    "produit": "viande-boeuf",
@@ -1180,6 +1465,11 @@
     "date": "2026-11-08",
     "med": 3650,
     "n": 2
+   },
+   {
+    "date": "2026-11-09",
+    "med": 3378,
+    "n": 2
    }
   ],
   "pondeuse-reforme": [
@@ -1190,6 +1480,11 @@
    },
    {
     "date": "2026-11-08",
+    "med": 3500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-09",
     "med": 3500,
     "n": 1
    }
@@ -1204,6 +1499,11 @@
     "date": "2026-11-08",
     "med": 2500,
     "n": 7
+   },
+   {
+    "date": "2026-11-09",
+    "med": 2500,
+    "n": 7
    }
   ],
   "poulet-local": [
@@ -1214,6 +1514,11 @@
    },
    {
     "date": "2026-11-08",
+    "med": 3000,
+    "n": 10
+   },
+   {
+    "date": "2026-11-09",
     "med": 3000,
     "n": 10
    }
@@ -1228,6 +1533,11 @@
     "date": "2026-11-08",
     "med": 35000,
     "n": 7
+   },
+   {
+    "date": "2026-11-09",
+    "med": 35000,
+    "n": 7
    }
   ],
   "lapin": [
@@ -1238,6 +1548,11 @@
    },
    {
     "date": "2026-11-08",
+    "med": 6000,
+    "n": 5
+   },
+   {
+    "date": "2026-11-09",
     "med": 6000,
     "n": 5
    }
@@ -1252,6 +1567,11 @@
     "date": "2026-11-08",
     "med": 167500,
     "n": 6
+   },
+   {
+    "date": "2026-11-09",
+    "med": 165000,
+    "n": 7
    }
   ],
   "chevre": [
@@ -1262,6 +1582,11 @@
    },
    {
     "date": "2026-11-08",
+    "med": 42500,
+    "n": 2
+   },
+   {
+    "date": "2026-11-09",
     "med": 42500,
     "n": 2
    }
@@ -1276,6 +1601,11 @@
     "date": "2026-11-08",
     "med": 400000,
     "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 400000,
+    "n": 1
    }
   ],
   "poussin-chair": [
@@ -1286,6 +1616,11 @@
    },
    {
     "date": "2026-11-08",
+    "med": 750,
+    "n": 1
+   },
+   {
+    "date": "2026-11-09",
     "med": 750,
     "n": 1
    }
@@ -1300,6 +1635,11 @@
     "date": "2026-11-08",
     "med": 1375,
     "n": 4
+   },
+   {
+    "date": "2026-11-09",
+    "med": 1375,
+    "n": 4
    }
   ],
   "pintadeau": [
@@ -1310,6 +1650,11 @@
    },
    {
     "date": "2026-11-08",
+    "med": 600,
+    "n": 2
+   },
+   {
+    "date": "2026-11-09",
     "med": 600,
     "n": 2
    }
@@ -1324,6 +1669,11 @@
     "date": "2026-11-08",
     "med": 3700,
     "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 3700,
+    "n": 1
    }
   ],
   "viande-boeuf": [
@@ -1334,6 +1684,11 @@
    },
    {
     "date": "2026-11-08",
+    "med": 3003,
+    "n": 2
+   },
+   {
+    "date": "2026-11-09",
     "med": 3003,
     "n": 2
    }
@@ -1348,6 +1703,11 @@
     "date": "2026-11-08",
     "med": 1464,
     "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 1464,
+    "n": 1
    }
   ],
   "mais": [
@@ -1360,6 +1720,11 @@
     "date": "2026-11-08",
     "med": 17100,
     "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 17100,
+    "n": 3
    }
   ],
   "aliment-ponte": [
@@ -1370,6 +1735,11 @@
    },
    {
     "date": "2026-11-08",
+    "med": 17500,
+    "n": 3
+   },
+   {
+    "date": "2026-11-09",
     "med": 17500,
     "n": 3
    }
@@ -1384,6 +1754,11 @@
     "date": "2026-11-08",
     "med": 19000,
     "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 19000,
+    "n": 1
    }
   ],
   "aliment-betail": [
@@ -1394,6 +1769,11 @@
    },
    {
     "date": "2026-11-08",
+    "med": 12500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-09",
     "med": 12500,
     "n": 1
    }
@@ -1408,6 +1788,11 @@
     "date": "2026-11-08",
     "med": 7000,
     "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 7000,
+    "n": 1
    }
   ],
   "couveuse": [
@@ -1418,6 +1803,11 @@
    },
    {
     "date": "2026-11-08",
+    "med": 80000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-09",
     "med": 80000,
     "n": 7
    }
@@ -1432,6 +1822,11 @@
     "date": "2026-11-08",
     "med": 2250,
     "n": 6
+   },
+   {
+    "date": "2026-11-09",
+    "med": 2250,
+    "n": 6
    }
   ],
   "cage": [
@@ -1442,6 +1837,11 @@
    },
    {
     "date": "2026-11-08",
+    "med": 40000,
+    "n": 4
+   },
+   {
+    "date": "2026-11-09",
     "med": 40000,
     "n": 4
    }
@@ -1456,6 +1856,11 @@
     "date": "2026-11-08",
     "med": 35000,
     "n": 3
+   },
+   {
+    "date": "2026-11-09",
+    "med": 35000,
+    "n": 3
    }
   ],
   "plumeuse": [
@@ -1466,6 +1871,11 @@
    },
    {
     "date": "2026-11-08",
+    "med": 125000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-09",
     "med": 125000,
     "n": 1
    }
@@ -1479,6 +1889,60 @@
    {
     "date": "2026-11-08",
     "med": 2375,
+    "n": 2
+   },
+   {
+    "date": "2026-11-09",
+    "med": 2375,
+    "n": 2
+   }
+  ],
+  "mil": [
+   {
+    "date": "2026-11-09",
+    "med": 26700,
+    "n": 2
+   }
+  ],
+  "sorgho": [
+   {
+    "date": "2026-11-09",
+    "med": 21150,
+    "n": 2
+   }
+  ],
+  "niebe": [
+   {
+    "date": "2026-11-09",
+    "med": 426,
+    "n": 2
+   }
+  ],
+  "riz": [
+   {
+    "date": "2026-11-09",
+    "med": 22149,
+    "n": 5
+   }
+  ],
+  "tourteau-soja": [
+   {
+    "date": "2026-11-09",
+    "med": 16500,
+    "n": 1
+   }
+  ],
+  "seringue": [
+   {
+    "date": "2026-11-09",
+    "med": 32500,
+    "n": 1
+   }
+  ],
+  "thermometre": [
+   {
+    "date": "2026-11-09",
+    "med": 9250,
     "n": 2
    }
   ]
