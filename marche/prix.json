@@ -2,7 +2,7 @@
  "version": 1,
  "devise": "XOF",
  "pays": "Burkina Faso",
- "maj": "2026-11-09T05:45Z",
+ "maj": "2026-11-10T05:49Z",
  "produits": [
   {
    "id": "oeufs-plateau",
@@ -542,6 +542,205 @@
     "temperature",
     "humidite"
    ]
+  },
+  {
+   "id": "arachide",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Arachide en coque",
+    "en": "Groundnut (in shell)",
+    "it": "Arachide in guscio",
+    "es": "Cacahuete con cáscara"
+   },
+   "mots": [
+    "arachide",
+    "arachides",
+    "cacahuete",
+    "pistache"
+   ]
+  },
+  {
+   "id": "sesame",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Sésame",
+    "en": "Sesame",
+    "it": "Sesamo",
+    "es": "Sésamo"
+   },
+   "mots": [
+    "sesame",
+    "benniseed"
+   ]
+  },
+  {
+   "id": "oignon",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Oignon",
+    "en": "Onion",
+    "it": "Cipolla",
+    "es": "Cebolla"
+   },
+   "mots": [
+    "oignon",
+    "oignons"
+   ]
+  },
+  {
+   "id": "tomate",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Tomate",
+    "en": "Tomato",
+    "it": "Pomodoro",
+    "es": "Tomate"
+   },
+   "mots": [
+    "tomate",
+    "tomates"
+   ]
+  },
+  {
+   "id": "miel",
+   "cat": "autre",
+   "unite": "kg",
+   "nom": {
+    "fr": "Miel brut",
+    "en": "Raw honey",
+    "it": "Miele grezzo",
+    "es": "Miel cruda"
+   },
+   "mots": [
+    "miel",
+    "apiculture",
+    "ruche"
+   ]
+  },
+  {
+   "id": "semence-mais",
+   "cat": "plants",
+   "unite": "kg",
+   "nom": {
+    "fr": "Semence de maïs certifiée",
+    "en": "Certified maize seed",
+    "it": "Seme di mais certificato",
+    "es": "Semilla de maíz certificada"
+   },
+   "mots": [
+    "semence",
+    "semences",
+    "mais",
+    "graine"
+   ]
+  },
+  {
+   "id": "semence-riz",
+   "cat": "plants",
+   "unite": "kg",
+   "nom": {
+    "fr": "Semence de riz certifiée",
+    "en": "Certified rice seed",
+    "it": "Seme di riso certificato",
+    "es": "Semilla de arroz certificada"
+   },
+   "mots": [
+    "semence",
+    "semences",
+    "riz",
+    "graine"
+   ]
+  },
+  {
+   "id": "semence-sorgho",
+   "cat": "plants",
+   "unite": "kg",
+   "nom": {
+    "fr": "Semence de sorgho certifiée",
+    "en": "Certified sorghum seed",
+    "it": "Seme di sorgo certificato",
+    "es": "Semilla de sorgo certificada"
+   },
+   "mots": [
+    "semence",
+    "semences",
+    "sorgho",
+    "graine"
+   ]
+  },
+  {
+   "id": "semence-mil",
+   "cat": "plants",
+   "unite": "kg",
+   "nom": {
+    "fr": "Semence de mil certifiée",
+    "en": "Certified millet seed",
+    "it": "Seme di miglio certificato",
+    "es": "Semilla de mijo certificada"
+   },
+   "mots": [
+    "semence",
+    "semences",
+    "mil",
+    "petit mil",
+    "graine"
+   ]
+  },
+  {
+   "id": "semence-arachide",
+   "cat": "plants",
+   "unite": "kg",
+   "nom": {
+    "fr": "Semence d'arachide certifiée",
+    "en": "Certified groundnut seed",
+    "it": "Seme di arachide certificato",
+    "es": "Semilla de cacahuete certificada"
+   },
+   "mots": [
+    "semence",
+    "semences",
+    "arachide",
+    "graine"
+   ]
+  },
+  {
+   "id": "semence-sesame",
+   "cat": "plants",
+   "unite": "kg",
+   "nom": {
+    "fr": "Semence de sésame certifiée",
+    "en": "Certified sesame seed",
+    "it": "Seme di sesamo certificato",
+    "es": "Semilla de sésamo certificada"
+   },
+   "mots": [
+    "semence",
+    "semences",
+    "sesame",
+    "graine"
+   ]
+  },
+  {
+   "id": "semence-soja",
+   "cat": "plants",
+   "unite": "kg",
+   "nom": {
+    "fr": "Semence de soja certifiée",
+    "en": "Certified soybean seed",
+    "it": "Seme di soia certificato",
+    "es": "Semilla de soja certificada"
+   },
+   "mots": [
+    "semence",
+    "semences",
+    "soja",
+    "soya",
+    "graine"
+   ]
   }
  ],
  "releves": [
@@ -589,6 +788,15 @@
    "ville": "Burkina Faso",
    "type": "boutique",
    "date": "2026-11-07"
+  },
+  {
+   "produit": "arachide",
+   "prix": 360,
+   "source": "Prix plancher bord champ 2026 (communiqué gouvernemental), La Tribune du Faso (arachide en coque ; décortiquée 575 F/kg)",
+   "url": "https://www.latribunedufaso.net/?p=28162",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
   },
   {
    "produit": "boeuf",
@@ -942,6 +1150,15 @@
    "date": "2026-11-07"
   },
   {
+   "produit": "miel",
+   "prix": 1000,
+   "source": "Prix plancher bord champ 2026 (communiqué gouvernemental), La Tribune du Faso",
+   "url": "https://www.latribunedufaso.net/?p=28162",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
+  },
+  {
    "produit": "mil",
    "prix": 25000,
    "source": "SONAGESS, prix social (12 500 F le sac de 50 kg, converti en 100 kg)",
@@ -1057,6 +1274,15 @@
    "ville": "Ouagadougou",
    "type": "boutique",
    "date": "2026-11-01"
+  },
+  {
+   "produit": "oignon",
+   "prix": 165,
+   "source": "Prix plancher bord champ 2026 (communiqué gouvernemental), La Tribune du Faso",
+   "url": "https://www.latribunedufaso.net/?p=28162",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
   },
   {
    "produit": "pierre-lecher",
@@ -1360,6 +1586,91 @@
    "variante": "local"
   },
   {
+   "produit": "semence-arachide",
+   "prix": 1400,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10"
+  },
+  {
+   "produit": "semence-mais",
+   "prix": 600,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne (certifiee)",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10",
+   "variante": "certifiee"
+  },
+  {
+   "produit": "semence-mais",
+   "prix": 1500,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne (hybride)",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10",
+   "variante": "hybride"
+  },
+  {
+   "produit": "semence-mil",
+   "prix": 900,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10"
+  },
+  {
+   "produit": "semence-riz",
+   "prix": 600,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne (irrigue)",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10",
+   "variante": "irrigue"
+  },
+  {
+   "produit": "semence-riz",
+   "prix": 700,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne (pluvial)",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10",
+   "variante": "pluvial"
+  },
+  {
+   "produit": "semence-sesame",
+   "prix": 1500,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10"
+  },
+  {
+   "produit": "semence-soja",
+   "prix": 1200,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10"
+  },
+  {
+   "produit": "semence-sorgho",
+   "prix": 900,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10"
+  },
+  {
    "produit": "seringue",
    "prix": 32500,
    "source": "CoinAfrique",
@@ -1367,6 +1678,15 @@
    "ville": "Ouagadougou",
    "type": "annonce",
    "date": "2026-08-09"
+  },
+  {
+   "produit": "sesame",
+   "prix": 450,
+   "source": "Prix plancher bord champ 2026 (communiqué gouvernemental), La Tribune du Faso",
+   "url": "https://www.latribunedufaso.net/?p=28162",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
   },
   {
    "produit": "son",
@@ -1425,6 +1745,15 @@
    "date": "2026-11-07"
   },
   {
+   "produit": "tomate",
+   "prix": 195,
+   "source": "Prix plancher bord champ 2026 (communiqué gouvernemental), La Tribune du Faso",
+   "url": "https://www.latribunedufaso.net/?p=28162",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
+  },
+  {
    "produit": "tourteau-soja",
    "prix": 16500,
    "source": "CoinAfrique (sac de 50 kg)",
@@ -1470,6 +1799,11 @@
     "date": "2026-11-09",
     "med": 3378,
     "n": 2
+   },
+   {
+    "date": "2026-11-10",
+    "med": 3378,
+    "n": 2
    }
   ],
   "pondeuse-reforme": [
@@ -1485,6 +1819,11 @@
    },
    {
     "date": "2026-11-09",
+    "med": 3500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
     "med": 3500,
     "n": 1
    }
@@ -1504,6 +1843,11 @@
     "date": "2026-11-09",
     "med": 2500,
     "n": 7
+   },
+   {
+    "date": "2026-11-10",
+    "med": 2500,
+    "n": 7
    }
   ],
   "poulet-local": [
@@ -1519,6 +1863,11 @@
    },
    {
     "date": "2026-11-09",
+    "med": 3000,
+    "n": 10
+   },
+   {
+    "date": "2026-11-10",
     "med": 3000,
     "n": 10
    }
@@ -1538,6 +1887,11 @@
     "date": "2026-11-09",
     "med": 35000,
     "n": 7
+   },
+   {
+    "date": "2026-11-10",
+    "med": 35000,
+    "n": 7
    }
   ],
   "lapin": [
@@ -1553,6 +1907,11 @@
    },
    {
     "date": "2026-11-09",
+    "med": 6000,
+    "n": 5
+   },
+   {
+    "date": "2026-11-10",
     "med": 6000,
     "n": 5
    }
@@ -1572,6 +1931,11 @@
     "date": "2026-11-09",
     "med": 165000,
     "n": 7
+   },
+   {
+    "date": "2026-11-10",
+    "med": 165000,
+    "n": 7
    }
   ],
   "chevre": [
@@ -1587,6 +1951,11 @@
    },
    {
     "date": "2026-11-09",
+    "med": 42500,
+    "n": 2
+   },
+   {
+    "date": "2026-11-10",
     "med": 42500,
     "n": 2
    }
@@ -1606,6 +1975,11 @@
     "date": "2026-11-09",
     "med": 400000,
     "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 400000,
+    "n": 1
    }
   ],
   "poussin-chair": [
@@ -1621,6 +1995,11 @@
    },
    {
     "date": "2026-11-09",
+    "med": 750,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
     "med": 750,
     "n": 1
    }
@@ -1640,6 +2019,11 @@
     "date": "2026-11-09",
     "med": 1375,
     "n": 4
+   },
+   {
+    "date": "2026-11-10",
+    "med": 1375,
+    "n": 4
    }
   ],
   "pintadeau": [
@@ -1655,6 +2039,11 @@
    },
    {
     "date": "2026-11-09",
+    "med": 600,
+    "n": 2
+   },
+   {
+    "date": "2026-11-10",
     "med": 600,
     "n": 2
    }
@@ -1674,6 +2063,11 @@
     "date": "2026-11-09",
     "med": 3700,
     "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 3700,
+    "n": 1
    }
   ],
   "viande-boeuf": [
@@ -1689,6 +2083,11 @@
    },
    {
     "date": "2026-11-09",
+    "med": 3003,
+    "n": 2
+   },
+   {
+    "date": "2026-11-10",
     "med": 3003,
     "n": 2
    }
@@ -1708,6 +2107,11 @@
     "date": "2026-11-09",
     "med": 1464,
     "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 1464,
+    "n": 1
    }
   ],
   "mais": [
@@ -1723,6 +2127,11 @@
    },
    {
     "date": "2026-11-09",
+    "med": 17100,
+    "n": 3
+   },
+   {
+    "date": "2026-11-10",
     "med": 17100,
     "n": 3
    }
@@ -1742,6 +2151,11 @@
     "date": "2026-11-09",
     "med": 17500,
     "n": 3
+   },
+   {
+    "date": "2026-11-10",
+    "med": 17500,
+    "n": 3
    }
   ],
   "aliment-chair": [
@@ -1757,6 +2171,11 @@
    },
    {
     "date": "2026-11-09",
+    "med": 19000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
     "med": 19000,
     "n": 1
    }
@@ -1776,6 +2195,11 @@
     "date": "2026-11-09",
     "med": 12500,
     "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 12500,
+    "n": 1
    }
   ],
   "son": [
@@ -1791,6 +2215,11 @@
    },
    {
     "date": "2026-11-09",
+    "med": 7000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
     "med": 7000,
     "n": 1
    }
@@ -1810,6 +2239,11 @@
     "date": "2026-11-09",
     "med": 80000,
     "n": 7
+   },
+   {
+    "date": "2026-11-10",
+    "med": 80000,
+    "n": 7
    }
   ],
   "mangeoire": [
@@ -1825,6 +2259,11 @@
    },
    {
     "date": "2026-11-09",
+    "med": 2250,
+    "n": 6
+   },
+   {
+    "date": "2026-11-10",
     "med": 2250,
     "n": 6
    }
@@ -1844,6 +2283,11 @@
     "date": "2026-11-09",
     "med": 40000,
     "n": 4
+   },
+   {
+    "date": "2026-11-10",
+    "med": 40000,
+    "n": 4
    }
   ],
   "chauffage": [
@@ -1859,6 +2303,11 @@
    },
    {
     "date": "2026-11-09",
+    "med": 35000,
+    "n": 3
+   },
+   {
+    "date": "2026-11-10",
     "med": 35000,
     "n": 3
    }
@@ -1878,6 +2327,11 @@
     "date": "2026-11-09",
     "med": 125000,
     "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 125000,
+    "n": 1
    }
   ],
   "pierre-lecher": [
@@ -1895,11 +2349,21 @@
     "date": "2026-11-09",
     "med": 2375,
     "n": 2
+   },
+   {
+    "date": "2026-11-10",
+    "med": 2375,
+    "n": 2
    }
   ],
   "mil": [
    {
     "date": "2026-11-09",
+    "med": 26700,
+    "n": 2
+   },
+   {
+    "date": "2026-11-10",
     "med": 26700,
     "n": 2
    }
@@ -1909,11 +2373,21 @@
     "date": "2026-11-09",
     "med": 21150,
     "n": 2
+   },
+   {
+    "date": "2026-11-10",
+    "med": 21150,
+    "n": 2
    }
   ],
   "niebe": [
    {
     "date": "2026-11-09",
+    "med": 426,
+    "n": 2
+   },
+   {
+    "date": "2026-11-10",
     "med": 426,
     "n": 2
    }
@@ -1923,11 +2397,21 @@
     "date": "2026-11-09",
     "med": 22149,
     "n": 5
+   },
+   {
+    "date": "2026-11-10",
+    "med": 22149,
+    "n": 5
    }
   ],
   "tourteau-soja": [
    {
     "date": "2026-11-09",
+    "med": 16500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
     "med": 16500,
     "n": 1
    }
@@ -1937,6 +2421,11 @@
     "date": "2026-11-09",
     "med": 32500,
     "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 32500,
+    "n": 1
    }
   ],
   "thermometre": [
@@ -1944,6 +2433,95 @@
     "date": "2026-11-09",
     "med": 9250,
     "n": 2
+   },
+   {
+    "date": "2026-11-10",
+    "med": 9250,
+    "n": 2
+   }
+  ],
+  "arachide": [
+   {
+    "date": "2026-11-10",
+    "med": 360,
+    "n": 1
+   }
+  ],
+  "sesame": [
+   {
+    "date": "2026-11-10",
+    "med": 450,
+    "n": 1
+   }
+  ],
+  "oignon": [
+   {
+    "date": "2026-11-10",
+    "med": 165,
+    "n": 1
+   }
+  ],
+  "tomate": [
+   {
+    "date": "2026-11-10",
+    "med": 195,
+    "n": 1
+   }
+  ],
+  "miel": [
+   {
+    "date": "2026-11-10",
+    "med": 1000,
+    "n": 1
+   }
+  ],
+  "semence-mais": [
+   {
+    "date": "2026-11-10",
+    "med": 1050,
+    "n": 2
+   }
+  ],
+  "semence-riz": [
+   {
+    "date": "2026-11-10",
+    "med": 650,
+    "n": 2
+   }
+  ],
+  "semence-sorgho": [
+   {
+    "date": "2026-11-10",
+    "med": 900,
+    "n": 1
+   }
+  ],
+  "semence-mil": [
+   {
+    "date": "2026-11-10",
+    "med": 900,
+    "n": 1
+   }
+  ],
+  "semence-arachide": [
+   {
+    "date": "2026-11-10",
+    "med": 1400,
+    "n": 1
+   }
+  ],
+  "semence-sesame": [
+   {
+    "date": "2026-11-10",
+    "med": 1500,
+    "n": 1
+   }
+  ],
+  "semence-soja": [
+   {
+    "date": "2026-11-10",
+    "med": 1200,
+    "n": 1
    }
   ]
  }
