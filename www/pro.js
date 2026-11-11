@@ -319,7 +319,9 @@ function deviceCard(D,l){const L=live(),c=el("div","card");const h=el("h3","sec"
   else if(L&&L.lotId){const p=el("p","note");p.append(el("span",null,"Le dispositif est relié à un autre lot :"),document.createTextNode(" "),notr(el("b",null,L.lotNom||"—")),document.createTextNode(". "),el("span",null,"Choisissez ce lot dans Poulailler connecté pour enregistrer ses mesures."));c.append(p)}
   else c.append(el("p","note","Aucun dispositif connecté pour le moment. Dès que le dispositif de contrôle B2A Smart Building est configuré dans Poulailler connecté, les mesures (température, humidité, eau, aliment, air) arrivent ici toutes seules."));
   const t=$("tab-poulailler");if(t){const b=el("button","btn small ghost","Ouvrir Poulailler connecté");b.type="button";b.style.justifySelf="start";b.onclick=()=>t.click();c.append(b)}
-  D.append(c)}
+  D.append(c);
+  /* pas de dispositif relié : vitrine de l'armoire B2A (vitrine.js) */
+  if(!L&&window.B2A_VITRINE)D.append(window.B2A_VITRINE.teaser("Pas encore de dispositif ? B2A équipe votre bâtiment."))}
 function renderControle(D,l,s){if(!isPro()){lockCard(D,"controle");return}proHead(D);listenMes();
   const db=A.db();const rows=mesures.filter(m=>m.lotId===l.id).sort((a,b)=>mKey(a)<mKey(b)?-1:1);const pl=plage(l,s);
   if(pl){const r=el("p","me-range");r.append(el("b",null,"Plage conseillée pour l'âge du lot :"),document.createTextNode(" "+(`Température ${pl.t[0]} à ${pl.t[1]} °C · humidité ${pl.h[0]} à ${pl.h[1]} %`)));D.append(r)}
