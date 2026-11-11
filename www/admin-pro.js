@@ -48,7 +48,8 @@ const sec=el("section","card");sec.id="pr-admin";sec.innerHTML=`<h2>Version Pro<
     <div class="row"><button class="btn" id="fo-add" type="button">Ajouter la formation</button><span class="msg" id="fo-msg"></span></div>
   </div>
   <div class="list" id="pr-fo"></div>
-  <h3>Commissions des vétérinaires</h3><div class="list" id="pr-veto"></div>`;
+  <h3>Commissions des vétérinaires</h3><div class="list" id="pr-veto"></div>
+  <h3>Demandes de devis : armoire B2A</h3><div class="list" id="pr-devis"></div>`;
 host.querySelector(".wrap").append(sec);
 const css=el("style");css.textContent=`.pr-cfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end;margin:6px 0 10px}
 #pr-admin h3{font:700 16px var(--display);margin:8px 0 0}#pr-admin .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -57,7 +58,7 @@ const css=el("style");css.textContent=`.pr-cfg{display:grid;grid-template-column
 #pr-admin progress{width:100%}#pr-admin .sv-ref{font:600 14px var(--mono);background:var(--soft);padding:2px 8px;border-radius:6px}`;document.head.append(css);
 $("fo-esp").innerHTML=ESP.map(([k,n])=>`<label><input type="checkbox" value="${k}"${k==="pondeuse"?" checked":""}> ${n}</label>`).join("");
 
-const db=firebase.firestore();let cfg={},pays=[],subs={},forms=[],vds=[],offs=[];
+const db=firebase.firestore();let cfg={},pays=[],subs={},forms=[],vds=[],devis=[],offs=[];
 const note=(k,d)=>{(window.__adm=window.__adm||{})[k]=d;document.dispatchEvent(new CustomEvent("b2a-admin",{detail:{k,d}}))};
 firebase.auth().onAuthStateChanged(u=>{offs.forEach(f=>f());offs=[];if(!u||u.isAnonymous)return;
   const err=()=>{$("pr-msg").textContent="Lecture impossible : publiez les nouvelles règles Firestore (firestore.rules).";$("pr-msg").className="msg err"};
@@ -65,7 +66,8 @@ firebase.auth().onAuthStateChanged(u=>{offs.forEach(f=>f());offs=[];if(!u||u.isA
   offs.push(db.collection("pro_paiements").onSnapshot(s=>{pays=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));render()},err));
   offs.push(db.collection("pro_fermes").onSnapshot(s=>{subs={};s.docs.forEach(d=>subs[d.id]={id:d.id,...d.data()});render()},err));
   offs.push(db.collection("formations").onSnapshot(s=>{forms=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.ordre||0)-(b.ordre||0));renderFo()},err));
-  offs.push(db.collection("veto_demandes").where("statut","==","validee").onSnapshot(s=>{vds=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.valideLe)-ms(a.valideLe));renderVeto()},err))});
+  offs.push(db.collection("veto_demandes").where("statut","==","validee").onSnapshot(s=>{vds=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.valideLe)-ms(a.valideLe));renderVeto()},err));
+  offs.push(db.collection("devis_b2a").onSnapshot(s=>{devis=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));renderDevis()},err))});
 $("pr-save").onclick=async()=>{const m=$("pr-msg");const v={};for(const k of ["m1","m3","m12"]){const n=Number($("pr-"+k).value);if(!(n>0)){m.textContent="Tarif invalide.";m.className="msg err";return}v["pro"+k.toUpperCase()]=n}
   const t=Number($("pr-vt").value);if(!(t>=0&&t<=50)){m.textContent="Commission invalide (0 à 50 %).";m.className="msg err";return}v.vetoTaux=Math.round(t);
   try{await db.doc("marche_config/global").set(v,{merge:true});m.textContent="Enregistré. Les tarifs s'affichent tout de suite dans l'application.";m.className="msg"}catch(e){m.textContent="Échec de l'enregistrement.";m.className="msg err"}};
@@ -134,4 +136,16 @@ function renderVeto(){const L=$("pr-veto");L.innerHTML="";const due=vds.filter(d
     const r=el("div","row");const b=el("button","btn small ok","Commission reçue");b.type="button";b.onclick=async()=>{b.disabled=true;try{const bt=db.batch();list.forEach(d=>bt.update(db.doc("veto_demandes/"+d.id),{comStatut:"reglee",regleeLe:firebase.firestore.FieldValue.serverTimestamp()}));await bt.commit()}catch(e){b.disabled=false}};
     r.append(b);c.append(r);L.append(c)});
   const ok=vds.filter(d=>d.comStatut==="reglee").length;if(ok)L.append(el("small",null,ok+" commission(s) déjà réglée(s)."))}
+
+/* ---------- demandes de devis (vitrine « Solutions B2A Smart Building ») ---------- */
+const NIV={essentiel:"B2A Essentiel",confort:"B2A Confort",pro:"B2A Pro",inconnu:"Niveau à conseiller"};
+function renderDevis(){const L=$("pr-devis");L.innerHTML="";const nv=devis.filter(d=>d.statut!=="traite");note("devis",{nouveaux:nv.length});
+  L.append(el("p","note",nv.length?`${nv.length} demande(s) à rappeler.`:"Aucune nouvelle demande de devis."));
+  devis.forEach(d=>{const c=el("div","card");c.append(el("b",null,(d.nom||"Client")+" · "+(d.ville||"")+(d.pays?", "+d.pays:"")+(d.statut==="traite"?" (traitée)":"")),
+    el("small",null,[NIV[d.niveau]||d.niveau,d.elevage,d.animaux?fmt(d.animaux)+" animaux":null,d.surface?fmt(d.surface)+" m²":null,d.install?"installation par B2A":"sans installation",dd(ms(d.creeLe))].filter(Boolean).join(" · ")));
+    if(d.message)c.append(el("small",null,"« "+d.message+" »"));
+    const r=el("div","row");const t=el("a","btn small ghost","Appeler "+(d.tel||""));t.href="tel:"+String(d.tel||"").replace(/[^\d+]/g,"");
+    r.append(t,wa(d.tel,`Bonjour ${d.nom||""}, B2A-HIGH-TECHNOLOGY-AUTOMATION suite à votre demande de devis pour l'armoire électrique B2A (${NIV[d.niveau]||""}) : `));
+    const x=el("button","btn small "+(d.statut==="traite"?"ghost":"ok"),d.statut==="traite"?"Remettre à rappeler":"Marquer traitée");x.type="button";
+    x.onclick=async()=>{x.disabled=true;try{await db.doc("devis_b2a/"+d.id).update({statut:d.statut==="traite"?"nouveau":"traite"})}catch(e){x.disabled=false}};r.append(x);c.append(r);L.append(c)})}
 })();
