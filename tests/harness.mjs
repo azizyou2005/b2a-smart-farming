@@ -101,4 +101,8 @@ export async function visitAll(page) {
   await tab("tableau"); await click(".gearbtn", 700); await selects("#x-set"); await page.keyboard.press("Escape"); await W(300);
   await click(".langbtn", 300); await page.keyboard.press("Escape");
   await click("#tab-plus", 400); await page.keyboard.press("Escape");
+  // version Pro : simulation de projet (Pro activé pour le test, élevages puis cultures)
+  await page.evaluate(() => localStorage.setItem("b2a-pro-fin", String(Date.now() + 9e9)));
+  await page.reload(); await W(1500);
+  await tab("projet"); await selects("#v-projet"); await openDetails(); await selects("#v-projet"); await openDetails();
 }

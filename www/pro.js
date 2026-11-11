@@ -41,6 +41,7 @@ const T={
 "l'enregistrement des mesures (température, humidité, eau) avec alertes et export pour l'étude ;":["recording of measurements (temperature, humidity, water) with alerts and export for analysis;","la registrazione delle misure (temperatura, umidità, acqua) con allarmi ed esportazione per lo studio;","el registro de mediciones (temperatura, humedad, agua) con alertas y exportación para el estudio;"],
 "la validation de vos vaccins par le vétérinaire de votre choix (service payant) ;":["validation of your vaccines by the vet of your choice (paid service);","la convalida dei vaccini da parte del veterinario scelto (servizio a pagamento);","la validación de sus vacunas por el veterinario que elija (servicio de pago);"],
 "l'étude du marché en temps réel et le prix de vente conseillé pour vos animaux, produits et matériel.":["real-time market study and suggested selling price for your animals, products and equipment.","lo studio di mercato in tempo reale e il prezzo di vendita consigliato per animali, prodotti e materiale.","el estudio de mercado en tiempo real y el precio de venta aconsejado para sus animales, productos y material."],
+"la simulation complète d'un nouveau projet : dépenses du début à la fin, bâtiment, superficie, plan de construction et financement.":["full simulation of a new project: expenses from start to finish, building, area, building plan and financing.","la simulazione completa di un nuovo progetto: spese dall'inizio alla fine, edificio, superficie, pianta dell'edificio e finanziamento.","la simulación completa de un nuevo proyecto: gastos de principio a fin, edificio, superficie, plano de construcción y financiación."],
 "Toute l'équipe de la ferme en profite avec un seul abonnement.":["The whole farm team benefits from a single subscription.","Tutta la squadra della fattoria ne approfitta con un solo abbonamento.","Todo el equipo de la granja lo aprovecha con una sola suscripción."],
 "1 mois":["1 month","1 mese","1 mes"],"3 mois":["3 months","3 mesi","3 meses"],"12 mois":["12 months","12 mesi","12 meses"],
 "Activer la version Pro":["Activate the Pro version","Attiva la versione Pro","Activar la versión Pro"],
@@ -198,7 +199,7 @@ function lockCard(D,feature){
   const c=el("div","pro-lock");const h=el("h3");h.append(notr(el("span","pro-badge","PRO")),document.createTextNode(("Fonction de la version Pro")));c.append(h);
   if(!B.CFG){c.append(el("p","note","La version Pro demande une connexion internet et un compte (inscription)."));D.append(c);return}
   c.append(el("p",null,"Avec la version Pro, chaque lot vous donne :"));
-  const ul=el("ul");["des vidéos et des fiches PDF de formation adaptées à l'âge du lot, à garder sur le téléphone ;","l'enregistrement des mesures (température, humidité, eau) avec alertes et export pour l'étude ;","la validation de vos vaccins par le vétérinaire de votre choix (service payant) ;","l'étude du marché en temps réel et le prix de vente conseillé pour vos animaux, produits et matériel."].forEach(t=>ul.append(el("li",null,t)));c.append(ul);
+  const ul=el("ul");["des vidéos et des fiches PDF de formation adaptées à l'âge du lot, à garder sur le téléphone ;","l'enregistrement des mesures (température, humidité, eau) avec alertes et export pour l'étude ;","la validation de vos vaccins par le vétérinaire de votre choix (service payant) ;","l'étude du marché en temps réel et le prix de vente conseillé pour vos animaux, produits et matériel.","la simulation complète d'un nouveau projet : dépenses du début à la fin, bâtiment, superficie, plan de construction et financement."].forEach(t=>ul.append(el("li",null,t)));c.append(ul);
   c.append(el("p","note","Toute l'équipe de la ferme en profite avec un seul abonnement."));
   const wait=mesPaie.find(p=>p.statut==="attente"),ref=mesPaie.find(p=>p.statut==="refuse");
   if(wait){c.append(el("p","msg","Paiement en cours de vérification par B2A."));D.append(c);return}
@@ -613,5 +614,5 @@ B.lotTabs=(B.lotTabs||[]).concat([
 /* clé des boutons d'onglet (pour savoir lequel est ouvert) */
 new MutationObserver(()=>{const st=document.querySelector("#lotdetail .subtabs");if(!st)return;const ks=["resume","argent","saisies",...B.lotTabs.map(x=>x.k)];
   [...st.querySelectorAll("button")].forEach((b,i)=>{if(!b.dataset.k)b.dataset.k=ks[i]||""})}).observe(document.body,{childList:true,subtree:true});
-window.B2A_PRO={isPro,start,cfg:()=>cfg};
+window.B2A_PRO={isPro,start,cfg:()=>cfg,lockCard,etude,loadPrix};
 })();
