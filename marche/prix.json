@@ -2,7 +2,7 @@
  "version": 1,
  "devise": "XOF",
  "pays": "Burkina Faso",
- "maj": "2026-11-10T05:49Z",
+ "maj": "2026-11-11T05:45Z",
  "produits": [
   {
    "id": "oeufs-plateau",
@@ -741,6 +741,90 @@
     "soya",
     "graine"
    ]
+  },
+  {
+   "id": "soja",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Soja grain",
+    "en": "Soybean (grain)",
+    "it": "Soia in granella",
+    "es": "Soja en grano"
+   },
+   "mots": [
+    "soja",
+    "soya",
+    "grain"
+   ]
+  },
+  {
+   "id": "arachide-decortiquee",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Arachide décortiquée",
+    "en": "Shelled groundnut",
+    "it": "Arachide sgusciata",
+    "es": "Cacahuete pelado"
+   },
+   "mots": [
+    "arachide",
+    "decortiquee",
+    "cacahuete",
+    "pistache"
+   ]
+  },
+  {
+   "id": "cajou",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Noix de cajou brute",
+    "en": "Raw cashew nut",
+    "it": "Anacardi grezzi",
+    "es": "Anacardo crudo"
+   },
+   "mots": [
+    "cajou",
+    "anacarde",
+    "noix",
+    "cashew"
+   ]
+  },
+  {
+   "id": "mangue",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Mangue fraîche",
+    "en": "Fresh mango",
+    "it": "Mango fresco",
+    "es": "Mango fresco"
+   },
+   "mots": [
+    "mangue",
+    "mangues",
+    "mango"
+   ]
+  },
+  {
+   "id": "engrais",
+   "cat": "autre",
+   "unite": "sac",
+   "nom": {
+    "fr": "Engrais minéral (NPK / urée)",
+    "en": "Mineral fertilizer (NPK / urea)",
+    "it": "Concime minerale (NPK / urea)",
+    "es": "Fertilizante mineral (NPK / urea)"
+   },
+   "mots": [
+    "engrais",
+    "npk",
+    "uree",
+    "fertilisant",
+    "fumure"
+   ]
   }
  ],
  "releves": [
@@ -799,6 +883,15 @@
    "date": "2026-03-17"
   },
   {
+   "produit": "arachide-decortiquee",
+   "prix": 575,
+   "source": "Prix plancher bord champ 2026 (gouvernement), Agratime",
+   "url": "https://agratime.com/burkina-faso-des-prix-planchers-fixes-pour-11-produits-agricoles-en-2026/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
+  },
+  {
    "produit": "boeuf",
    "prix": 400000,
    "source": "CoinAfrique",
@@ -842,6 +935,15 @@
    "ville": "Ouagadougou",
    "type": "annonce",
    "date": "2026-11-07"
+  },
+  {
+   "produit": "cajou",
+   "prix": 385,
+   "source": "Prix plancher bord champ 2026 (gouvernement), Agratime",
+   "url": "https://agratime.com/burkina-faso-des-prix-planchers-fixes-pour-11-produits-agricoles-en-2026/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
   },
   {
    "produit": "chauffage",
@@ -1015,6 +1117,26 @@
    "date": "2026-11-07"
   },
   {
+   "produit": "engrais",
+   "prix": 15000,
+   "source": "Sidwaya : engrais subventionné, le sac",
+   "url": "https://www.sidwaya.info/carrefour/2026/08/31/perimetres-amenages-de-bama-et-de-la-leraba-des-productions-en-hausse-croissante/",
+   "ville": "Bama",
+   "type": "presse",
+   "date": "2026-08-31",
+   "variante": "subventionne"
+  },
+  {
+   "produit": "engrais",
+   "prix": 25000,
+   "source": "Sidwaya : engrais minéral au marché, le sac (environ)",
+   "url": "https://www.sidwaya.info/carrefour/2026/08/31/perimetres-amenages-de-bama-et-de-la-leraba-des-productions-en-hausse-croissante/",
+   "ville": "Bama",
+   "type": "presse",
+   "date": "2026-08-31",
+   "variante": "marche"
+  },
+  {
    "produit": "lait",
    "prix": 1464,
    "source": "Combien-coûte / Numbeo (lait en bouteille)",
@@ -1150,6 +1272,15 @@
    "date": "2026-11-07"
   },
   {
+   "produit": "mangue",
+   "prix": 95,
+   "source": "Prix plancher bord champ 2026 (gouvernement), Agratime",
+   "url": "https://agratime.com/burkina-faso-des-prix-planchers-fixes-pour-11-produits-agricoles-en-2026/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
+  },
+  {
    "produit": "miel",
    "prix": 1000,
    "source": "Prix plancher bord champ 2026 (communiqué gouvernemental), La Tribune du Faso",
@@ -1182,6 +1313,35 @@
    "source": "Ouest Info, marché à bétail de Kiri (Tabaski 2026)",
    "url": "https://www.ouestinfo.bf/burkina-tabaski-2026-au-marche-a-betail-de-bobo-les-moutons-se-vendent-entre-50-000-et-250-000-f-cfa/",
    "ville": "Bobo-Dioulasso",
+   "type": "presse",
+   "date": "2026-05-25"
+  },
+  {
+   "produit": "mouton",
+   "prix": 135000,
+   "source": "Sidwaya via AllAfrica : mouton acheté (Tabaski)",
+   "url": "https://fr.allafrica.com/stories/202605260463.html",
+   "ville": "Bobo-Dioulasso",
+   "type": "presse",
+   "date": "2026-05-25",
+   "variante": "achat"
+  },
+  {
+   "produit": "mouton",
+   "prix": 50000,
+   "source": "Sidwaya via AllAfrica : petit mouton après baisse (Tabaski)",
+   "url": "https://fr.allafrica.com/stories/202605260463.html",
+   "ville": "Bobo-Dioulasso",
+   "type": "presse",
+   "date": "2026-05-25",
+   "variante": "petit"
+  },
+  {
+   "produit": "mouton",
+   "prix": 150000,
+   "source": "AIB : mouton revendu (Tabaski)",
+   "url": "https://www.aib.media/?p=150610",
+   "ville": "Bittou",
    "type": "presse",
    "date": "2026-05-25"
   },
@@ -1596,6 +1756,15 @@
   },
   {
    "produit": "semence-mais",
+   "prix": 200,
+   "source": "Sidwaya : kit de semence de maïs 15 kg à 3 000 F (subventionné)",
+   "url": "https://www.sidwaya.info/carrefour/2026/08/31/perimetres-amenages-de-bama-et-de-la-leraba-des-productions-en-hausse-croissante/",
+   "ville": "Bama",
+   "type": "presse",
+   "date": "2026-08-31"
+  },
+  {
+   "produit": "semence-mais",
    "prix": 600,
    "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne (certifiee)",
    "url": "https://www.unpsburkina.org/shop/",
@@ -1622,6 +1791,15 @@
    "ville": "Ouagadougou",
    "type": "boutique",
    "date": "2026-11-10"
+  },
+  {
+   "produit": "semence-riz",
+   "prix": 300,
+   "source": "Sidwaya : kit de semence de riz 10 kg à 3 000 F (subventionné)",
+   "url": "https://www.sidwaya.info/carrefour/2026/08/31/perimetres-amenages-de-bama-et-de-la-leraba-des-productions-en-hausse-croissante/",
+   "ville": "Bama",
+   "type": "presse",
+   "date": "2026-08-31"
   },
   {
    "produit": "semence-riz",
@@ -1684,6 +1862,15 @@
    "prix": 450,
    "source": "Prix plancher bord champ 2026 (communiqué gouvernemental), La Tribune du Faso",
    "url": "https://www.latribunedufaso.net/?p=28162",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
+  },
+  {
+   "produit": "soja",
+   "prix": 325,
+   "source": "Prix plancher bord champ 2026 (gouvernement), Agratime",
+   "url": "https://agratime.com/burkina-faso-des-prix-planchers-fixes-pour-11-produits-agricoles-en-2026/",
    "ville": "Burkina Faso",
    "type": "officiel",
    "date": "2026-03-17"
@@ -1804,6 +1991,11 @@
     "date": "2026-11-10",
     "med": 3378,
     "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 3378,
+    "n": 2
    }
   ],
   "pondeuse-reforme": [
@@ -1824,6 +2016,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 3500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
     "med": 3500,
     "n": 1
    }
@@ -1848,6 +2045,11 @@
     "date": "2026-11-10",
     "med": 2500,
     "n": 7
+   },
+   {
+    "date": "2026-11-11",
+    "med": 2500,
+    "n": 7
    }
   ],
   "poulet-local": [
@@ -1868,6 +2070,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 3000,
+    "n": 10
+   },
+   {
+    "date": "2026-11-11",
     "med": 3000,
     "n": 10
    }
@@ -1892,6 +2099,11 @@
     "date": "2026-11-10",
     "med": 35000,
     "n": 7
+   },
+   {
+    "date": "2026-11-11",
+    "med": 35000,
+    "n": 7
    }
   ],
   "lapin": [
@@ -1912,6 +2124,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 6000,
+    "n": 5
+   },
+   {
+    "date": "2026-11-11",
     "med": 6000,
     "n": 5
    }
@@ -1936,6 +2153,11 @@
     "date": "2026-11-10",
     "med": 165000,
     "n": 7
+   },
+   {
+    "date": "2026-11-11",
+    "med": 150000,
+    "n": 10
    }
   ],
   "chevre": [
@@ -1956,6 +2178,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 42500,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
     "med": 42500,
     "n": 2
    }
@@ -1980,6 +2207,11 @@
     "date": "2026-11-10",
     "med": 400000,
     "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 400000,
+    "n": 1
    }
   ],
   "poussin-chair": [
@@ -2000,6 +2232,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 750,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
     "med": 750,
     "n": 1
    }
@@ -2024,6 +2261,11 @@
     "date": "2026-11-10",
     "med": 1375,
     "n": 4
+   },
+   {
+    "date": "2026-11-11",
+    "med": 1375,
+    "n": 4
    }
   ],
   "pintadeau": [
@@ -2044,6 +2286,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 600,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
     "med": 600,
     "n": 2
    }
@@ -2068,6 +2315,11 @@
     "date": "2026-11-10",
     "med": 3700,
     "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 3700,
+    "n": 1
    }
   ],
   "viande-boeuf": [
@@ -2088,6 +2340,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 3003,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
     "med": 3003,
     "n": 2
    }
@@ -2112,6 +2369,11 @@
     "date": "2026-11-10",
     "med": 1464,
     "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 1464,
+    "n": 1
    }
   ],
   "mais": [
@@ -2132,6 +2394,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 17100,
+    "n": 3
+   },
+   {
+    "date": "2026-11-11",
     "med": 17100,
     "n": 3
    }
@@ -2156,6 +2423,11 @@
     "date": "2026-11-10",
     "med": 17500,
     "n": 3
+   },
+   {
+    "date": "2026-11-11",
+    "med": 17500,
+    "n": 3
    }
   ],
   "aliment-chair": [
@@ -2176,6 +2448,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 19000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
     "med": 19000,
     "n": 1
    }
@@ -2200,6 +2477,11 @@
     "date": "2026-11-10",
     "med": 12500,
     "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 12500,
+    "n": 1
    }
   ],
   "son": [
@@ -2220,6 +2502,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 7000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
     "med": 7000,
     "n": 1
    }
@@ -2244,6 +2531,11 @@
     "date": "2026-11-10",
     "med": 80000,
     "n": 7
+   },
+   {
+    "date": "2026-11-11",
+    "med": 80000,
+    "n": 7
    }
   ],
   "mangeoire": [
@@ -2264,6 +2556,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 2250,
+    "n": 6
+   },
+   {
+    "date": "2026-11-11",
     "med": 2250,
     "n": 6
    }
@@ -2288,6 +2585,11 @@
     "date": "2026-11-10",
     "med": 40000,
     "n": 4
+   },
+   {
+    "date": "2026-11-11",
+    "med": 40000,
+    "n": 4
    }
   ],
   "chauffage": [
@@ -2308,6 +2610,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 35000,
+    "n": 3
+   },
+   {
+    "date": "2026-11-11",
     "med": 35000,
     "n": 3
    }
@@ -2332,6 +2639,11 @@
     "date": "2026-11-10",
     "med": 125000,
     "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 125000,
+    "n": 1
    }
   ],
   "pierre-lecher": [
@@ -2354,6 +2666,11 @@
     "date": "2026-11-10",
     "med": 2375,
     "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 2375,
+    "n": 2
    }
   ],
   "mil": [
@@ -2364,6 +2681,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 26700,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
     "med": 26700,
     "n": 2
    }
@@ -2378,6 +2700,11 @@
     "date": "2026-11-10",
     "med": 21150,
     "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 21150,
+    "n": 2
    }
   ],
   "niebe": [
@@ -2388,6 +2715,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 426,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
     "med": 426,
     "n": 2
    }
@@ -2402,6 +2734,11 @@
     "date": "2026-11-10",
     "med": 22149,
     "n": 5
+   },
+   {
+    "date": "2026-11-11",
+    "med": 22149,
+    "n": 5
    }
   ],
   "tourteau-soja": [
@@ -2412,6 +2749,11 @@
    },
    {
     "date": "2026-11-10",
+    "med": 16500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
     "med": 16500,
     "n": 1
    }
@@ -2426,6 +2768,11 @@
     "date": "2026-11-10",
     "med": 32500,
     "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 32500,
+    "n": 1
    }
   ],
   "thermometre": [
@@ -2438,11 +2785,21 @@
     "date": "2026-11-10",
     "med": 9250,
     "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 9250,
+    "n": 2
    }
   ],
   "arachide": [
    {
     "date": "2026-11-10",
+    "med": 360,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
     "med": 360,
     "n": 1
    }
@@ -2452,11 +2809,21 @@
     "date": "2026-11-10",
     "med": 450,
     "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 450,
+    "n": 1
    }
   ],
   "oignon": [
    {
     "date": "2026-11-10",
+    "med": 165,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
     "med": 165,
     "n": 1
    }
@@ -2466,11 +2833,21 @@
     "date": "2026-11-10",
     "med": 195,
     "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 195,
+    "n": 1
    }
   ],
   "miel": [
    {
     "date": "2026-11-10",
+    "med": 1000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
     "med": 1000,
     "n": 1
    }
@@ -2480,6 +2857,11 @@
     "date": "2026-11-10",
     "med": 1050,
     "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 600,
+    "n": 3
    }
   ],
   "semence-riz": [
@@ -2487,11 +2869,21 @@
     "date": "2026-11-10",
     "med": 650,
     "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 600,
+    "n": 3
    }
   ],
   "semence-sorgho": [
    {
     "date": "2026-11-10",
+    "med": 900,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
     "med": 900,
     "n": 1
    }
@@ -2501,11 +2893,21 @@
     "date": "2026-11-10",
     "med": 900,
     "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 900,
+    "n": 1
    }
   ],
   "semence-arachide": [
    {
     "date": "2026-11-10",
+    "med": 1400,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
     "med": 1400,
     "n": 1
    }
@@ -2515,6 +2917,11 @@
     "date": "2026-11-10",
     "med": 1500,
     "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 1500,
+    "n": 1
    }
   ],
   "semence-soja": [
@@ -2522,6 +2929,46 @@
     "date": "2026-11-10",
     "med": 1200,
     "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 1200,
+    "n": 1
+   }
+  ],
+  "soja": [
+   {
+    "date": "2026-11-11",
+    "med": 325,
+    "n": 1
+   }
+  ],
+  "arachide-decortiquee": [
+   {
+    "date": "2026-11-11",
+    "med": 575,
+    "n": 1
+   }
+  ],
+  "cajou": [
+   {
+    "date": "2026-11-11",
+    "med": 385,
+    "n": 1
+   }
+  ],
+  "mangue": [
+   {
+    "date": "2026-11-11",
+    "med": 95,
+    "n": 1
+   }
+  ],
+  "engrais": [
+   {
+    "date": "2026-11-11",
+    "med": 20000,
+    "n": 2
    }
   ]
  }
