@@ -1,6 +1,6 @@
 {
   "name": "b2a-smart-farming",
-  "version": "60.19",
+  "version": "60.20",
   "private": true,
   "description": "B2A Smart Farming - application d'élevage hors ligne",
   "scripts": {
@@ -10,9 +10,9 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@capacitor/android": "8.5.3",
-    "@capacitor/cli": "8.5.3",
-    "@capacitor/core": "8.5.3",
+    "@capacitor/android": "8.6.0",
+    "@capacitor/cli": "8.6.0",
+    "@capacitor/core": "8.6.0",
     "@capacitor/filesystem": "8.1.5",
     "@capacitor/share": "8.0.3",
     "@capacitor/local-notifications": "8.3.1",

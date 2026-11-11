@@ -15,6 +15,8 @@ const clean=(s,n)=>String(s||"").replace(/https?:\/\/[^\s)'"]*\/([^\/\s)'"?]+)(\
 /* bruit sans intérêt : réseau coupé, droits Firebase, extensions du navigateur */
 const NOISE=/network|offline|failed to fetch|load failed|unavailable|permission|quota|aborterror|the operation was aborted|resizeobserver|script error|chrome-extension|moz-extension/i;
 function rec(msg,src,line,col,stack){msg=String(msg||"");if(!msg||NOISE.test(msg)||NOISE.test(String(src||"")))return;
+  /* iPhone : mémoire locale de Firebase fermée par Safari. L'app se relance toute seule (shim.js) : on le signale comme « géré » */
+  if(/in-progress transaction|indexed database server lost|internal assertion failed|asyncqueue is already failed/i.test(msg))msg="[géré : relance auto] "+msg;
   const key=msg+"|"+src+"|"+line;if(seen[key]||sent>=MAX)return;seen[key]=1;sent++;
   let lang="fr";try{lang=window.B2A_LANG?window.B2A_LANG():"fr"}catch(e){}
   const d={msg:clean(msg,300),src:clean((src||"")+(line?":"+line+":"+(col||0):""),200),pile:clean(stack,1500),version:ver(),plateforme:plat(),langue:String(lang).slice(0,5),
