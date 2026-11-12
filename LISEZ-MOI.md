@@ -178,6 +178,17 @@ La version Pro ajoute quatre onglets en bas de chaque lot. Un seul abonnement (1
 
 - **Simulation de projet** (menu Gestion) : avant de commencer un élevage (poules pondeuses, poulets de chair, poulets locaux ou pintades, porcs, moutons, bovins, tilapia) ou une culture, l'application calcule toutes les dépenses du début à la fin (terrain, bâtiment, clôture, eau, matériel, animaux ou semences, aliment, soins, main-d'œuvre, imprévus), les recettes, le bénéfice par bande, la superficie nécessaire, le plan de construction à l'échelle avec les matériaux, le plan de financement (apport, crédit, mensualité) et le calendrier mois par mois. Export PDF et partage WhatsApp. Les prix par défaut sont modifiables ; les prix trouvés sur internet par l'étude du marché les remplacent automatiquement.
 
+- **Veille sanitaire** (accueil) : mortalité brutale ou chute de ponte repérée sur la saisie du jour, causes probables selon l'espèce et l'âge, gestes immédiats, bouton vers le vétérinaire le plus proche et notification sur le téléphone. Les éleveurs sans abonnement voient seulement qu'une anomalie existe.
+- **Alerte maladie de la zone** : chaque anomalie est signalée de façon anonyme (ville, type d'animaux, signe). Quand 2 autres fermes de la même ville signalent le même signe en 14 jours, les abonnés de la ville reçoivent l'alerte. B2A voit le tableau des zones dans utilisateurs.html.
+- **Vos prix de vente** (accueil) : prix des œufs et des poulets du lot comparés aux prix internet de la ville, avec le manque à gagner par mois.
+- **Rapport du mois** (accueil) : production, ventes, bilan depuis janvier et alertes, à partager sur WhatsApp ; rappel en fin de mois sur Android.
+- **Soins des 7 prochains jours** (Soins) : liste à envoyer à l'équipe ou au vétérinaire sur WhatsApp.
+- **Prix du jour des matières premières** (Formules) : applique les prix internet du maïs, sorgho, mil, tourteau de soja et son, puis calcule la formule la moins chère.
+- **Annonces « PRO vérifié »** (Marché) : les annonces des abonnés passent en tête de liste avec un badge, jusqu'à la fin de l'abonnement.
+- **Commandes groupées B2A** (Marché > Acheter) : demandes d'aliment, de poussins et de vaccins ; B2A les voit regroupées par ville et par produit dans utilisateurs.html.
+- **Dossier pour la banque** (Simulation de projet) : PDF avec le promoteur, la ferme aujourd'hui, les résultats depuis janvier et la simulation complète.
+- **Abonnement** : essai gratuit d'un mois (une fois par ferme), code parrain (B2A offre 1 mois au parrain depuis utilisateurs.html), formule Groupement 12 mois pour 5 fermes (les codes des autres fermes sont activés en même temps).
+
 **À faire une fois**
 1. Firebase > Firestore > **Règles** : remplacez tout par le nouveau `firestore.rules`, puis **Publier** (nouvelles collections `pro_fermes`, `pro_paiements`, `formations`, `veto_demandes` et mesures des fermes).
 2. Pour envoyer des vidéos et des PDF : Firebase > **Build > Storage > Commencer**. Firebase demande de passer au forfait **Blaze** (paiement à l'usage, carte bancaire) : l'usage gratuit reste inclus (5 Go stockés). Conseil : réglez une alerte de budget dans Google Cloud. Onglet **Règles** de Storage : collez le contenu de `storage.rules`, puis **Publier**.

@@ -10,8 +10,10 @@ const fmt=n=>Number(n||0).toLocaleString("fr-FR",{maximumFractionDigits:0});
 const ms=v=>v==null?0:typeof v==="number"?v:v.toMillis?v.toMillis():0;
 const dd=t=>t?new Date(t).toLocaleDateString("fr-FR",{day:"numeric",month:"short",year:"numeric"}):"—";
 const tel226=t=>{let p=String(t||"").replace(/\D/g,"");if(p.length===8)p="226"+p;return p};
-const FORM={m1:"1 mois",m3:"3 mois",m12:"12 mois"};
-const DEF={proM1:2500,proM3:6000,proM12:20000,vetoTaux:10};
+const FORM={m1:"1 mois",m3:"3 mois",m12:"12 mois",g12:"Groupement 12 mois"};
+const DEF={proM1:2500,proM3:6000,proM12:20000,proG12:75000,vetoTaux:10};
+const CODE_RE=/^([A-Z0-9]{10}|u_[A-Za-z0-9]{10,40})$/;
+const PRODG={"aliment-ponte":"Aliment ponte (sacs de 50 kg)","aliment-chair":"Aliment chair (sacs de 50 kg)","aliment-betail":"Aliment bétail (sacs de 50 kg)","poussins-ponte":"Poussins pondeuses","poussins-chair":"Poussins chair","vaccins":"Vaccins (doses)","autre":"Autre"};
 const ESP=[["tous","Toutes les espèces"],["pondeuse","Pondeuses"],["chair","Poulets de chair"],["local","Volaille locale / pintades"],["porc","Porcs"],["poisson","Poissons"],
   ["petitsrum","Moutons et chèvres"],["bovin","Bovins"],["vachelait","Vaches laitières"],["chevrelait","Chèvres laitières"],["culture","Cultures"]];
 function finApres(cur,mois){const base=Math.max(Date.now(),cur||0);const d=new Date(base);const j=d.getDate();d.setMonth(d.getMonth()+mois);if(d.getDate()<j)d.setDate(0);d.setHours(23,59,0,0);return d.getTime()}
@@ -23,12 +25,15 @@ const sec=el("section","card");sec.id="pr-admin";sec.innerHTML=`<h2>Version Pro<
     <div class="field"><label for="pr-m1">Pro 1 mois (FCFA)</label><input type="number" id="pr-m1" min="0" step="100"></div>
     <div class="field"><label for="pr-m3">Pro 3 mois (FCFA)</label><input type="number" id="pr-m3" min="0" step="100"></div>
     <div class="field"><label for="pr-m12">Pro 12 mois (FCFA)</label><input type="number" id="pr-m12" min="0" step="100"></div>
+    <div class="field"><label for="pr-g12">Groupement 12 mois, jusqu'à 5 fermes (FCFA)</label><input type="number" id="pr-g12" min="0" step="100"></div>
     <div class="field"><label for="pr-vt">Commission vétérinaire (%)</label><input type="number" id="pr-vt" min="0" max="50" step="1"></div>
     <button class="btn small" id="pr-save" type="button">Enregistrer</button><span class="msg" id="pr-msg"></span>
   </div>
   <div class="kpis" id="pr-kpis"></div>
   <h3>Paiements Pro à vérifier</h3><div class="list" id="pr-pay"></div>
   <h3>Abonnements Pro</h3><div class="list" id="pr-subs"></div>
+  <h3>Commandes groupées B2A</h3><p class="note">Demandes d'aliment, de poussins et de vaccins des abonnés Pro : regroupez-les par ville, négociez avec le fournisseur, puis appelez chaque éleveur.</p><div class="list" id="pr-cg"></div>
+  <h3>Alertes maladie des zones (14 derniers jours)</h3><div class="list" id="pr-zone"></div>
   <h3>Formations (vidéos et PDF)</h3>
   <div class="card pr-fo" id="pr-foform">
     <div class="pr-grid">
@@ -57,16 +62,18 @@ const css=el("style");css.textContent=`.pr-cfg{display:grid;grid-template-column
 #pr-admin progress{width:100%}#pr-admin .sv-ref{font:600 14px var(--mono);background:var(--soft);padding:2px 8px;border-radius:6px}`;document.head.append(css);
 $("fo-esp").innerHTML=ESP.map(([k,n])=>`<label><input type="checkbox" value="${k}"${k==="pondeuse"?" checked":""}> ${n}</label>`).join("");
 
-const db=firebase.firestore();let cfg={},pays=[],subs={},forms=[],vds=[],offs=[];
+const db=firebase.firestore();let cfg={},pays=[],subs={},forms=[],vds=[],offs=[],cgs=[],zones=[];
 const note=(k,d)=>{(window.__adm=window.__adm||{})[k]=d;document.dispatchEvent(new CustomEvent("b2a-admin",{detail:{k,d}}))};
 firebase.auth().onAuthStateChanged(u=>{offs.forEach(f=>f());offs=[];if(!u||u.isAnonymous)return;
   const err=()=>{$("pr-msg").textContent="Lecture impossible : publiez les nouvelles règles Firestore (firestore.rules).";$("pr-msg").className="msg err"};
-  offs.push(db.doc("marche_config/global").onSnapshot(d=>{cfg=d.exists?d.data():{};["m1","m3","m12"].forEach(k=>$("pr-"+k).value=cfg["pro"+k.toUpperCase()]??DEF["pro"+k.toUpperCase()]);$("pr-vt").value=cfg.vetoTaux??DEF.vetoTaux;render()},err));
+  offs.push(db.doc("marche_config/global").onSnapshot(d=>{cfg=d.exists?d.data():{};["m1","m3","m12","g12"].forEach(k=>$("pr-"+k).value=cfg["pro"+k.toUpperCase()]??DEF["pro"+k.toUpperCase()]);$("pr-vt").value=cfg.vetoTaux??DEF.vetoTaux;render()},err));
   offs.push(db.collection("pro_paiements").onSnapshot(s=>{pays=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));render()},err));
   offs.push(db.collection("pro_fermes").onSnapshot(s=>{subs={};s.docs.forEach(d=>subs[d.id]={id:d.id,...d.data()});render()},err));
   offs.push(db.collection("formations").onSnapshot(s=>{forms=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.ordre||0)-(b.ordre||0));renderFo()},err));
+  offs.push(db.collection("commandes_groupees").onSnapshot(s=>{cgs=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));renderCg()},()=>{}));
+  {const lim=new Date(Date.now()-14*864e5).toISOString().slice(0,10);offs.push(db.collection("alertes_zone").where("date",">=",lim).onSnapshot(s=>{zones=s.docs.map(d=>d.data());renderZone()},()=>{}))}
   offs.push(db.collection("veto_demandes").where("statut","==","validee").onSnapshot(s=>{vds=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.valideLe)-ms(a.valideLe));renderVeto()},err))});
-$("pr-save").onclick=async()=>{const m=$("pr-msg");const v={};for(const k of ["m1","m3","m12"]){const n=Number($("pr-"+k).value);if(!(n>0)){m.textContent="Tarif invalide.";m.className="msg err";return}v["pro"+k.toUpperCase()]=n}
+$("pr-save").onclick=async()=>{const m=$("pr-msg");const v={};for(const k of ["m1","m3","m12","g12"]){const n=Number($("pr-"+k).value);if(!(n>0)){m.textContent="Tarif invalide.";m.className="msg err";return}v["pro"+k.toUpperCase()]=n}
   const t=Number($("pr-vt").value);if(!(t>=0&&t<=50)){m.textContent="Commission invalide (0 à 50 %).";m.className="msg err";return}v.vetoTaux=Math.round(t);
   try{await db.doc("marche_config/global").set(v,{merge:true});m.textContent="Enregistré. Les tarifs s'affichent tout de suite dans l'application.";m.className="msg"}catch(e){m.textContent="Échec de l'enregistrement.";m.className="msg err"}};
 function kpi(l,v,s,c){const k=el("div","kpi"+(c?" "+c:""));k.append(el("span",null,l),el("b",null,v));if(s)k.append(el("small",null,s));return k}
@@ -82,13 +89,24 @@ function render(){const now=Date.now(),mois=new Date().toISOString().slice(0,7);
   att.forEach(p=>{const c=el("div","card");const r1=el("div","row");r1.append(el("b",null,(p.nom||"Éleveur")+" · "+FORM[p.formule]+" · "+fmt(p.montant)+" F"));c.append(r1);
     const ref=el("span","sv-ref",p.ref||"");c.append(el("small",null,"Référence : "),ref,el("small",null," · payé depuis "+(p.telPayeur||"—")+" · ferme "+p.cle+" · "+dd(ms(p.creeLe))));
     const cur=subs[p.cle];if(cur&&ms(cur.finLe)>now)c.append(el("small",null,"Déjà Pro jusqu'au "+dd(ms(cur.finLe))+" : les mois s'ajoutent."));
+    const grp=String(p.groupe||"").split(/[\s,;]+/).map(x=>x.trim()).filter(x=>CODE_RE.test(x)&&x!==p.cle).slice(0,4);
+    if(p.formule==="g12")c.append(el("small",null,"Groupement : "+(grp.length?grp.join(", "):"aucun autre code valable")+" (activés en même temps)."));
+    if(p.parrain)c.append(el("small",null,"Code parrain : "+p.parrain+" (offrez-lui 1 mois après validation)."));
     const r=el("div","row");const m=el("span","msg");const ok=el("button","btn small ok","Paiement reçu : activer");ok.type="button";
     ok.onclick=async()=>{ok.disabled=true;try{const fin=finApres(cur?ms(cur.finLe):0,p.mois||1);const b=db.batch();
         b.set(db.doc("pro_fermes/"+p.cle),{finLe:firebase.firestore.Timestamp.fromMillis(fin),formule:p.formule,majLe:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+        if(p.formule==="g12")grp.forEach(k=>{const f2=finApres(subs[k]?ms(subs[k].finLe):0,12);b.set(db.doc("pro_fermes/"+k),{finLe:firebase.firestore.Timestamp.fromMillis(f2),formule:"g12",majLe:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})});
         b.update(db.doc("pro_paiements/"+p.id),{statut:"valide",valideLe:firebase.firestore.FieldValue.serverTimestamp(),finApres:fin});await b.commit()}catch(e){ok.disabled=false;m.textContent="Échec.";m.className="msg err"}};
     const mo=el("input");mo.placeholder="Motif du refus";mo.maxLength=120;mo.style.maxWidth="240px";const no=el("button","btn small bad","Refuser");no.type="button";
     no.onclick=async()=>{if(!mo.value.trim()){mo.focus();return}no.disabled=true;try{await db.doc("pro_paiements/"+p.id).update({statut:"refuse",motif:mo.value.trim()})}catch(e){no.disabled=false}};
     r.append(ok,mo,no,wa(p.telPayeur,"Bonjour, B2A Smart Farming : "),m);c.append(r);L.append(c)});
+  /* parrainage : un mois offert au parrain d'un paiement validé */
+  val.filter(p=>p.parrain&&CODE_RE.test(p.parrain)&&!p.parrainOffert).forEach(p=>{const c=el("div","card");c.append(el("b",null,"Parrainage : "+(p.nom||"Éleveur")+" s'est abonné avec le code "+p.parrain));
+    const b=el("button","btn small ok","Offrir 1 mois au parrain");b.type="button";const m=el("span","msg");
+    b.onclick=async()=>{b.disabled=true;try{const cur=subs[p.parrain];const fin=finApres(cur?ms(cur.finLe):0,1);const bt=db.batch();
+      bt.set(db.doc("pro_fermes/"+p.parrain),{finLe:firebase.firestore.Timestamp.fromMillis(fin),formule:(cur&&cur.formule)||"m1",majLe:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      bt.update(db.doc("pro_paiements/"+p.id),{parrainOffert:true});await bt.commit()}catch(e){b.disabled=false;m.textContent="Échec.";m.className="msg err"}};
+    const r=el("div","row");r.append(b,m);c.append(r);L.append(c)});
   const S2=$("pr-subs");S2.innerHTML="";const all=Object.values(subs).sort((a,b)=>ms(b.finLe)-ms(a.finLe));if(!all.length)S2.append(el("p","note","Aucun abonnement Pro pour le moment."));
   all.forEach(s=>{const c=el("div","card");const on=ms(s.finLe)>now;const last=pays.find(p=>p.cle===s.id&&p.statut==="valide");
     c.append(el("b",null,(last&&last.nom?last.nom+" · ":"")+"ferme "+s.id),el("small",null,(on?"Pro jusqu'au ":"Terminé le ")+dd(ms(s.finLe))));
@@ -134,4 +152,16 @@ function renderVeto(){const L=$("pr-veto");L.innerHTML="";const due=vds.filter(d
     const r=el("div","row");const b=el("button","btn small ok","Commission reçue");b.type="button";b.onclick=async()=>{b.disabled=true;try{const bt=db.batch();list.forEach(d=>bt.update(db.doc("veto_demandes/"+d.id),{comStatut:"reglee",regleeLe:firebase.firestore.FieldValue.serverTimestamp()}));await bt.commit()}catch(e){b.disabled=false}};
     r.append(b);c.append(r);L.append(c)});
   const ok=vds.filter(d=>d.comStatut==="reglee").length;if(ok)L.append(el("small",null,ok+" commission(s) déjà réglée(s)."))}
+function renderCg(){const L=$("pr-cg");if(!L)return;L.innerHTML="";const att=cgs.filter(c=>c.statut==="attente");
+  if(!att.length){L.append(el("p","note","Aucune commande groupée en attente."));return}
+  const tot={};att.forEach(c=>{const k=(c.ville||"—")+" · "+(PRODG[c.produit]||c.produit);tot[k]=(tot[k]||0)+(Number(c.qte)||0)});
+  const t=el("div","card");t.append(el("b",null,"Total par ville et par produit"));Object.entries(tot).forEach(([k,v])=>t.append(el("div",null,k+" : "+fmt(v))));L.append(t);
+  att.forEach(c=>{const d=el("div","card");d.append(el("b",null,(c.nom||"Éleveur")+" · "+(PRODG[c.produit]||c.produit)+" · "+fmt(c.qte)),el("small",null,(c.ville||"")+" · "+(c.tel||"")+" · "+dd(ms(c.creeLe))+(c.note?" · "+c.note:"")));
+    const r=el("div","row");const ok=el("button","btn small ok","Traitée");ok.type="button";ok.onclick=async()=>{ok.disabled=true;try{await db.doc("commandes_groupees/"+c.id).update({statut:"traitee"})}catch(e){ok.disabled=false}};
+    r.append(ok,wa(c.tel,"Bonjour, B2A Smart Farming : votre commande groupée ("+(PRODG[c.produit]||c.produit)+", "+fmt(c.qte)+") : "));d.append(r);L.append(d)})}
+function renderZone(){const L=$("pr-zone");if(!L)return;L.innerHTML="";const by={};zones.forEach(z=>{const k=(z.ville||"").trim().toLowerCase()+"|"+z.grp+"|"+z.signe;(by[k]=by[k]||{v:z.ville,g:z.grp,s:z.signe,a:new Set(),last:""}).a.add(z.auteur);if(z.date>by[k].last)by[k].last=z.date});
+  const G={volaille:"volailles",porc:"porcs",rum:"ruminants",poisson:"poissons"},SG={mortalite:"mortalité brutale",ponte:"chute de ponte"};
+  const rows=Object.values(by).sort((a,b)=>b.a.size-a.a.size);if(!rows.length){L.append(el("p","note","Aucune alerte signalée."));return}
+  rows.forEach(r=>{const d=el("div","card");d.append(el("b",null,r.v+" · "+G[r.g]+" · "+SG[r.s]),el("small",null," "+r.a.size+" ferme(s), dernière le "+r.last+(r.a.size>=3?" : alerte affichée aux abonnés de la ville":"")));L.append(d)})}
 })();
+

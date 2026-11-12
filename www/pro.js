@@ -42,8 +42,19 @@ const T={
 "la validation de vos vaccins par le vétérinaire de votre choix (service payant) ;":["validation of your vaccines by the vet of your choice (paid service);","la convalida dei vaccini da parte del veterinario scelto (servizio a pagamento);","la validación de sus vacunas por el veterinario que elija (servicio de pago);"],
 "l'étude du marché en temps réel et le prix de vente conseillé pour vos animaux, produits et matériel.":["real-time market study and suggested selling price for your animals, products and equipment.","lo studio di mercato in tempo reale e il prezzo di vendita consigliato per animali, prodotti e materiale.","el estudio de mercado en tiempo real y el precio de venta aconsejado para sus animales, productos y material."],
 "la simulation complète d'un nouveau projet : dépenses du début à la fin, bâtiment, superficie, plan de construction et financement.":["full simulation of a new project: expenses from start to finish, building, area, building plan and financing.","la simulazione completa di un nuovo progetto: spese dall'inizio alla fine, edificio, superficie, pianta dell'edificio e finanziamento.","la simulación completa de un nuevo proyecto: gastos de principio a fin, edificio, superficie, plano de construcción y financiación."],
+"B{0}A Smart Farming : l'application gratuite pour gérer votre élevage. Version Pro avec mon code parrain :":["B{0}A Smart Farming: the free app to manage your farm. Pro version with my referral code:","B{0}A Smart Farming: l'app gratuita per gestire il tuo allevamento. Versione Pro con il mio codice invito:","B{0}A Smart Farming: la aplicación gratuita para gestionar su granja. Versión Pro con mi código de padrino:"],
 "Toute l'équipe de la ferme en profite avec un seul abonnement.":["The whole farm team benefits from a single subscription.","Tutta la squadra della fattoria ne approfitta con un solo abbonamento.","Todo el equipo de la granja lo aprovecha con una sola suscripción."],
-"1 mois":["1 month","1 mese","1 mes"],"3 mois":["3 months","3 mesi","3 meses"],"12 mois":["12 months","12 mesi","12 meses"],
+"1 mois":["1 month","1 mese","1 mes"],
+"Essayer gratuitement pendant 1 mois":["Try it free for 1 month","Provala gratis per 1 mese","Pruébela gratis durante 1 mes"],
+"Essai gratuit : toutes les fonctions Pro pendant 1 mois, sans payer. Une seule fois par ferme.":["Free trial: all Pro features for 1 month, without paying. Only once per farm.","Prova gratuita: tutte le funzioni Pro per 1 mese, senza pagare. Una sola volta per fattoria.","Prueba gratuita: todas las funciones Pro durante 1 mes, sin pagar. Una sola vez por granja."],
+"Essai gratuit activé : bonne découverte de la version Pro !":["Free trial activated: enjoy the Pro version!","Prova gratuita attivata: buona scoperta della versione Pro!","Prueba gratuita activada: ¡disfrute de la versión Pro!"],
+"Groupement (5 fermes, 12 mois)":["Group (5 farms, 12 months)","Gruppo (5 fattorie, 12 mesi)","Agrupación (5 granjas, 12 meses)"],
+"Codes des autres fermes du groupement (jusqu'à 4, séparés par des virgules)":["Codes of the other farms in the group (up to 4, separated by commas)","Codici delle altre fattorie del gruppo (fino a 4, separati da virgole)","Códigos de las otras granjas de la agrupación (hasta 4, separados por comas)"],
+"Code parrain (facultatif)":["Referral code (optional)","Codice di chi ti ha invitato (facoltativo)","Código de padrino (opcional)"],
+"Votre code parrain :":["Your referral code:","Il tuo codice invito:","Su código de padrino:"],
+"Chaque éleveur qui s'abonne avec votre code vous fait gagner 1 mois Pro.":["Each farmer who subscribes with your code earns you 1 Pro month.","Ogni allevatore che si abbona con il tuo codice ti fa guadagnare 1 mese Pro.","Cada ganadero que se suscribe con su código le hace ganar 1 mes Pro."],
+"Inviter un éleveur":["Invite a farmer","Invita un allevatore","Invitar a un ganadero"],
+"Coopératives et groupements : une formule moins chère pour 5 fermes.":["Cooperatives and groups: a cheaper plan for 5 farms.","Cooperative e gruppi: una formula più economica per 5 fattorie.","Cooperativas y agrupaciones: una fórmula más barata para 5 granjas."],"3 mois":["3 months","3 mesi","3 meses"],"12 mois":["12 months","12 mesi","12 meses"],
 "Activer la version Pro":["Activate the Pro version","Attiva la versione Pro","Activar la versión Pro"],
 "Envoyez {0} FCFA par Orange Money ou Moov Money au numéro ci-dessous, puis indiquez la référence du paiement.":["Send {0} FCFA by Orange Money or Moov Money to the number below, then enter the payment reference.","Invia {0} FCFA con Orange Money o Moov Money al numero qui sotto, poi indica il riferimento del pagamento.","Envíe {0} FCFA por Orange Money o Moov Money al número de abajo y luego indique la referencia del pago."],
 "Numéro de paiement":["Payment number","Numero di pagamento","Número de pago"],"Bénéficiaire":["Recipient","Beneficiario","Beneficiario"],
@@ -165,8 +176,8 @@ let S=null;
 async function store(){if(S)return S;if(!B.CFG)return null;
   await B.loadFirebase(B.CFG);const u=await B.ensureUser(B.CFG);const fs=firebase.firestore();
   S={uid:u.uid,col:n=>fs.collection(n),doc:p=>fs.doc(p),ts:()=>firebase.firestore.FieldValue.serverTimestamp(),newId:n=>fs.collection(n).doc().id};return S}
-const DEF={proM1:2500,proM3:6000,proM12:20000,vetoTaux:10,telPaiement:"",nomPaiement:"B2A-HIGH-TECHNOLOGY-AUTOMATION"};
-let cfg={...DEF},proFin=Number(B.lsGet(LS_PRO))||0,mesPaie=[],formations=[],demandes=[],vetos=[],started=false,uid=null;
+const DEF={proM1:2500,proM3:6000,proM12:20000,proG12:75000,vetoTaux:10,telPaiement:"",nomPaiement:"B2A-HIGH-TECHNOLOGY-AUTOMATION"};
+let essaiT=Number(B.lsGet("b2a-pro-essai"))||0,essaiVu=false,cfg={...DEF},proFin=Number(B.lsGet(LS_PRO))||0,mesPaie=[],formations=[],demandes=[],vetos=[],started=false,uid=null;
 try{formations=JSON.parse(B.lsGet(LS_FORM)||"[]")}catch(e){formations=[]}
 let catalogue=[];try{catalogue=JSON.parse(B.lsGet(LS_CAT)||"[]")}catch(e){catalogue=[]}
 const allForm=()=>{const m=new Map();catalogue.concat(formations).forEach(f=>{if(f&&f.id&&f.url)m.set(f.id,f)});return [...m.values()]};
@@ -176,7 +187,8 @@ setTimeout(loadCat,2500);
 const cle=()=>B.farm||(uid?"u_"+uid:null);
 /* Version d'essai (/essai/) : Pro débloqué pour tester, sans paiement. */
 const ESSAI=/\/essai\//.test(location.pathname);
-const finEff=()=>ESSAI?Math.max(proFin,Date.now()+30*864e5):proFin;
+const ESSAI_J=30;const essaiFin=()=>essaiT?essaiT+ESSAI_J*864e5:0;
+const finEff=()=>ESSAI?Math.max(proFin,Date.now()+30*864e5):Math.max(proFin,essaiFin());
 const isPro=()=>finEff()>Date.now();
 const prixPro=f=>Number(cfg["pro"+f.toUpperCase()])||DEF["pro"+f.toUpperCase()];
 const rerender=()=>{try{const D=$("lotdetail");if(D&&!D.hidden&&(window.B2A.lotTabs||[]).some(x=>x.k===curTab()))A.renderDetail()}catch(e){}};
@@ -185,6 +197,7 @@ async function start(){if(started)return;started=true;
   let s=null;try{s=await store()}catch(e){s=null}if(!s)return;uid=s.uid;
   const k=cle();
   if(k)s.doc("pro_fermes/"+k).onSnapshot(d=>{proFin=d.exists?ms(d.data().finLe):0;B.lsSet(LS_PRO,String(proFin));rerender()},()=>{});
+  if(k)s.doc("pro_essais/"+k).onSnapshot(d=>{essaiVu=true;essaiT=d.exists?ms(d.data().creeLe):0;B.lsSet("b2a-pro-essai",essaiT?String(essaiT):null);rerender()},()=>{});
   s.doc("marche_config/global").onSnapshot(d=>{cfg={...DEF,...(d.exists?d.data():{})};rerender()},()=>{});
   s.col("pro_paiements").where("uid","==",uid).onSnapshot(q=>{mesPaie=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));rerender()},()=>{});
   s.col("formations").where("publie","==",true).onSnapshot(q=>{formations=q.docs.map(d=>({id:d.id,...d.data()}));
@@ -204,26 +217,38 @@ function lockCard(D,feature){
   const wait=mesPaie.find(p=>p.statut==="attente"),ref=mesPaie.find(p=>p.statut==="refuse");
   if(wait){c.append(el("p","msg","Paiement en cours de vérification par B2A."));D.append(c);return}
   if(ref&&ref.motif){const p=el("p","msg err");p.append(document.createTextNode(("Paiement refusé :")+" "),notr(el("span",null,ref.motif)));c.append(p)}
+  if(essaiVu&&!essaiT&&!ESSAI){const eb=el("button","btn","Essayer gratuitement pendant 1 mois");eb.type="button";const em=el("p","msg");em.setAttribute("aria-live","polite");
+    eb.onclick=async()=>{eb.disabled=true;try{const s=await store();const k=cle();if(!s||!k)throw new Error("store");
+      await s.doc("pro_essais/"+k).set({uid:s.uid,creeLe:s.ts()});em.textContent=("Essai gratuit activé : bonne découverte de la version Pro !");em.className="msg good"}
+      catch(e){console.warn(e);em.textContent=("Envoi impossible. Vérifiez la connexion et réessayez.");em.className="msg err";eb.disabled=false}};
+    c.append(el("p","note","Essai gratuit : toutes les fonctions Pro pendant 1 mois, sans payer. Une seule fois par ferme."),eb,em)}
   payForm(c);D.append(c)}
 function payForm(c){
   const pl=el("div","pro-plans");pl.setAttribute("role","group");
-  [["m1","1 mois"],["m3","3 mois"],["m12","12 mois"]].forEach(([f,lb])=>{const b=el("button");b.type="button";b.setAttribute("aria-pressed",plan===f);b.append(el("span",null,lb),el("b",null,fmt(prixPro(f))+" F"));b.onclick=()=>{plan=f;pl.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b))
-    ;inst.textContent=(`Envoyez ${fmt(prixPro(plan))} FCFA par Orange Money ou Moov Money au numéro ci-dessous, puis indiquez la référence du paiement.`)};pl.append(b)});
+  [["m1","1 mois"],["m3","3 mois"],["m12","12 mois"],["g12","Groupement (5 fermes, 12 mois)"]].forEach(([f,lb])=>{const b=el("button");b.type="button";b.setAttribute("aria-pressed",plan===f);b.append(el("span",null,lb),el("b",null,fmt(prixPro(f))+" F"));b.onclick=()=>{plan=f;pl.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed",x===b))
+    ;inst.textContent=(`Envoyez ${fmt(prixPro(plan))} FCFA par Orange Money ou Moov Money au numéro ci-dessous, puis indiquez la référence du paiement.`);{const gi=document.getElementById("pro-grp");if(gi)gi.parentNode.hidden=plan!=="g12"}};pl.append(b)});
   c.append(el("b",null,"Activer la version Pro"),pl);
   const inst=el("p","note",`Envoyez ${fmt(prixPro(plan))} FCFA par Orange Money ou Moov Money au numéro ci-dessous, puis indiquez la référence du paiement.`);c.append(inst);
   if(!cfg.telPaiement){c.append(el("p","msg err","Le numéro de paiement n'est pas encore disponible. Contactez B2A sur WhatsApp."));return}
   const pay=el("div","pro-pay");pay.append(el("small",null,"Numéro de paiement"),notr(el("b",null,cfg.telPaiement)),el("small",null,"Bénéficiaire"),notr(el("span",null,cfg.nomPaiement||DEF.nomPaiement)));c.append(pay);
   const g=el("div","grid2");const fld=(lb,type)=>{const f=el("div","field");const l=el("label",null,lb);const i=el("input");i.type=type;i.maxLength=40;const id="pro-"+Math.random().toString(36).slice(2,8);i.id=id;l.htmlFor=id;f.append(l,i);g.append(f);return i};
-  const r=fld("Référence du paiement","text"),t=fld("Téléphone qui a payé","tel");t.inputMode="tel";c.append(g);
+  const r=fld("Référence du paiement","text"),t=fld("Téléphone qui a payé","tel");t.inputMode="tel";
+  const pr=fld("Code parrain (facultatif)","text");pr.autocapitalize="characters";
+  const gf=el("div","field full");gf.hidden=plan!=="g12";{const l=el("label",null,"Codes des autres fermes du groupement (jusqu'à 4, séparés par des virgules)");const i=el("input");i.maxLength=300;i.id="pro-grp";l.htmlFor=i.id;gf.append(l,i);g.append(gf)}
+  c.append(g);c.append(el("p","note","Coopératives et groupements : une formule moins chère pour 5 fermes."));
   const m=el("p","msg");m.setAttribute("aria-live","polite");const b=el("button","btn","J'ai payé : envoyer la référence");b.type="button";c.append(b,m);
   b.onclick=async()=>{if(!r.value.trim()){m.textContent=("Indiquez la référence du paiement.");m.className="msg err";return}
     if(digits(t.value).length<8){m.textContent=("Indiquez le téléphone qui a payé.");m.className="msg err";return}
     b.disabled=true;try{const s=await store();const k=cle();if(!s||!k)throw new Error("store");
-      const mois={m1:1,m3:3,m12:12}[plan];
-      await s.col("pro_paiements").add({uid:s.uid,cle:k,nom:(B.lsGet(B.LS_NAME)||"").slice(0,60),formule:plan,mois,montant:prixPro(plan),ref:r.value.trim().slice(0,40),telPayeur:t.value.trim().slice(0,30),statut:"attente",creeLe:s.ts()});
+      const mois={m1:1,m3:3,m12:12,g12:12}[plan];const d={uid:s.uid,cle:k,nom:(B.lsGet(B.LS_NAME)||"").slice(0,60),formule:plan,mois,montant:prixPro(plan),ref:r.value.trim().slice(0,40),telPayeur:t.value.trim().slice(0,30),statut:"attente",creeLe:s.ts()};
+      const pv=pr.value.trim();if(pv&&pv!==k)d.parrain=pv.slice(0,40);if(plan==="g12"){const gi=document.getElementById("pro-grp");if(gi&&gi.value.trim())d.groupe=gi.value.trim().slice(0,300)}
+      await s.col("pro_paiements").add(d);
       m.textContent=("Paiement envoyé : B2A le vérifie et active la version Pro.");m.className="msg good"}
     catch(e){console.warn(e);m.textContent=("Envoi impossible. Vérifiez la connexion et réessayez.");m.className="msg err";b.disabled=false}}}
 function proHead(D){const p=el("p","pro-ok");p.append(notr(el("span","pro-badge","PRO")),document.createTextNode((`Version Pro active jusqu'au ${dlong(finEff())}`)));
+  {const k=cle();if(k&&!ESSAI){const q=el("p","note");q.append(el("span",null,"Votre code parrain :"),document.createTextNode(" "),notr(el("b",null,k)),document.createTextNode(" · "),el("span",null,"Chaque éleveur qui s'abonne avec votre code vous fait gagner 1 mois Pro."));
+    const sb=el("button","btn small ghost","Inviter un éleveur");sb.type="button";sb.onclick=()=>{const txt=tr("B2A Smart Farming : l'application gratuite pour gérer votre élevage. Version Pro avec mon code parrain :")+" "+k+"\nhttps://play.google.com/store/apps/details?id=com.b2a.smartfarming";
+      if(navigator.share)navigator.share({text:txt}).catch(()=>{});else window.open("https://wa.me/?text="+encodeURIComponent(txt),"_blank","noopener")};q.append(document.createTextNode(" "),sb);D.append(q)}}
   if(proFin-Date.now()<15*864e5){const b=el("button","btn small ghost","Renouveler");b.type="button";b.onclick=()=>{const c=el("div","pro-lock");payForm(c);p.after(c);b.remove()};p.append(b)}D.append(p)}
 
 /* ================= espèce et âge ================= */
@@ -614,5 +639,9 @@ B.lotTabs=(B.lotTabs||[]).concat([
 /* clé des boutons d'onglet (pour savoir lequel est ouvert) */
 new MutationObserver(()=>{const st=document.querySelector("#lotdetail .subtabs");if(!st)return;const ks=["resume","argent","saisies",...B.lotTabs.map(x=>x.k)];
   [...st.querySelectorAll("button")].forEach((b,i)=>{if(!b.dataset.k)b.dataset.k=ks[i]||""})}).observe(document.body,{childList:true,subtree:true});
-window.B2A_PRO={isPro,start,cfg:()=>cfg,lockCard,etude,loadPrix};
+/* annonce du Marché mise en avant : seulement pendant un abonnement réel (pas la version d'essai /essai/) */
+function annoncePro(){if(ESSAI)return null;const k=cle();if(!k||!window.firebase)return null;const TS=firebase.firestore.Timestamp;
+  if(proFin>Date.now())return {pro:true,proCle:k,proJusqua:TS.fromMillis(proFin)};
+  if(essaiFin()>Date.now())return {pro:true,proCle:k,proJusqua:TS.fromMillis(essaiFin())};return null}
+window.B2A_PRO={isPro,start,cfg:()=>cfg,lockCard,proHead,etude,loadPrix,store,cle,annoncePro,finEff,essai:()=>ESSAI};
 })();

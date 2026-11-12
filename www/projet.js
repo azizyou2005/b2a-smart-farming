@@ -149,6 +149,11 @@ const T={
 "Arrivée des animaux":["Arrival of the animals","Arrivo degli animali","Llegada de los animales"],"Début de la ponte":["Start of laying","Inizio della deposizione","Inicio de la puesta"],
 "Vente de la bande":["Sale of the batch","Vendita del ciclo","Venta del ciclo"],"Réforme et fin de la bande":["Culling and end of the batch","Riforma e fine del ciclo","Desecho y fin del ciclo"],
 "Semis ou plantation":["Sowing or planting","Semina o trapianto","Siembra o plantación"],"Récolte et vente":["Harvest and sale","Raccolta e vendita","Cosecha y venta"],
+"Dossier pour la banque":["File for the bank","Dossier per la banca","Expediente para el banco"],"Dossier de financement":["Financing file","Dossier di finanziamento","Expediente de financiación"],
+"Le promoteur":["The promoter","Il promotore","El promotor"],"Nom":["Name","Nome","Nombre"],"Date":["Date","Data","Fecha"],"La ferme aujourd'hui":["The farm today","La fattoria oggi","La granja hoy"],
+"Lot":["Batch","Lotto","Lote"],"Espèce":["Species","Specie","Especie"],"Effectif":["Headcount","Numero di capi","Efectivo"],"Résultats de la ferme depuis janvier":["Farm results since January","Risultati della fattoria da gennaio","Resultados de la granja desde enero"],
+"Chiffre d'affaires":["Turnover","Fatturato","Facturación"],"Bénéfice net":["Net profit","Utile netto","Beneficio neto"],
+"Le projet ci-dessous a été calculé avec B{0}A Smart Farming à partir des prix du marché et des données techniques de l'élevage.":["The project below was calculated with B{0}A Smart Farming from market prices and livestock technical data.","Il progetto qui sotto è stato calcolato con B{0}A Smart Farming a partire dai prezzi di mercato e dai dati tecnici dell'allevamento.","El proyecto siguiente se calculó con B{0}A Smart Farming a partir de los precios del mercado y los datos técnicos de la cría."],
 "Télécharger le PDF":["Download the PDF","Scarica il PDF","Descargar el PDF"],"Partager":["Share","Condividi","Compartir"],
 "Simulation du projet":["Project simulation","Simulazione del progetto","Simulación del proyecto"],
 "Valeurs indicatives, à vérifier avec vos fournisseurs avant de commencer.":["Indicative values, to check with your suppliers before starting.","Valori indicativi, da verificare con i fornitori prima di iniziare.","Valores orientativos, a comprobar con sus proveedores antes de empezar."],
@@ -453,7 +458,8 @@ function results(out){let r;try{r=compute()}catch(e){console.warn(e);out.append(
   else c1.append(el("p","msg"+(r.parBande<0?" err":""),r.parBande<0?"Attention : avec ces prix, le projet perd de l'argent.":"L'argent investi n'est pas récupéré pendant la durée simulée : ajoutez des bandes, ou revoyez les prix."));
   if(r.kind==="animal"&&r.inv>0)c1.append(el("p","note","Le bâtiment et le matériel restent après le projet : les bandes suivantes coûtent moins cher."));
   const bt=el("div","pj-btns");const b1=el("button","btn small","Télécharger le PDF");b1.type="button";b1.onclick=()=>pdf(r,nom).catch(e=>console.warn(e));
-  const b2=el("button","btn small ghost","Partager");b2.type="button";b2.onclick=()=>share(r,nom);bt.append(b1,b2);c1.append(bt);out.append(c1);
+  const b2=el("button","btn small ghost","Partager");b2.type="button";b2.onclick=()=>share(r,nom);
+  const b3=el("button","btn small ghost","Dossier pour la banque");b3.type="button";b3.onclick=()=>pdf(r,nom,true).catch(e=>console.warn(e));bt.append(b1,b3,b2);c1.append(bt);out.append(c1);
   /* superficie */
   const c2=card("Superficie nécessaire");const t2=el("table");const tb2=el("tbody");t2.append(tb2);c2.append(t2);const u=r.surf;
   if(r.kind==="culture"){row(tb2,"Surface cultivée",fmt(u.ha,2)+" ha ("+fmt(u.ha*10000)+" m²)");row(tb2,"Dimensions de la parcelle",fmt(u.side)+" × "+fmt(u.side)+" m");
@@ -509,14 +515,20 @@ const svgPng=svg=>new Promise(res=>{try{const x=new XMLSerializer().serializeToS
 const pdfTxt=s=>String(s).replace(/ | /g," ");
 const loadJs=src=>new Promise((res,rej)=>{if(document.querySelector(`script[data-pj="${src}"]`))return res();const s=document.createElement("script");s.src=src;s.dataset.pj=src;s.onload=res;s.onerror=rej;document.head.append(s)});
 async function pdfLibs(){if(window.jspdf&&window.jspdf.jsPDF&&window.jspdf.jsPDF.API.autoTable)return;await loadJs("libs/jspdf.umd.min.js");await loadJs("libs/jspdf.plugin.autotable.min.js")}
-async function pdf(r,nom){await pdfLibs();if(!window.jspdf)return;const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:"mm",format:"a4"});const W=doc.internal.pageSize.getWidth();
+async function pdf(r,nom,dossier){await pdfLibs();if(!window.jspdf)return;const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:"mm",format:"a4"});const W=doc.internal.pageSize.getWidth();
   const T2=s=>pdfTxt(tr(s));let y=16;
-  doc.setFillColor(27,46,76);doc.rect(0,0,W,24,"F");doc.setTextColor(255);doc.setFontSize(15);doc.text(pdfTxt(tr("Simulation du projet")+" : "+tr(nom)),12,11);
+  doc.setFillColor(27,46,76);doc.rect(0,0,W,24,"F");doc.setTextColor(255);doc.setFontSize(15);doc.text(pdfTxt(tr(dossier?"Dossier de financement":"Simulation du projet")+" : "+tr(nom)),12,11);
   doc.setFontSize(9);doc.text("B2A Smart Farming · B2A-HIGH-TECHNOLOGY-AUTOMATION · "+new Date().toLocaleDateString("fr-FR"),12,18);doc.setTextColor(20);y=32;
   const tab=(title,body,head)=>{doc.setFontSize(12);doc.setFont(undefined,"bold");doc.text(T2(title),12,y);doc.setFont(undefined,"normal");
     doc.autoTable({startY:y+3,head:head?[head.map(T2)]:undefined,body:body.map(rw=>rw.map(c=>pdfTxt(c))),theme:"grid",styles:{fontSize:9,cellPadding:1.6},headStyles:{fillColor:[27,46,76]},
       columnStyles:{1:{halign:"right"},2:{halign:"right"},3:{halign:"right"}},margin:{left:12,right:12}});y=doc.lastAutoTable.finalY+8;if(y>260){doc.addPage();y=16}};
   const u=r.surf;
+  if(dossier){/* présentation du promoteur et de la ferme, pour la banque ou la microfinance */
+    const who=(B.lsGet(B.LS_NAME)||"").trim(),vil=B.lsGet("b2a-pp-ville")||"";
+    tab("Le promoteur",[[T2("Nom"),who||"—"],[T2("Ville"),vil||"—"],[T2("Date"),new Date().toLocaleDateString("fr-FR")]]);
+    const lots=(A.lots&&A.lots())||[];if(lots.length)tab("La ferme aujourd'hui",lots.map(l=>{let n=null;try{n=A.stats(l).alive}catch(e){}return [pdfTxt(l.nom||""),pdfTxt(tr(l.espece||"")),n!=null?fmt(n):"—"]}),["Lot","Espèce","Effectif"]);
+    try{const Y=new Date().getFullYear();const b=window.B2A_BILAN&&window.B2A_BILAN.compute(Y);if(b&&!b.empty)tab("Résultats de la ferme depuis janvier",[[T2("Chiffre d'affaires"),F(b.ca)],[T2("Dépenses"),F(b.dep)],[T2("Bénéfice net"),F(b.net)]])}catch(e){}
+    doc.setFontSize(10);const intro=doc.splitTextToSize(T2("Le projet ci-dessous a été calculé avec B2A Smart Farming à partir des prix du marché et des données techniques de l'élevage."),W-24);doc.text(intro,12,y);y+=intro.length*5+4}
   tab("Résultat du projet",[[T2("Argent à réunir avant de commencer"),F(r.fin.tot)],[T2("Investissement de départ"),F(r.inv)],[T2("Dépenses de fonctionnement"),F(r.op)],[T2("Total des dépenses"),F(r.dep)],
     [T2("Recettes prévues"),F(r.rec)],[T2("Bénéfice prévu"),F(r.ben)],[T2("Rentabilité"),fmt(r.renta)+" %"],[T2(r.kind==="culture"?"Bénéfice par campagne (sans l'investissement)":"Bénéfice par bande (sans l'investissement)"),F(r.parBande)],[T2(r.kind==="culture"?"Campagnes pour rembourser l'investissement":"Bandes pour rembourser l'investissement"),r.bandesInv!=null?String(r.bandesInv):"-"],[T2("Durée du projet"),r.M+" "+T2("mois")],[T2("L'argent investi est récupéré au mois"),r.back!=null?String(r.back):"—"]]);
   const sb=r.kind==="culture"?[[T2("Surface cultivée"),fmt(u.ha,2)+" ha"],[T2("Dimensions de la parcelle"),fmt(u.side)+" x "+fmt(u.side)+" m"],[T2("Magasin de récolte"),fmt(u.mag)+" m²"]]
@@ -532,7 +544,7 @@ async function pdf(r,nom){await pdfLibs();if(!window.jspdf)return;const {jsPDF}=
   const f=r.fin;tab("Plan de financement",[[T2("Argent à réunir avant de commencer"),F(f.tot)],[T2("Apport personnel"),F(f.apport)],[T2("Crédit ou partenaire"),F(f.cred)]].concat(f.cred>0?[[T2("Mensualité du crédit"),F(f.mens)+" x "+f.n],[T2("Coût total du crédit (intérêts)"),F(f.inter)]]:[]));
   tab("Calendrier mois par mois",r.months.map((m,i)=>[String(i),F(m.dep),m.rec?F(m.rec):"-",F(m.cum),[...new Set(m.ev)].map(T2).join(" · ")]),["Mois","Dépenses","Recettes","Solde cumulé","Ce qui se passe"]);
   doc.setFontSize(8);doc.text(T2("Valeurs indicatives, à vérifier avec vos fournisseurs avant de commencer."),12,Math.min(287,y));
-  const name="simulation-"+(r.kind==="culture"?S.crop:S.type)+".pdf";
+  const name=(dossier?"dossier-financement-":"simulation-")+(r.kind==="culture"?S.crop:S.type)+".pdf";
   try{const dl=window.claude&&await window.claude.use("downloads");if(dl){await dl.save({filename:name,data:doc.output("blob")});return}}catch(e){}
   doc.save(name)}
 function share(r,nom){const L=[tr("Simulation du projet")+" : "+tr(nom),

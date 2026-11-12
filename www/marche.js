@@ -197,15 +197,19 @@ function renderBuy(Bd){
 function renderList(L){L.innerHTML="";const qq=q.trim().toLowerCase(),vv=ville.trim().toLowerCase();
   const list=enVente().filter(a=>(!cat||a.cat===cat)&&(!qq||[a.titre,a.desc,CN(a.cat),a.vendeurNom].join(" ").toLowerCase().includes(qq))&&(!vv||String(a.ville||"").toLowerCase().includes(vv)));
   if(near&&GEO()){const me0=GEO().mine();const dd=a=>{const d=GEO().dist(me0,a.geo);return d==null?1e9:d};list.sort((a,b)=>dd(a)-dd(b))}
+  else list.sort((a,b)=>isProA(b)-isProA(a));
   if(!list.length){const e=el("div","empty");e.append(el("strong",null,annonces.length?"Aucun produit ne correspond":"Aucun produit en vente pour l'instant"),el("span",null,annonces.length?"Changez la recherche ou la catégorie.":"Les annonces des éleveurs et agriculteurs apparaîtront ici."));L.append(e);return}
   list.forEach(a=>L.append(cardA(a)));
   if(annMore){const b=el("button","btn ghost m-more","Voir plus de produits");b.type="button";b.onclick=()=>{annLim+=30;loadAnnonces()};L.append(b)}}
 /* équivalence indicative dans la monnaie choisie par l'acheteur */
 function equiv(v,k){k=k||"XOF";if(!voirEn||voirEn===k)return document.createTextNode("");return notr(el("small","m-eq","≈ "+money(Math.round(conv(v,k,voirEn)*100)/100,voirEn)+" (indicatif)"))}
+/* annonce d'un abonné Pro, encore valable */
+function isProA(a){return a&&a.pro===true&&ms(a.proJusqua)>Date.now()?1:0}
 function cardA(a,own){const b=el("button","m-card");b.type="button";const ph=el("div","m-ph");if(okImg(a.photo)){const im=el("img");im.src=a.photo;im.alt="";im.loading="lazy";ph.append(im)}else ph.append(el("span",null,CN(a.cat).slice(0,1)));
   b.append(ph);const t=el("div","m-tx");t.append(notr(el("b",null,a.titre||"Produit")),el("span","m-price",money(a.prix,a.devise)+" / "+(a.unite||"unité")),equiv(a.prix,a.devise),
     el("small",null,[a.qte!=null?fmt(a.qte)+" disponible(s)":null,a.ville].filter(Boolean).join(" · ")));
   {const gd=GEO()&&!own?GEO().dist(GEO().mine(),a.geo):null;if(gd!=null)t.append(el("small","m-dist","📍 "+GEO().fmtKm(gd)))}
+  if(isProA(a)){const pb=el("span","m-pro");pb.append(notr(el("b",null,"PRO")),document.createTextNode(" "),el("span",null,"vérifié"));t.append(pb);b.classList.add("m-card-pro")}
   if(!own)t.append(notr(el("small","m-sell",a.vendeurNom||"")));else t.append(el("span","pill s-"+(a.statut==="actif"?"ok":"warn"),a.statut==="actif"?"En vente":a.statut==="epuise"?"Épuisé":"Retiré"));
   b.append(t);b.onclick=()=>{open=a.id;openB=null;mode=own?"vendre":"acheter";render();window.scrollTo(0,0)};return b}
 function detail(a){needShop(a.vendeur);const own=S&&a.vendeur===S.uid;const c=el("div","card m-det");const bk=el("button","back","‹ Retour aux produits");bk.type="button";bk.onclick=()=>{open=null;render()};c.append(bk);
@@ -432,7 +436,11 @@ function annForm(){const a=editA||{};const c=el("section","card");const bk=el("b
     if(!ti.value.trim())return bad("Indiquez un titre.");if(!(p>0))return bad("Indiquez le prix.");if(q2!=null&&q2<0)return bad("Quantité invalide.");
     B.lsSet("b2a-m-devise",dv.value);const bq=boutiques[S.uid]||me;const d={devise:dv.value,vendeur:S.uid,vendeurNom:bq.nom||me.nom||"",vendeurTel:"",ville:vi.value.trim(),cat:ct.value,titre:ti.value.trim(),desc:ds.value.trim(),prix:p,unite:un.value,qte:q2,photo,geo:((boutiques[S.uid]||{}).geo)||null,
       statut:q2===0?"epuise":(editA?editA.statut==="retire"?"retire":"actif":"actif"),majLe:S.ts()};
-    if(!editA)d.creeLe=S.ts();sv.disabled=true;
+    if(!editA)d.creeLe=S.ts();
+    /* version Pro : annonce mise en avant « Pro vérifié » jusqu'à la fin de l'abonnement */
+    {let px=null;try{px=window.B2A_PRO&&window.B2A_PRO.annoncePro&&S.kind==="cloud"?window.B2A_PRO.annoncePro():null}catch(e){px=null}
+      if(px)Object.assign(d,px);else if(editA&&editA.pro)d.pro=false}
+    sv.disabled=true;
     try{const id=editA?editA.id:S.newId("marche_annonces");await (editA?upd("marche_annonces/"+id,d):put("marche_annonces/"+id,d));formOpen=false;editA=null;render()}
     catch(e){console.warn(e);sv.disabled=false;bad("L'annonce n'a pas pu être enregistrée. Vérifiez la connexion.")}};
   return c}

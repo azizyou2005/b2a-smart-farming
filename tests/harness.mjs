@@ -105,4 +105,6 @@ export async function visitAll(page) {
   await page.evaluate(() => localStorage.setItem("b2a-pro-fin", String(Date.now() + 9e9)));
   await page.reload(); await W(1500);
   await tab("projet"); await selects("#v-projet"); await openDetails(); await selects("#v-projet"); await openDetails();
+  for (const t of ["tableau", "calendrier", "formules"]) { await tab(t); await W(1200); }
+  await tab("marche"); await click("#m-seg [data-m=acheter]", 700); await click("#pp-cg .btn", 500);
 }

@@ -1351,7 +1351,8 @@ $("s-del").onclick=async()=>{const id=$("s-lot").value,d=$("s-date").value,b=$("
 /* accès pour les modules complémentaires (plus.js) */
 window.B2A.app={isCrop,kpi,alertList,calItem,errText,loadNames,names,openLotForm,closeLot,renderLots,renderDetail,notr,
   saisies:()=>saisies,soins:()=>soins,allLots:()=>lots,CULT,ENG,pEng,setForm:v=>{formOpen=v},setSel:(id,open)=>{selLot=id;detailOpen=!!open},setCalLot:id=>{calLot=id},
-  db:()=>db,me:()=>me,can:()=>canWrite,lots:()=>lots.filter(l=>l.actif!==false),stats,allAlerts,programme,isLayer,isDairy,fmt,fdate,today,show,openLot,factures:()=>factures,facTotals,spName:l=>sp(l).sale};
+  db:()=>db,me:()=>me,can:()=>canWrite,lots:()=>lots.filter(l=>l.actif!==false),stats,allAlerts,programme,isLayer,isDairy,fmt,fdate,today,show,openLot,factures:()=>factures,facTotals,spName:l=>sp(l).sale,
+  ING,prixIng:k=>pIng(k),setPrixIng:(k,v)=>{prixIng[k]=v;savePrix()},renderFormules:()=>{try{renderFormules()}catch(e){}}};
 
 /* ---------- diagnostic ---------- */
 const OBJ={animal:["Non précisé","Ponte","Chair / engraissement","Lait","Reproduction / élevage","Traction"],

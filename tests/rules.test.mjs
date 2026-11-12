@@ -175,3 +175,43 @@ test("signalements : tout inscrit signale en son nom ; seul B2A lit et efface", 
   await assertFails(as("alice").collection("signalements").get());
   await assertSucceeds(as("b2a", ADMIN).collection("signalements").get());
 });
+
+test("version Pro : annonce « Pro vérifié » seulement pour un abonné, jusqu'à la fin de son abonnement", async () => {
+  const { Timestamp } = await import("firebase/firestore");
+  const fin = Timestamp.fromMillis(Date.now() + 30 * 864e5), apres = Timestamp.fromMillis(Date.now() + 90 * 864e5);
+  await setup(async db => {
+    await db.doc("inscriptions/vendeurpro1").set({ prenom: "V", nom: "P", ville: "Ouaga", pays: "BF", elevage: "Volaille", taille: "", statut: "approuve" });
+    await db.doc("marche_vendeurs/vendeurpro1").set({ statut: "actif", nom: "Ferme Pro", tel: "70222222", ville: "Ouaga", taux: 5 });
+    await db.doc("pro_fermes/u_vendeurpro1").set({ finLe: fin, formule: "m1" });
+  });
+  const a = o => annonce({ vendeur: "vendeurpro1", ...o });
+  await assertSucceeds(as("vendeurpro1").doc("marche_annonces/p1").set(a({ pro: true, proCle: "u_vendeurpro1", proJusqua: fin })));
+  await assertFails(as("vendeurpro1").doc("marche_annonces/p2").set(a({ pro: true, proCle: "u_vendeurpro1", proJusqua: apres })));
+  await assertFails(as("vendeur").doc("marche_annonces/p3").set(annonce({ pro: true, proCle: "u_vendeurpro1", proJusqua: fin })));
+  await assertSucceeds(as("vendeur").doc("marche_annonces/p4").set(annonce({ pro: false })));
+});
+
+test("version Pro : essai gratuit une seule fois, à son nom", async () => {
+  const { serverTimestamp } = await import("firebase/firestore");
+  await setup(async db => { await db.doc("inscriptions/alicealice01").set({ prenom: "A", nom: "A", ville: "Ouaga", pays: "BF", elevage: "Volaille", taille: "", statut: "approuve" }); });
+  await assertFails(as("alicealice01").doc("pro_essais/u_bobbobbob001").set({ uid: "alicealice01", creeLe: serverTimestamp() }));
+  await assertFails(as("alicealice01").doc("pro_essais/u_alicealice01").set({ uid: "alicealice01", creeLe: serverTimestamp(), fin: 1 }));
+  await assertSucceeds(as("alicealice01").doc("pro_essais/u_alicealice01").set({ uid: "alicealice01", creeLe: serverTimestamp() }));
+  await assertFails(as("alicealice01").doc("pro_essais/u_alicealice01").set({ uid: "alicealice01", creeLe: serverTimestamp() }));
+});
+
+test("alertes de zone et commandes groupées : écrites à son nom, au bon format", async () => {
+  const { serverTimestamp } = await import("firebase/firestore");
+  await setup();
+  const z = o => ({ auteur: "alice", ville: "Ouaga", pays: "BF", grp: "volaille", signe: "mortalite", date: "2026-11-12", creeLe: serverTimestamp(), ...o });
+  await assertSucceeds(as("alice").doc("alertes_zone/alice_2026-11-12_volaille").set(z()));
+  await assertFails(as("alice").doc("alertes_zone/bob_2026-11-12_volaille").set(z({ auteur: "bob" })));
+  await assertFails(as("alice").doc("alertes_zone/alice_2026-11-12_volaille").set(z({ ferme: "X" })));
+  await assertFails(as("alice").doc("alertes_zone/x").set(z()));
+  await assertSucceeds(as("bob").doc("alertes_zone/alice_2026-11-12_volaille").get());
+  const c = o => ({ uid: "alice", cle: "", nom: "Alice", tel: "70000000", ville: "Ouaga", produit: "aliment-ponte", qte: 20, note: "", statut: "attente", creeLe: serverTimestamp(), ...o });
+  await assertSucceeds(as("alice").doc("commandes_groupees/c1").set(c()));
+  await assertFails(as("alice").doc("commandes_groupees/c2").set(c({ statut: "livree" })));
+  await assertFails(as("bob").doc("commandes_groupees/c1").get());
+  await assertSucceeds(as("azizadmin", ADMIN).doc("commandes_groupees/c1").get());
+});

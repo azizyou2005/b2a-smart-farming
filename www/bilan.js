@@ -111,6 +111,8 @@ function grpOf(l){if(!l)return AUTRES;
 function taux(){const v=N(R.impot);return v==null?27.5:Math.max(0,Math.min(60,v))}
 function duree(){const v=N(R.duree);return v==null?5:Math.max(1,Math.min(30,Math.round(v)))}
 
+/* pour la version Pro (dossier bancaire, rapport du mois) */
+window.B2A_BILAN={compute:Y=>compute(Y)};
 function compute(Y){
   const lots=(A.allLots&&A.allLots())||A.lots()||[];const byId={};lots.forEach(l=>byId[l.id]=l);
   const order=[...new Set(lots.map(grpOf))];[COUV,AUTRES,COMMUN].forEach(g=>{if(!order.includes(g))order.push(g)});
