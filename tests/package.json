@@ -13,7 +13,7 @@
     "@firebase/rules-unit-testing": "6.0.0",
     "firebase": "13.1.0",
     "firebase-tools": "15.34.2",
-    "playwright": "1.64.1",
+    "playwright": "1.65.0",
     "terser": "5.51.2"
   },
   "overrides": {
