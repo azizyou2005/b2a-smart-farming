@@ -192,6 +192,8 @@ test("version Pro : la validation vétérinaire demande un abonnement Pro en cou
   // abonnement terminé : refusé
   await env.withSecurityRulesDisabled(async c => { await c.firestore().doc("inscriptions/carol00000").set({ prenom: "c", nom: "X", ville: "O", pays: "BF", elevage: "V", taille: "", statut: "approuve" }); await c.firestore().doc("inscriptions/bob0000000").set({ prenom: "b", nom: "X", ville: "O", pays: "BF", elevage: "V", taille: "", statut: "approuve" }); });
   await assertFails(as("carol00000").collection("veto_demandes").add(demande({ eleveur: "carol00000", cle: "u_carol00000" })));
+  // compte B2A (administrateur) : version Pro gratuite, sans abonnement
+  await assertSucceeds(as("admin00000", ADMIN).collection("veto_demandes").add(demande({ eleveur: "admin00000", cle: "u_admin00000" })));
   // abonnement Pro en cours : accepté
   await assertSucceeds(as("bob0000000").collection("veto_demandes").add(demande({ eleveur: "bob0000000", cle: "u_bob0000000" })));
 });

@@ -290,7 +290,7 @@ service cloud.firestore {
     // La clé est le code de la ferme (10 caractères) ou « u_ » + identifiant de l'utilisateur sans ferme.
     function proCle(c) { return c is string && c.matches('^([A-Z0-9]{10}|u_[A-Za-z0-9]{10,40})$'); }
     // Abonnement Pro en cours pour cette clé (ferme dont on est membre, ou compte sans ferme) : vérifié aussi côté serveur.
-    function proActif(c) { return proCle(c) && exists(/databases/$(database)/documents/pro_fermes/$(c))
+    function proActif(c) { return isAdmin() || proCle(c) && exists(/databases/$(database)/documents/pro_fermes/$(c))
       && get(/databases/$(database)/documents/pro_fermes/$(c)).data.finLe is timestamp
       && get(/databases/$(database)/documents/pro_fermes/$(c)).data.finLe > request.time
       && (c == 'u_' + request.auth.uid || canUse(c)); }

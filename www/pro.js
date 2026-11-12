@@ -37,6 +37,7 @@ const T={
 "Formation":["Training","Formazione","Formación"],"Contrôle":["Monitoring","Controllo","Control"],"Vétérinaire":["Vet","Veterinario","Veterinario"],
 "Version Pro":["Pro version","Versione Pro","Versión Pro"],"Fonction de la version Pro":["Pro version feature","Funzione della versione Pro","Función de la versión Pro"],
 "la simulation complète d'un nouveau projet d'élevage ou de culture : dépenses, bâtiments, surface et plan de construction.":["a full simulation of a new livestock or crop project: costs, buildings, area and building plan.","la simulazione completa di un nuovo progetto di allevamento o coltivazione: spese, edifici, superficie e piano di costruzione.","la simulación completa de un nuevo proyecto ganadero o agrícola: gastos, edificios, superficie y plano de construcción."],
+"Version Pro offerte par B{0}A":["Pro version offered by B{0}A","Versione Pro offerta da B{0}A","Versión Pro ofrecida por B{0}A"],
 "Avec la version Pro, vous avez :":["With the Pro version you get:","Con la versione Pro hai:","Con la versión Pro tiene:"],
 "Avec la version Pro, chaque lot vous donne :":["With the Pro version, each batch gives you:","Con la versione Pro, ogni lotto ti offre:","Con la versión Pro, cada lote le ofrece:"],
 "des vidéos et des fiches PDF de formation adaptées à l'âge du lot, à garder sur le téléphone ;":["training videos and PDF sheets suited to the batch age, kept on the phone;","video e schede PDF di formazione adatte all'età del lotto, da tenere sul telefono;","vídeos y fichas PDF de formación según la edad del lote, guardados en el teléfono;"],
@@ -178,12 +179,17 @@ const cle=()=>B.farm||(uid?"u_"+uid:null);
 /* Version d'essai (/essai/) : Pro débloqué pour tester, sans paiement. */
 const ESSAI=/\/essai\//.test(location.pathname);
 const finEff=()=>ESSAI?Math.max(proFin,Date.now()+30*864e5):proFin;
-const isPro=()=>finEff()>Date.now();
+/* Compte B2A (administrateur) : version Pro gratuite, sans abonnement. */
+const ADMIN_EMAIL="azizyou2005@yahoo.fr";
+const adminMe=()=>{try{const u=window.firebase&&firebase.auth&&firebase.auth().currentUser;return !!(u&&!u.isAnonymous&&String(u.email||"").toLowerCase()===ADMIN_EMAIL)}catch(e){return false}};
+const offert=()=>adminMe()||proFin>=Date.UTC(2099,0,1);
+const isPro=()=>adminMe()||finEff()>Date.now();
 const prixPro=f=>Number(cfg["pro"+f.toUpperCase()])||DEF["pro"+f.toUpperCase()];
 const rerender=()=>{try{const D=$("lotdetail");if(D&&!D.hidden&&(window.B2A.lotTabs||[]).some(x=>x.k===curTab()))A.renderDetail()}catch(e){}};
 const curTab=()=>{const b=document.querySelector("#lotdetail .subtabs button[aria-pressed='true']");return b?b.dataset.k:null};
 async function start(){if(started)return;started=true;
   let s=null;try{s=await store()}catch(e){s=null}if(!s)return;uid=s.uid;
+  try{firebase.auth().onAuthStateChanged(()=>rerender())}catch(e){}
   const k=cle();
   if(k)s.doc("pro_fermes/"+k).onSnapshot(d=>{proFin=d.exists?ms(d.data().finLe):0;B.lsSet(LS_PRO,String(proFin));rerender()},()=>{});
   s.doc("marche_config/global").onSnapshot(d=>{cfg={...DEF,...(d.exists?d.data():{})};rerender()},()=>{});
@@ -224,7 +230,7 @@ function payForm(c){
       await s.col("pro_paiements").add({uid:s.uid,cle:k,nom:(B.lsGet(B.LS_NAME)||"").slice(0,60),formule:plan,mois,montant:prixPro(plan),ref:r.value.trim().slice(0,40),telPayeur:t.value.trim().slice(0,30),statut:"attente",creeLe:s.ts()});
       m.textContent=("Paiement envoyé : B2A le vérifie et active la version Pro.");m.className="msg good"}
     catch(e){console.warn(e);m.textContent=("Envoi impossible. Vérifiez la connexion et réessayez.");m.className="msg err";b.disabled=false}}}
-function proHead(D){const p=el("p","pro-ok");p.append(notr(el("span","pro-badge","PRO")),document.createTextNode((`Version Pro active jusqu'au ${dlong(finEff())}`)));
+function proHead(D){const p=el("p","pro-ok");p.append(notr(el("span","pro-badge","PRO")));if(offert()){p.append(document.createTextNode("Version Pro offerte par B2A"));D.append(p);return}p.append(document.createTextNode((`Version Pro active jusqu'au ${dlong(finEff())}`)));
   if(proFin-Date.now()<15*864e5){const b=el("button","btn small ghost","Renouveler");b.type="button";b.onclick=()=>{const c=el("div","pro-lock");payForm(c);p.after(c);b.remove()};p.append(b)}D.append(p)}
 
 /* ================= espèce et âge ================= */
