@@ -36,6 +36,8 @@ const CAT_URL="https://azizyou2005.github.io/b2a-smart-farming/formations/catalo
 const T={
 "Formation":["Training","Formazione","Formación"],"Contrôle":["Monitoring","Controllo","Control"],"Vétérinaire":["Vet","Veterinario","Veterinario"],
 "Version Pro":["Pro version","Versione Pro","Versión Pro"],"Fonction de la version Pro":["Pro version feature","Funzione della versione Pro","Función de la versión Pro"],
+"la simulation complète d'un nouveau projet d'élevage ou de culture : dépenses, bâtiments, surface et plan de construction.":["a full simulation of a new livestock or crop project: costs, buildings, area and building plan.","la simulazione completa di un nuovo progetto di allevamento o coltivazione: spese, edifici, superficie e piano di costruzione.","la simulación completa de un nuevo proyecto ganadero o agrícola: gastos, edificios, superficie y plano de construcción."],
+"Avec la version Pro, vous avez :":["With the Pro version you get:","Con la versione Pro hai:","Con la versión Pro tiene:"],
 "Avec la version Pro, chaque lot vous donne :":["With the Pro version, each batch gives you:","Con la versione Pro, ogni lotto ti offre:","Con la versión Pro, cada lote le ofrece:"],
 "des vidéos et des fiches PDF de formation adaptées à l'âge du lot, à garder sur le téléphone ;":["training videos and PDF sheets suited to the batch age, kept on the phone;","video e schede PDF di formazione adatte all'età del lotto, da tenere sul telefono;","vídeos y fichas PDF de formación según la edad del lote, guardados en el teléfono;"],
 "l'enregistrement des mesures (température, humidité, eau) avec alertes et export pour l'étude ;":["recording of measurements (temperature, humidity, water) with alerts and export for analysis;","la registrazione delle misure (temperatura, umidità, acqua) con allarmi ed esportazione per lo studio;","el registro de mediciones (temperatura, humedad, agua) con alertas y exportación para el estudio;"],
@@ -197,8 +199,8 @@ let plan="m3";
 function lockCard(D,feature){
   const c=el("div","pro-lock");const h=el("h3");h.append(notr(el("span","pro-badge","PRO")),document.createTextNode(("Fonction de la version Pro")));c.append(h);
   if(!B.CFG){c.append(el("p","note","La version Pro demande une connexion internet et un compte (inscription)."));D.append(c);return}
-  c.append(el("p",null,"Avec la version Pro, chaque lot vous donne :"));
-  const ul=el("ul");["des vidéos et des fiches PDF de formation adaptées à l'âge du lot, à garder sur le téléphone ;","l'enregistrement des mesures (température, humidité, eau) avec alertes et export pour l'étude ;","la validation de vos vaccins par le vétérinaire de votre choix (service payant) ;","l'étude du marché en temps réel et le prix de vente conseillé pour vos animaux, produits et matériel."].forEach(t=>ul.append(el("li",null,t)));c.append(ul);
+  c.append(el("p",null,"Avec la version Pro, vous avez :"));
+  const ul=el("ul");["des vidéos et des fiches PDF de formation adaptées à l'âge du lot, à garder sur le téléphone ;","l'enregistrement des mesures (température, humidité, eau) avec alertes et export pour l'étude ;","la validation de vos vaccins par le vétérinaire de votre choix (service payant) ;","l'étude du marché en temps réel et le prix de vente conseillé pour vos animaux, produits et matériel.","la simulation complète d'un nouveau projet d'élevage ou de culture : dépenses, bâtiments, surface et plan de construction."].forEach(t=>ul.append(el("li",null,t)));c.append(ul);
   c.append(el("p","note","Toute l'équipe de la ferme en profite avec un seul abonnement."));
   const wait=mesPaie.find(p=>p.statut==="attente"),ref=mesPaie.find(p=>p.statut==="refuse");
   if(wait){c.append(el("p","msg","Paiement en cours de vérification par B2A."));D.append(c);return}
@@ -615,5 +617,5 @@ B.lotTabs=(B.lotTabs||[]).concat([
 /* clé des boutons d'onglet (pour savoir lequel est ouvert) */
 new MutationObserver(()=>{const st=document.querySelector("#lotdetail .subtabs");if(!st)return;const ks=["resume","argent","saisies",...B.lotTabs.map(x=>x.k)];
   [...st.querySelectorAll("button")].forEach((b,i)=>{if(!b.dataset.k)b.dataset.k=ks[i]||""})}).observe(document.body,{childList:true,subtree:true});
-window.B2A_PRO={isPro,start,cfg:()=>cfg};
+window.B2A_PRO={isPro,start,cfg:()=>cfg,lockCard};
 })();
