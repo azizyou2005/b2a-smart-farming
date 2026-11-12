@@ -28,6 +28,9 @@ const sec=el("section","card");sec.id="pr-admin";sec.innerHTML=`<h2>Version Pro<
   </div>
   <div class="kpis" id="pr-kpis"></div>
   <h3>Paiements Pro à vérifier</h3><div class="list" id="pr-pay"></div>
+  <h3>Version Pro offerte (gratuite, sans fin)</h3>
+  <p class="note">Pour vous et les fermes que vous choisissez : toutes les fonctions Pro sans payer. Votre compte B2A (cette adresse e-mail) a déjà la version Pro dans l'application. Pour votre ferme et vos employées, entrez le code de la ferme (Réglages > Équipe dans l'application).</p>
+  <div class="row"><input id="pr-off-cle" placeholder="Code de la ferme (10 caractères) ou u_…" maxlength="44" style="max-width:280px"><button class="btn small ok" type="button" id="pr-off-go">Offrir la version Pro</button><span class="msg" id="pr-off-msg"></span></div>
   <h3>Abonnements Pro</h3><div class="list" id="pr-subs"></div>
   <h3>Formations (vidéos et PDF)</h3>
   <div class="card pr-fo" id="pr-foform">
@@ -68,6 +71,11 @@ firebase.auth().onAuthStateChanged(u=>{offs.forEach(f=>f());offs=[];if(!u||u.isA
   offs.push(db.collection("formations").onSnapshot(s=>{forms=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.ordre||0)-(b.ordre||0));renderFo()},err));
   offs.push(db.collection("veto_demandes").where("statut","==","validee").onSnapshot(s=>{vds=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.valideLe)-ms(a.valideLe));renderVeto()},err));
   offs.push(db.collection("devis_b2a").onSnapshot(s=>{devis=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));renderDevis()},err))});
+const OFFERT=Date.UTC(2100,0,1);
+$("pr-off-go").onclick=async()=>{const m=$("pr-off-msg"),k=$("pr-off-cle").value.trim();
+  if(!/^([A-Z0-9]{10}|u_[A-Za-z0-9]{10,40})$/.test(k)){m.textContent="Code invalide : 10 lettres/chiffres en majuscules, ou u_ suivi de l'identifiant.";m.className="msg err";return}
+  try{await db.doc("pro_fermes/"+k).set({finLe:firebase.firestore.Timestamp.fromMillis(OFFERT),formule:"offert",majLe:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});m.textContent="Version Pro offerte à la ferme "+k+".";m.className="msg";$("pr-off-cle").value=""}
+  catch(e){m.textContent="Échec : vérifiez la connexion et les règles Firestore.";m.className="msg err"}};
 $("pr-save").onclick=async()=>{const m=$("pr-msg");const v={};for(const k of ["m1","m3","m12"]){const n=Number($("pr-"+k).value);if(!(n>0)){m.textContent="Tarif invalide.";m.className="msg err";return}v["pro"+k.toUpperCase()]=n}
   const t=Number($("pr-vt").value);if(!(t>=0&&t<=50)){m.textContent="Commission invalide (0 à 50 %).";m.className="msg err";return}v.vetoTaux=Math.round(t);
   try{await db.doc("marche_config/global").set(v,{merge:true});m.textContent="Enregistré. Les tarifs s'affichent tout de suite dans l'application.";m.className="msg"}catch(e){m.textContent="Échec de l'enregistrement.";m.className="msg err"}};
@@ -93,11 +101,12 @@ function render(){const now=Date.now(),mois=new Date().toISOString().slice(0,7);
     r.append(ok,mo,no,wa(p.telPayeur,"Bonjour, B2A Smart Farming : "),m);c.append(r);L.append(c)});
   const S2=$("pr-subs");S2.innerHTML="";const all=Object.values(subs).sort((a,b)=>ms(b.finLe)-ms(a.finLe));if(!all.length)S2.append(el("p","note","Aucun abonnement Pro pour le moment."));
   all.forEach(s=>{const c=el("div","card");const on=ms(s.finLe)>now;const last=pays.find(p=>p.cle===s.id&&p.statut==="valide");
-    c.append(el("b",null,(last&&last.nom?last.nom+" · ":"")+"ferme "+s.id),el("small",null,(on?"Pro jusqu'au ":"Terminé le ")+dd(ms(s.finLe))));
+    const off=ms(s.finLe)>=Date.UTC(2099,0,1);c.append(el("b",null,(last&&last.nom?last.nom+" · ":"")+"ferme "+s.id),el("small",null,off?"Pro offert par B2A (gratuit, sans fin)":(on?"Pro jusqu'au ":"Terminé le ")+dd(ms(s.finLe))));
     const r=el("div","row");const g=el("button","btn small ghost","+1 mois offert");g.type="button";
     g.onclick=async()=>{if(g.dataset.c!=="1"){g.dataset.c="1";g.textContent="Confirmer : +1 mois";return}g.disabled=true;try{await db.doc("pro_fermes/"+s.id).set({finLe:firebase.firestore.Timestamp.fromMillis(finApres(ms(s.finLe),1)),majLe:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})}catch(e){g.disabled=false}};
     const x=el("button","btn small bad","Arrêter");x.type="button";x.onclick=async()=>{if(x.dataset.c!=="1"){x.dataset.c="1";x.textContent="Confirmer l'arrêt";return}x.disabled=true;try{await db.doc("pro_fermes/"+s.id).set({finLe:firebase.firestore.Timestamp.fromMillis(Date.now()-1000)},{merge:true})}catch(e){x.disabled=false}};
-    r.append(g);if(on)r.append(x);if(last)r.append(wa(last.telPayeur,on&&ms(s.finLe)-now<7*864e5?`Bonjour, votre version Pro de B2A Smart Farming se termine le ${dd(ms(s.finLe))}. Renouvelez dans l'application (un lot > Formation > Renouveler).`:"Bonjour, B2A Smart Farming : "));c.append(r);S2.append(c)})}
+    const of=el("button","btn small ok","Offrir sans fin");of.type="button";of.onclick=async()=>{of.disabled=true;try{await db.doc("pro_fermes/"+s.id).set({finLe:firebase.firestore.Timestamp.fromMillis(Date.UTC(2100,0,1)),formule:"offert",majLe:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})}catch(e){of.disabled=false}};
+    if(!off)r.append(g,of);if(on)r.append(x);if(last)r.append(wa(last.telPayeur,on&&ms(s.finLe)-now<7*864e5?`Bonjour, votre version Pro de B2A Smart Farming se termine le ${dd(ms(s.finLe))}. Renouvelez dans l'application (un lot > Formation > Renouveler).`:"Bonjour, B2A Smart Farming : "));c.append(r);S2.append(c)})}
 
 /* ---------- formations ---------- */
 let storage=null;try{storage=firebase.storage?firebase.storage():null}catch(e){storage=null}

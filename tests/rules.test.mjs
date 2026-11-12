@@ -25,7 +25,7 @@ beforeEach(async () => { await env.clearFirestore(); });
 async function setup(extra) {
   await env.withSecurityRulesDisabled(async c => {
     const db = c.firestore();
-    for (const u of ["alice", "bob", "vendeur", "pro", "alice00000"]) await db.doc("inscriptions/" + u).set({ prenom: u, nom: "X", ville: "Ouaga", pays: "BF", elevage: "Volaille", taille: "", statut: "approuve" });
+    for (const u of ["alice", "bob", "vendeur", "pro", "alice00000", "admin00000"]) await db.doc("inscriptions/" + u).set({ prenom: u, nom: "X", ville: "Ouaga", pays: "BF", elevage: "Volaille", taille: "", statut: "approuve" });
     await db.doc("marche_config/global").set({ taux: 5, telPaiement: "70000000", svcM1: 2500, svcM3: 6000, svcM12: 20000 });
     await db.doc("marche_vendeurs/vendeur").set({ statut: "actif", nom: "Boutique", tel: "70111111", ville: "Ouaga", taux: 5 });
     await db.doc("marche_annonces/a1").set({ devise: "XOF", vendeur: "vendeur", vendeurNom: "Boutique", vendeurTel: "", ville: "Ouaga", cat: "oeufs", titre: "Œufs", desc: "", prix: 2500, unite: "plateau de 30", qte: null, photo: "", statut: "actif" });
@@ -192,6 +192,8 @@ test("version Pro : la validation vétérinaire demande un abonnement Pro en cou
   // abonnement terminé : refusé
   await env.withSecurityRulesDisabled(async c => { await c.firestore().doc("inscriptions/carol00000").set({ prenom: "c", nom: "X", ville: "O", pays: "BF", elevage: "V", taille: "", statut: "approuve" }); await c.firestore().doc("inscriptions/bob0000000").set({ prenom: "b", nom: "X", ville: "O", pays: "BF", elevage: "V", taille: "", statut: "approuve" }); });
   await assertFails(as("carol00000").collection("veto_demandes").add(demande({ eleveur: "carol00000", cle: "u_carol00000" })));
+  // compte B2A (administrateur) : version Pro gratuite, sans abonnement
+  await assertSucceeds(as("admin00000", ADMIN).collection("veto_demandes").add(demande({ eleveur: "admin00000", cle: "u_admin00000" })));
   // abonnement Pro en cours : accepté
   await assertSucceeds(as("bob0000000").collection("veto_demandes").add(demande({ eleveur: "bob0000000", cle: "u_bob0000000" })));
 });
