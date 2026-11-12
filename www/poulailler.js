@@ -135,7 +135,9 @@ const T={
 "Enregistrer et se connecter":["Save and connect","Salva e connetti","Guardar y conectar"],
 "Ces informations restent seulement sur ce téléphone.":["This information stays only on this phone.","Queste informazioni restano solo su questo telefono.","Esta información queda solo en este teléfono."],
 "À distance, activez d'abord le VPN du routeur B{0}A.":["Remotely, first turn on the B{0}A router VPN.","Da remoto, attivare prima la VPN del router B{0}A.","A distancia, activa primero la VPN del router B{0}A."],
-"Le dispositif n'est jamais ouvert directement sur internet.":["The device is never exposed directly to the internet.","Il dispositivo non è mai esposto direttamente su internet.","El dispositivo nunca se expone directamente a internet."]
+"Le dispositif n'est jamais ouvert directement sur internet.":["The device is never exposed directly to the internet.","Il dispositivo non è mai esposto direttamente su internet.","El dispositivo nunca se expone directamente a internet."],
+"Première connexion : installez le certificat du dispositif sur le téléphone (Réglages, Sécurité, Installer un certificat).":["First connection: install the device certificate on the phone (Settings, Security, Install a certificate).","Prima connessione: installa il certificato del dispositivo sul telefono (Impostazioni, Sicurezza, Installa un certificato).","Primera conexión: instala el certificado del dispositivo en el teléfono (Ajustes, Seguridad, Instalar un certificado)."],
+"Sur ordinateur ou iPhone, ouvrez d'abord l'adresse du dispositif dans le navigateur et acceptez son certificat.":["On a computer or iPhone, first open the device address in the browser and accept its certificate.","Su computer o iPhone, apri prima l'indirizzo del dispositivo nel browser e accetta il suo certificato.","En un ordenador o iPhone, abre primero la dirección del dispositivo en el navegador y acepta su certificado."]
 };
 {const D=window.B2A_DICT=window.B2A_DICT||{};["en","it","es"].forEach((l,i)=>{D[l]=D[l]||{};for(const k in T)if(D[l][k]==null)D[l][k]=T[k][i]})}
 
@@ -403,6 +405,7 @@ V.innerHTML=`<style>
   <div class="field"><label for="pc-c-pw">Mot de passe</label><input type="password" id="pc-c-pw" autocomplete="off"></div>
   <button class="btn" type="button" id="pc-c-save">Enregistrer et se connecter</button>
   <p class="note">Ces informations restent seulement sur ce téléphone. À distance, activez d'abord le VPN du routeur B2A. Le dispositif n'est jamais ouvert directement sur internet.</p>
+  <p class="note">Première connexion : installez le certificat du dispositif sur le téléphone (Réglages, Sécurité, Installer un certificat). Sur ordinateur ou iPhone, ouvrez d'abord l'adresse du dispositif dans le navigateur et acceptez son certificat.</p>
 </details>`;
 const toastEl=document.createElement("div");toastEl.id="pc-toast";toastEl.setAttribute("data-notr","");toastEl.setAttribute("role","alert");document.body.append(toastEl);
 
