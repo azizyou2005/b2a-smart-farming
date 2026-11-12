@@ -25,6 +25,7 @@ updates:
     # Ces 3 bibliothèques sont imposées par firebase-tools / firebase : Dependabot ne peut pas
     # les mettre à jour seul (conflit de versions) et échouait à chaque passage.
     # Elles seront mises à jour automatiquement avec firebase-tools et firebase.
+    # minimatch : la faille est corrigée par "overrides" (glob 14 → minimatch 11) dans tests/package.json.
     ignore:
       - dependency-name: "uuid"
       - dependency-name: "minimatch"
