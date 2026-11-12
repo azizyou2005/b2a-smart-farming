@@ -147,6 +147,32 @@ jobs:
             --notes "Fichier .aab : à envoyer dans Google Play Console. Fichier .apk : installation directe sur Android." \
             --target "$GITHUB_SHA" --latest
 
+      # Envoi automatique dans Google Play Console (secret PLAY_SERVICE_ACCOUNT_JSON, voir LISEZ-MOI-GOOGLE-PLAY.md).
+      # Piste choisie avec la variable PLAY_TRACK : internal (par défaut, test interne), alpha, beta ou production.
+      # Sans le secret, rien ne change : l'AAB reste dans la « Release » GitHub, à envoyer à la main.
+      - name: Envoi automatique à Google Play possible ?
+        if: steps.cle.outputs.ok == 'true'
+        id: play
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$PLAY_JSON" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"
+          else echo "ok=false" >> "$GITHUB_OUTPUT"; echo "::notice::Pas de secret PLAY_SERVICE_ACCOUNT_JSON : l'AAB est dans la Release GitHub, à envoyer à la main dans Google Play Console."; fi
+          mkdir -p "$RUNNER_TEMP/nouveautes"
+          printf 'B2A Smart Farming %s : améliorations et corrections.\n' "$VERSION_NAME" > "$RUNNER_TEMP/nouveautes/whatsnew-fr-FR"
+
+      - name: Envoyer l'AAB à Google Play
+        if: steps.play.outputs.ok == 'true'
+        uses: r0adkll/upload-google-play@v1.1.3
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.b2a.smartfarming
+          releaseFiles: b2a-smart-farming-${{ env.VERSION_NAME }}-${{ env.VERSION_CODE }}.aab
+          releaseName: ${{ env.VERSION_NAME }} (${{ env.VERSION_CODE }})
+          track: ${{ vars.PLAY_TRACK || 'internal' }}
+          status: completed
+          whatsNewDirectory: ${{ runner.temp }}/nouveautes
+
       - name: Garder l'APK déjà publié (si pas de nouvelle compilation)
         if: steps.cle.outputs.ok != 'true'
         run: |

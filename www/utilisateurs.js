@@ -42,7 +42,8 @@ function render(){
     kpi("Actifs 7 jours",fmt(a7),"ont ouvert l'app"),kpi("Actifs 30 jours",fmt(a30),"ont ouvert l'app"),
     kpi("Fidélité",old.length?fmt(Math.round(kept/old.length*100))+" %":"—",old.length?fmt(kept)+" sur "+fmt(old.length)+" inscrits depuis plus de 30 jours ont rouvert l'app ce mois-ci":"pas encore d'inscrits de plus de 30 jours",old.length&&kept/old.length<0.3?"warn":""),
     kpi("Accès retiré",fmt(by("refuse")+by("bloque"))));
-  note("users",{total:users.length,acces:acc.length,new7,a7,a30,fidelite:old.length?kept/old.length:null});
+  note("users",{total:users.length,acces:acc.length,new7,a7,a30,fidelite:old.length?kept/old.length:null,
+    list:users.map(u=>({statut:u.statut,pays:u.pays,elevage:u.elevage,plateforme:u.plateforme,langue:u.langue,vu:u.vuLe||"",cree:u.creeLe&&u.creeLe.toMillis?u.creeLe.toMillis():0}))});
   document.querySelectorAll("#u-filter .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===filter));
   const q=$("u-q").value.trim().toLowerCase();
   let list=users.filter(u=>filter==="tous"||(filter==="refuse"?u.statut==="refuse"||u.statut==="bloque":u.statut===filter));
