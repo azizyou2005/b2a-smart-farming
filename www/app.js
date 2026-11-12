@@ -1183,7 +1183,7 @@ async function renderDetail(){
    if(canWrite){const e=el("button","btn small ghost","Modifier");e.type="button";e.onclick=()=>openLotForm(l);bx.append(e)}h.append(bx);
    try{window.B2A.onDetail&&window.B2A.onDetail(bx,l,s)}catch(e){console.error(e)}}
   H.append(h);
-  const st=el("div","subtabs");[["resume","Résumé"],["argent","Rentabilité"],["saisies","Saisies"]].forEach(([k,lb])=>{const b=el("button",null,lb);b.type="button";b.setAttribute("aria-pressed",detTab===k);b.onclick=()=>{detTab=k;renderDetail()};st.append(b)});
+  const st=el("div","subtabs");[["resume","Résumé"],["argent","Rentabilité"],["saisies","Saisies"],...(window.B2A.lotTabs||[]).filter(x=>!x.show||x.show(l)).map(x=>[x.k,x.label])].forEach(([k,lb])=>{const b=el("button",null,lb);b.type="button";b.setAttribute("aria-pressed",detTab===k);b.onclick=()=>{detTab=k;renderDetail()};st.append(b)});
   H.append(st);D.append(H);
 
   if(detTab==="resume"){
@@ -1247,6 +1247,8 @@ async function renderDetail(){
       tb.append(body);w.append(tb);D.append(w);
       if(canWrite)D.append(el("p","note","Erreur dans une fiche (morts, œufs, aliment…) ? Touchez la ligne pour la corriger ou la supprimer."))}
   }
+  /* onglets ajoutés par les modules (pro.js : formation, contrôle, vétérinaire) */
+  {const X=(window.B2A.lotTabs||[]).find(x=>x.k===detTab);if(X){try{X.render(D,l,s)}catch(e){console.error(e)}}}
 }
 
 async function loadNames(ids){const miss=ids.filter(i=>!(i in names));if(!miss.length||!user)return;

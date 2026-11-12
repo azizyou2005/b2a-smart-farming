@@ -171,6 +171,16 @@ jobs:
             echo "Version d'essai ajoutée : $(git rev-parse --short origin/marche)"
           else echo "Pas de branche marche : pas de version d'essai"; fi
 
+      # Formations de la version Pro (vidéos et PDF créés par B2A, branche formations) : ajoutées au site seulement, pas dans l'APK
+      - name: Ajouter les formations (branche formations)
+        run: |
+          if git fetch -q origin formations 2>/dev/null; then
+            mkdir -p www/formations
+            git archive origin/formations | tar -x -C www/formations
+            rm -rf www/formations/.github www/formations/outils
+            echo "Formations ajoutées : $(ls www/formations/videos 2>/dev/null | wc -l) vidéo(s), $(ls www/formations/pdf 2>/dev/null | wc -l) PDF"
+          else echo "Pas de branche formations"; fi
+
       - name: Publier sur GitHub Pages (branche gh-pages)
         run: |
           cp -r store www/store
