@@ -77,7 +77,9 @@ function render(){const sold=cmd.filter(c=>c.statut==="vendue"),due=cmd.filter(c
     kpi("Pièces à vérifier",fmt(Object.values(pieces).filter(p=>p.statut==="attente").length),"CNIB, RCCM / IFU",Object.values(pieces).some(p=>p.statut==="attente")?"warn":null),
     kpi("Commandes en cours",fmt(cmd.filter(c=>c.statut==="demande"||c.statut==="acceptee").length),"demandées ou acceptées"));
   {const resteV=vend.filter(v=>{const c0=due.filter(c=>c.vendeur===v.id).reduce((p,c)=>p+toF(c.commission,c.devise),0),p0=pay.filter(x=>x.vendeur===v.id).reduce((p,x)=>p+toF(x.montant,x.devise),0);return c0-p0>0.5}).length;
-   note("marche",{pieces:Object.values(pieces).filter(p=>p.statut==="attente").length,vendeurs:vend.filter(v=>v.statut==="actif").length,reste:Math.max(0,com-paid),resteV,encours:cmd.filter(c=>c.statut==="demande"||c.statut==="acceptee").length})}
+   note("marche",{pieces:Object.values(pieces).filter(p=>p.statut==="attente").length,vendeurs:vend.filter(v=>v.statut==="actif").length,reste:Math.max(0,com-paid),resteV,encours:cmd.filter(c=>c.statut==="demande"||c.statut==="acceptee").length,
+     ventes:sold.map(c=>({t:ms(c.venduLe)||ms(c.majLe)||ms(c.creeLe),f:toF(c.total,c.devise),v:c.vendeurNom||"",vid:c.vendeur||""})),
+     statuts:cmd.reduce((o,c)=>{o[c.statut||"?"]=(o[c.statut||"?"]||0)+1;return o},{}),commissions:com,encaisse:paid})}
   const L=$("mk-list");L.innerHTML="";if(!vend.length){L.append(el("p","empty","Aucun vendeur pour l'instant."));return}
   vend.map(v=>{const s=sold.filter(c=>c.vendeur===v.id),dv0=due.filter(c=>c.vendeur===v.id);const c2=dv0.reduce((p,c)=>p+toF(c.commission,c.devise),0);const pv=pay.filter(x=>x.vendeur===v.id);const p2=pv.reduce((p,x)=>p+toF(x.montant,x.devise),0);
     /* monnaie principale du vendeur : celle de ses ventes les plus nombreuses */

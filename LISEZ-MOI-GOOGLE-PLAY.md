@@ -12,6 +12,23 @@ Le numéro de version Android (`versionCode`) augmente tout seul à chaque const
 
 L'application vise Android 16 (API 36), exigé par Google Play depuis le 31 août 2026 (Capacitor 8).
 
+## Envoi automatique à Google Play (sans télécharger l'AAB)
+
+Une fois réglé, chaque version unie dans `main` est envoyée toute seule dans Google Play Console.
+
+1. **Google Cloud Console** (https://console.cloud.google.com) avec le compte du développeur :
+   créer un projet (ex. « b2a-play »), activer **Google Play Android Developer API**,
+   puis *IAM et administration > Comptes de service > Créer* (ex. `b2a-github`), et dans ce compte *Clés > Ajouter une clé > JSON* : un fichier `.json` est téléchargé.
+2. **Play Console > Utilisateurs et autorisations > Inviter de nouveaux utilisateurs** : coller l'adresse du compte de service
+   (`b2a-github@….iam.gserviceaccount.com`), application **B2A Smart Farming**, cocher *Publier en production, exclure des appareils et utiliser l'API Play App Signing*
+   et *Publier des applications sur les canaux de test*. Envoyer l'invitation.
+3. **GitHub > Settings > Secrets and variables > Actions > New repository secret** : nom `PLAY_SERVICE_ACCOUNT_JSON`, valeur = tout le contenu du fichier `.json`.
+   Ensuite, supprimer le fichier `.json` de l'ordinateur.
+4. Facultatif, onglet **Variables** du même écran : `PLAY_TRACK` = `internal` (par défaut : test interne), `alpha`, `beta` ou `production`.
+   Avec `production`, chaque version part directement en examen Google puis chez tous les utilisateurs.
+
+Sans le secret, rien ne change : l'AAB reste dans la Release GitHub, à envoyer à la main.
+
 ## Clé de signature : à régler AVANT la première publication
 
 **Important.** Des personnes ont déjà installé l'APK (fichier `b2a-smart-farming.apk`), signé avec **votre** clé (secret `ANDROID_KEYSTORE_B64`).

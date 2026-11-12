@@ -5,6 +5,11 @@ const B=window.B2A;if(!B||!B.app)return;const A=B.app;
 
 /* ================= traductions des nouveaux écrans ================= */
 const T={
+"Recevoir un rappel le matin pour les vaccins, traitements, achats et changements d'aliment du jour.":["Get a morning reminder for the day's vaccines, treatments, feed purchases and feed changes.","Ricevi un promemoria al mattino per vaccini, trattamenti, acquisti e cambi di mangime del giorno.","Reciba un recordatorio por la mañana para las vacunas, tratamientos, compras y cambios de pienso del día."],
+"Ramassage des œufs chaque jour (pondeuses en ponte)":["Egg collection every day (laying hens in lay)","Raccolta delle uova ogni giorno (ovaiole in deposizione)","Recogida de huevos cada día (ponedoras en puesta)"],
+"Heure du ramassage des œufs":["Egg collection time","Ora della raccolta delle uova","Hora de la recogida de huevos"],
+"Ramassage des œufs":["Egg collection","Raccolta delle uova","Recogida de huevos"],
+"C'est l'heure de ramasser les œufs.":["Time to collect the eggs.","È ora di raccogliere le uova.","Es hora de recoger los huevos."],
 "Écouter":["Listen","Ascolta","Escuchar"],
 "Arrêter":["Stop","Ferma","Detener"],
 "Lire à voix haute":["Read aloud","Leggi ad alta voce","Leer en voz alta"],
@@ -442,13 +447,16 @@ const R={
   /* soins à venir, regroupés par jour */
   plan(days){const t=today();const end=iso(new Date(Date.now()+days*864e5));const byDay={};let late=0;
     A.lots().forEach(l=>{let prog=[];try{prog=A.programme(l)}catch(e){}
-      prog.forEach(p=>{if(p.done)return;if(p.date<t){late++;return}if(p.date>end)return;(byDay[p.date]=byDay[p.date]||[]).push({p,l})})});
+      prog.forEach(p=>{if(p.done)return;if(p.date<t){late++;return}if(p.date>end)return;(byDay[p.date]=byDay[p.date]||[]).push({p,l})});
+      /* aliment : acheter avant la rupture, changer de phase (une commande déjà en retard est rappelée aujourd'hui) */
+      let fi=[];try{fi=A.feedItems?A.feedItems(l,null,days):[]}catch(e){}
+      fi.forEach(p=>{const d=p.date<t?t:p.date;if(d>end)return;(byDay[d]=byDay[d]||[]).push({p,l})})});
     return {byDay,late}},
   text(items,multi){return items.map(({p,l})=>tr(p.nom)+(multi?" ("+(l.nom||"")+")":"")).join(" · ")},
   async schedule(){
     const LN=plug("LocalNotifications");if(!LN)return null;
     /* on retire seulement les rappels (soins : n° de date ou 99 ; saisie : 97), jamais les notifications du Marché */
-    try{const pend=await LN.getPending();const ids=(pend&&pend.notifications||[]).filter(n=>n.id===99||n.id===97||(n.id>=19000000&&n.id<=30000000)).map(n=>({id:n.id}));if(ids.length)await LN.cancel({notifications:ids})}catch(e){}
+    try{const pend=await LN.getPending();const ids=(pend&&pend.notifications||[]).filter(n=>n.id===99||n.id===97||n.id===96||(n.id>=19000000&&n.id<=30000000)).map(n=>({id:n.id}));if(ids.length)await LN.cancel({notifications:ids})}catch(e){}
     if(!this.on())return 0;
     const {byDay,late}=this.plan(60);const multi=A.lots().length>1;const now=Date.now();const list=[];
     Object.keys(byDay).sort().forEach(d=>{const at=new Date(d+"T"+pad(this.hour())+":00:00");if(at.getTime()<=now+60000)return;
@@ -457,7 +465,12 @@ const R={
     if(late){const d=new Date();d.setDate(d.getDate()+(d.getHours()>=this.hour()?1:0));d.setHours(this.hour(),5,0,0);
       list.push({id:99,title:tr(`${late} soin(s) en retard`),body:tr("Ouvrez l'application pour les marquer faits."),schedule:{at:d,allowWhileIdle:true},extra:{tab:"calendrier"}})}
     const sa=this.saisieAt();if(sa)list.push({id:97,title:tr("Saisie du jour")+" · B2A Smart Farming",body:tr("Pensez à noter la saisie du jour : œufs, morts, aliment."),schedule:{at:sa,allowWhileIdle:true},extra:{tab:"saisie"}});
+    const ea=this.eggsLots();if(ea.length)list.unshift({id:96,title:tr("Ramassage des œufs")+" · B2A Smart Farming",body:tr("C'est l'heure de ramasser les œufs.")+" "+ea.map(l=>l.nom||"").filter(Boolean).join(" · "),
+      schedule:{on:{hour:this.eggsHour(),minute:0},allowWhileIdle:true},extra:{tab:"saisie"}});
     const L2=list.slice(0,60);if(L2.length)await LN.schedule({notifications:L2});return L2.length},
+  /* ramassage des œufs : rappel chaque jour pour les lots de pondeuses en ponte (18 semaines et plus) */
+  eggsOn:()=>B.lsGet("b2a-rem-oeufs")!=="0",eggsHour:()=>{const h=Number(B.lsGet("b2a-rem-oeufs-h"));return h>=5&&h<=20?h:10},
+  eggsLots(){if(!this.eggsOn())return [];return A.lots().filter(l=>{if(!A.isLayer(l)||A.isCrop(l))return false;try{const s=A.stats(l);return s.ageW>=18&&(s.alive==null||s.alive>0)}catch(e){return false}})},
   /* rappel du soir (18:00) : aujourd'hui si un lot d'animaux n'a pas encore sa saisie du jour, sinon demain */
   saisieOn:()=>B.lsGet("b2a-rem-saisie")!=="0",
   saisieAt(){if(!this.saisieOn())return null;const lots=A.lots().filter(l=>!A.isCrop(l));if(!lots.length)return null;
@@ -525,25 +538,28 @@ if(setIn){
       <div class="row"><button class="btn small ghost pbtn" type="button" id="p-ttstest">${ICON.spk}<span>Essayer la voix</span></button></div></div>
     <p class="note" id="p-ttsno" hidden>La lecture à voix haute n'est pas disponible sur ce téléphone.</p>`;
   const s2=el("section","card");s2.innerHTML=`<h3 class="sec">Rappels et notifications</h3>
-    <p class="note">Recevoir un rappel le matin pour les vaccins, traitements et travaux du jour.</p>
+    <p class="note">Recevoir un rappel le matin pour les vaccins, traitements, achats et changements d'aliment du jour.</p>
     <div class="row"><button class="btn small" type="button" id="p-ron">Activer les rappels</button>
       <label for="p-rh" class="note" style="font-size:14px">Heure du rappel</label><select id="p-rh" style="max-width:110px"></select>
       <button class="btn small ghost" type="button" id="p-rtest" hidden>Tester</button></div>
     <label class="toggle" id="p-rsbox" hidden><input type="checkbox" id="p-rs"><span>Rappel du soir si la saisie du jour n'est pas faite (18:00)</span></label>
+    <div class="row" id="p-rebox" hidden><label class="toggle" style="margin:0"><input type="checkbox" id="p-re"><span>Ramassage des œufs chaque jour (pondeuses en ponte)</span></label>
+      <select id="p-reh" style="max-width:110px" aria-label="Heure du ramassage des œufs"></select></div>
     <label class="toggle"><input type="checkbox" id="p-rm"><span>Commandes du Marché : nouvelle commande, réponse du vendeur</span></label>
     <p class="msg" id="p-rmsg" aria-live="polite"></p><p class="note" id="p-rst"></p><p class="note" id="p-rmn" hidden>Dans le navigateur, les commandes du Marché sont signalées quand l'application est ouverte. Avec l'application Android, elles arrivent aussi en arrière-plan.</p>`;
   const s3=el("section","card");s3.innerHTML=`<h3 class="sec">Faire connaître l'application</h3>
     <p class="note">Envoyez l'application à un autre éleveur par WhatsApp, SMS ou Bluetooth. Elle est gratuite.</p>
     <div class="row"><button class="btn small pbtn" type="button" id="p-sendapp">${ICON.share}<span>Envoyer l'application à un ami</span></button><button class="btn small ghost" type="button" id="p-copy">Copier le lien</button><span class="msg" id="p-smsg"></span></div>`;
   setIn.insertBefore(s1,anchor);setIn.insertBefore(s2,anchor);setIn.insertBefore(s3,anchor);
-  for(let h=5;h<=20;h++){const o=el("option",null,pad(h)+":00");o.value=String(h);o.setAttribute("data-notr","");$("p-rh").append(o)}
+  for(let h=5;h<=20;h++){for(const id of ["p-rh","p-reh"]){const o=el("option",null,pad(h)+":00");o.value=String(h);o.setAttribute("data-notr","");$(id).append(o)}}
 }
 function renderDisplay(){const z=B.lsGet("b2a-zoom")||"n";document.querySelectorAll("#p-zoom button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.z===z)));
   $("p-sun").checked=B.lsGet("b2a-sun")==="1";const r=String(Speech.rate());document.querySelectorAll("#p-rate button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.r===r)));
   $("p-ttsbox").hidden=!Speech.can();$("p-ttsno").hidden=Speech.can()}
 function renderRemStatus(){if(!$("p-ron"))return;const on=R.on();$("p-ron").textContent=on?"Désactiver":"Activer les rappels";$("p-ron").className="btn small"+(on?" ghost":"");
   $("p-rh").value=String(R.hour());$("p-rtest").hidden=!on;
-  $("p-rsbox").hidden=!(on&&isNative());$("p-rs").checked=R.saisieOn();$("p-rm").checked=marcheOn()&&permOk();$("p-rmn").hidden=isNative()||!$("p-rm").checked;
+  $("p-rsbox").hidden=!(on&&isNative());$("p-rs").checked=R.saisieOn();
+  $("p-rebox").hidden=!(on&&isNative());$("p-re").checked=R.eggsOn();$("p-reh").value=String(R.eggsHour());$("p-reh").disabled=!R.eggsOn();$("p-rm").checked=marcheOn()&&permOk();$("p-rmn").hidden=isNative()||!$("p-rm").checked;
   $("p-rst").textContent=!on?"":isNative()?(lastCount!=null?tr(`${lastCount} rappel(s) programmé(s) sur ce téléphone, même application fermée et sans internet.`):""):"Dans le navigateur, le rappel s'affiche quand vous ouvrez l'application. Pour être prévenu même application fermée, installez l'application Android."}
 if($("p-zoom")){
   document.querySelectorAll("#p-zoom button").forEach(b=>b.onclick=()=>{B.lsSet("b2a-zoom",b.dataset.z==="n"?null:b.dataset.z);applyDisplay();renderDisplay()});
@@ -553,6 +569,8 @@ if($("p-zoom")){
   $("p-ron").onclick=async()=>{const m=$("p-rmsg");m.textContent="";m.className="msg";
     if(R.on()){B.lsSet("b2a-rem",null);await R.schedule().catch(()=>{});lastCount=null;m.textContent="Rappels désactivés.";renderRemStatus();return}
     if(await R.enable()){m.textContent="Rappels activés.";m.className="msg ok";lastCount=await R.schedule().catch(()=>null);B.lsSet("b2a-rem-last",null);R.webCheck();renderRemStatus()}};
+  $("p-re").onchange=async()=>{B.lsSet("b2a-rem-oeufs",$("p-re").checked?null:"0");lastCount=await R.schedule().catch(()=>null);renderRemStatus()};
+  $("p-reh").onchange=async()=>{B.lsSet("b2a-rem-oeufs-h",$("p-reh").value);lastCount=await R.schedule().catch(()=>null);renderRemStatus()};
   $("p-rs").onchange=async()=>{B.lsSet("b2a-rem-saisie",$("p-rs").checked?null:"0");lastCount=await R.schedule().catch(()=>null);renderRemStatus()};
   $("p-rm").onchange=async()=>{const m=$("p-rmsg");m.textContent="";m.className="msg";
     if(!$("p-rm").checked){B.lsSet("b2a-notif-m","0");renderRemStatus();return}

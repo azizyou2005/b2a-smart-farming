@@ -151,6 +151,11 @@ function feedStock(l,s){
   const days=Math.max(0,stock/daily);const order=addDays(Math.max(0,days-5));const qty=daily*28;
   return {stock,daily,days,rupture:addDays(days),order,qty,cost:qty*(Number(l.prixAliment)||0)};
 }
+/* travaux d'aliment à venir (achat avant rupture, changement de phase) : calendrier et rappels du téléphone */
+function feedItems(l,s,days){if(isCrop(l)||!l.arrivee)return [];s=s||stats(l);const t=today();const out=[];
+  const fs=feedStock(l,s);if(fs&&fs.days<=days+5)out.push({code:"feed",nom:`Acheter l'aliment (≈ ${fmt(fs.qty)} kg, ${fmt(fs.cost)} F)`,type:"conduite",voie:`stock actuel ${fmt(fs.stock)} kg`,date:iso(fs.order),virtual:true});
+  const fa=feedAge(l,s),ph=feedPhase(l,fa);if(ph&&ph.next){const dt=dAdd(l.arrivee,(ph.next[0]-(Number(l.ageArrivee)||0)+(s.ageW-fa))*7);if(daysBetween(t,dt)>=0&&daysBetween(t,dt)<=days)out.push({code:"ph",nom:`Passer à l'aliment ${ph.next[1]}`,type:"conduite",voie:"transition sur 3 à 5 jours",date:dt,virtual:true})}
+  return out}
 function allAlerts(l,s){
   const crop=isCrop(l);const A=crop?(CC()?CC().alerts(l):[]):s.alerts.slice();const t=today();
   const prog=programme(l);const late=prog.filter(p=>!p.done&&daysBetween(p.date,t)>=1);
@@ -226,8 +231,7 @@ async function renderCal(){
   // upcoming 30 days, all lots
   const up=$("upcoming");up.innerHTML="";const t=today();let items=[];
   act.forEach(l=>{const s=stats(l);programme(l).filter(p=>!p.done&&daysBetween(t,p.date)>=-0&&daysBetween(t,p.date)<=30).forEach(p=>items.push([p,l]));
-    if(isCrop(l))return;const fs=feedStock(l,s);if(fs&&fs.days<=35)items.push([{code:"feed",nom:`Acheter l'aliment (≈ ${fmt(fs.qty)} kg, ${fmt(fs.cost)} F)`,type:"conduite",voie:`stock actuel ${fmt(fs.stock)} kg`,date:iso(fs.order),virtual:true},l]);
-    const fa=feedAge(l,s),ph=feedPhase(l,fa);if(ph&&ph.next){const dt=dAdd(l.arrivee,(ph.next[0]-(Number(l.ageArrivee)||0)+(s.ageW-fa))*7);if(daysBetween(t,dt)>=0&&daysBetween(t,dt)<=30)items.push([{code:"ph",nom:`Passer à l'aliment ${ph.next[1]}`,type:"conduite",voie:"transition sur 3 à 5 jours",date:dt,virtual:true},l])}});
+    feedItems(l,s,30).forEach(p=>items.push([p,l]))});
   items.sort((a,b)=>a[0].date<b[0].date?-1:1);
   if(!items.length)up.append(el("li",null,act.length?"Rien de prévu dans les 30 prochains jours.":"Créez un lot pour générer son calendrier."));
   items.forEach(([p,l])=>up.append(calItem(p,l,act.length>1)));
@@ -1351,7 +1355,7 @@ $("s-del").onclick=async()=>{const id=$("s-lot").value,d=$("s-date").value,b=$("
 /* accès pour les modules complémentaires (plus.js) */
 window.B2A.app={isCrop,kpi,alertList,calItem,errText,loadNames,names,openLotForm,closeLot,renderLots,renderDetail,notr,
   saisies:()=>saisies,soins:()=>soins,allLots:()=>lots,CULT,ENG,pEng,setForm:v=>{formOpen=v},setSel:(id,open)=>{selLot=id;detailOpen=!!open},setCalLot:id=>{calLot=id},
-  db:()=>db,me:()=>me,can:()=>canWrite,lots:()=>lots.filter(l=>l.actif!==false),stats,allAlerts,programme,isLayer,isDairy,fmt,fdate,today,show,openLot,factures:()=>factures,facTotals,spName:l=>sp(l).sale};
+  db:()=>db,me:()=>me,can:()=>canWrite,lots:()=>lots.filter(l=>l.actif!==false),stats,allAlerts,programme,feedItems,isLayer,isDairy,fmt,fdate,today,show,openLot,factures:()=>factures,facTotals,spName:l=>sp(l).sale};
 
 /* ---------- diagnostic ---------- */
 const OBJ={animal:["Non précisé","Ponte","Chair / engraissement","Lait","Reproduction / élevage","Traction"],

@@ -2,7 +2,14 @@
    Les fichiers dict-en.js, dict-it.js, dict-es.js sont préparés par outils/langues.mjs. */
 (function(){
 var LANGS=["en","it","es"],L="fr";
-try{L=localStorage.getItem("b2a-lang")||"fr"}catch(e){}
+try{L=localStorage.getItem("b2a-lang")||"";
+  /* première ouverture (aucune donnée B2A sur ce téléphone) : langue du téléphone si elle existe dans l'application, sinon français.
+     Les personnes qui utilisent déjà l'application gardent leur langue. */
+  if(!L){var used=false;for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i)||"";if(k.indexOf("b2a")===0&&k!=="b2a-device-id"){used=true;break}}
+    if(!used){var nl=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||""]);
+      for(var j=0;j<nl.length;j++){var c=String(nl[j]||"").slice(0,2).toLowerCase();if(c==="fr"||LANGS.indexOf(c)>=0){L=c;break}}
+      if(L)localStorage.setItem("b2a-lang",L)}}
+  L=L||"fr"}catch(e){L="fr"}
 var me=document.currentScript,v=(me&&/[?&]v=([\d.]+)/.exec(me.src)||[])[1]||"";
 var url=function(l){return "dict-"+l+".js"+(v?"?v="+v:"")};
 window.B2A_DICT=window.B2A_DICT||{};
