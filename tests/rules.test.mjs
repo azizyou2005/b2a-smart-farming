@@ -25,7 +25,7 @@ beforeEach(async () => { await env.clearFirestore(); });
 async function setup(extra) {
   await env.withSecurityRulesDisabled(async c => {
     const db = c.firestore();
-    for (const u of ["alice", "bob", "vendeur", "pro", "alice00000"]) await db.doc("inscriptions/" + u).set({ prenom: u, nom: "X", ville: "Ouaga", pays: "BF", elevage: "Volaille", taille: "", statut: "approuve" });
+    for (const u of ["alice", "bob", "vendeur", "pro", "alice00000", "admin00000"]) await db.doc("inscriptions/" + u).set({ prenom: u, nom: "X", ville: "Ouaga", pays: "BF", elevage: "Volaille", taille: "", statut: "approuve" });
     await db.doc("marche_config/global").set({ taux: 5, telPaiement: "70000000", svcM1: 2500, svcM3: 6000, svcM12: 20000 });
     await db.doc("marche_vendeurs/vendeur").set({ statut: "actif", nom: "Boutique", tel: "70111111", ville: "Ouaga", taux: 5 });
     await db.doc("marche_annonces/a1").set({ devise: "XOF", vendeur: "vendeur", vendeurNom: "Boutique", vendeurTel: "", ville: "Ouaga", cat: "oeufs", titre: "Œufs", desc: "", prix: 2500, unite: "plateau de 30", qte: null, photo: "", statut: "actif" });
