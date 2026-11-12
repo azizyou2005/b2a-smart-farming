@@ -80,7 +80,7 @@ function toast(msg){const t=document.createElement("div");t.setAttribute("data-n
   t.style.cssText="position:fixed;left:12px;right:12px;bottom:84px;z-index:9999;background:#1e2d4a;color:#fff;padding:12px 14px;border-radius:12px;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.3)";
   document.body.append(t);setTimeout(()=>t.remove(),5000)}
 function applyLang(l){LANG=l;try{localStorage.setItem(LS_LANG,l)}catch(e){}document.documentElement.lang=l;walk(document.body);renderBtn()}
-function setLang(l){loadLang(l).then(()=>applyLang(l),()=>toast(NOLANG[LANG]||NOLANG.fr))}
+function setLang(l){return loadLang(l).then(()=>{applyLang(l);try{document.dispatchEvent(new CustomEvent("b2a-lang",{detail:l}))}catch(e){}},()=>toast(NOLANG[LANG]||NOLANG.fr))}
 window.B2A_setLang=setLang;
 const NAMES={fr:"Français",en:"English",it:"Italiano",es:"Español"};
 let btn,menu;

@@ -19,9 +19,19 @@ const ov=el("div","acces");ov.id="acces";ov.setAttribute("role","dialog");ov.set
 const box=el("div","acces-in");ov.append(box);
 const logo=document.querySelector(".band .ic");
 function head(title,sub){box.innerHTML="";const h=el("div","acc-head");if(logo){const i=el("img");i.src=logo.src;i.alt="Logo B2A";h.append(i)}
-  const t=el("div");t.append(el("b",null,"B2A Smart Farming"),el("small",null,"Smart Building · Smart Farming"));h.append(t);box.append(h);
+  const t=el("div");t.append(el("b",null,"B2A Smart Farming"),el("small",null,"Smart Building · Smart Farming"));h.append(t);box.append(langPick(),h);
   const c=el("section","card");c.append(el("h2","sec",title));c.querySelector("h2").id="acc-t";if(sub)c.append(el("p","note",sub));box.append(c);
   const f=el("p","acc-own","Application privée de B2A-HIGH-TECHNOLOGY-AUTOMATION · Bayere Abdoul Aziz");f.setAttribute("data-notr","");box.append(f);return c}
+/* choix de la langue dès l'écran d'inscription (le sélecteur du haut est caché par cet écran) */
+const LNAMES={fr:"Français",en:"English",it:"Italiano",es:"Español"};
+const curLang=()=>{if(window.B2A_LANG)return window.B2A_LANG();try{return localStorage.getItem("b2a-lang")||"fr"}catch(e){return "fr"}};
+function langPick(){const w=el("div","acc-lang");w.setAttribute("data-notr","");w.setAttribute("role","group");w.setAttribute("aria-label","Langue / Language / Lingua / Idioma");
+  w.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>';
+  for(const l of ["fr","en","it","es"]){const b=el("button",null,l.toUpperCase());b.type="button";b.dataset.l=l;b.title=LNAMES[l];b.setAttribute("aria-label",LNAMES[l]);
+    b.onclick=()=>{if(l===curLang())return;const r=window.B2A_setLang&&window.B2A_setLang(l);Promise.resolve(r).then(()=>mark())};w.append(b)}
+  mark(w);return w}
+const mark=(r=document)=>{const L=curLang();r.querySelectorAll(".acc-lang button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.l===L)))};
+document.addEventListener("b2a-lang",()=>mark());
 function show(){if(!ov.isConnected)document.body.append(ov);document.documentElement.classList.add("acces-on")}
 function hide(){ov.remove();document.documentElement.classList.remove("acces-on")}
 
