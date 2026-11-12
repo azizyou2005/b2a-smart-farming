@@ -313,6 +313,18 @@ service cloud.firestore {
         && txt(request.resource.data.ref, 40) && txt(request.resource.data.telPayeur, 30) && txt(request.resource.data.get('nom',''), 60);
       allow update, delete: if isAdmin();
     }
+    // Demandes de devis pour l'armoire électrique B2A (vitrine « Solutions B2A Smart Building ») : envoyées par les inscrits, lues par B2A.
+    match /devis_b2a/{id} {
+      allow read, update, delete: if isAdmin();
+      allow create: if approved() && request.resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid','nom','tel','ville','pays','elevage','animaux','surface','niveau','install','message','statut','creeLe'])
+        && request.resource.data.statut == 'nouveau' && request.resource.data.niveau in ['essentiel','confort','pro','inconnu']
+        && txt(request.resource.data.nom, 60) && request.resource.data.nom.size() > 0 && txt(request.resource.data.tel, 30)
+        && txt(request.resource.data.ville, 60) && txt(request.resource.data.get('pays',''), 40) && txt(request.resource.data.get('elevage',''), 40)
+        && txt(request.resource.data.get('message',''), 500) && request.resource.data.install is bool
+        && (request.resource.data.animaux == null || request.resource.data.animaux is number)
+        && (request.resource.data.surface == null || request.resource.data.surface is number);
+    }
     // Contenus de formation (vidéos et PDF) : publiés par B2A, lus par les inscrits (l'application les réserve à la version Pro).
     match /formations/{id} {
       allow read: if approved() || isAdmin();

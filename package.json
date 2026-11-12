@@ -1,6 +1,6 @@
 {
   "name": "b2a-smart-farming",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "B2A Smart Farming - application d'élevage hors ligne",
   "scripts": {
