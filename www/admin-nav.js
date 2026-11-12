@@ -10,7 +10,7 @@ const LS="b2a-admin-onglet";
 
 /* 1. regrouper le contenu existant en panneaux */
 const usersPanel=el("div","an-panel");usersPanel.id="an-users";
-const sectionsPar={marche:"mk-admin",services:"sv-admin",erreurs:"er-admin"};
+const sectionsPar={marche:"mk-admin",services:"sv-admin",pro:"pr-admin",erreurs:"er-admin"};
 const secs={};for(const [k,id] of Object.entries(sectionsPar))secs[k]=document.getElementById(id);
 const children=[...wrap.children];
 children.forEach(c=>{if(!Object.values(sectionsPar).includes(c.id))usersPanel.append(c)});
@@ -20,7 +20,7 @@ wrap.innerHTML="";wrap.append(dash,usersPanel);
 for(const [k,id] of Object.entries(sectionsPar)){const p=el("div","an-panel");p.id="an-"+k;const s=secs[k];if(s)p.append(s);panels[k]=p;wrap.append(p)}
 
 /* 2. barre d'onglets */
-const TABS=[["dash","Tableau de bord"],["users","Utilisateurs"],["marche","Marché"],["services","Services"],["erreurs","Erreurs"]];
+const TABS=[["dash","Tableau de bord"],["users","Utilisateurs"],["marche","Marché"],["services","Services"],["pro","Version Pro"],["erreurs","Erreurs"]];
 const bar=el("nav","an-tabs");bar.setAttribute("aria-label","Parties de l'administration");
 const btns={};
 TABS.forEach(([k,lab])=>{const b=el("button","an-tab");b.type="button";b.dataset.k=k;b.append(el("span",null,lab));const bd=el("span","an-badge");bd.hidden=true;b.append(bd);b.onclick=()=>show(k,true);btns[k]=b;bar.append(b)});

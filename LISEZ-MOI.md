@@ -167,6 +167,23 @@ Les prestataires remplissent leur fiche, choisissent un abonnement (1, 3 ou 12 m
 
 ---
 
+## Version Pro (payante) : formation, contrôle, vétérinaire, prix du marché
+
+La version Pro ajoute quatre onglets en bas de chaque lot. Un seul abonnement (1, 3 ou 12 mois) sert à toute l'équipe de la ferme.
+
+- **Formation** : vidéos et fiches PDF choisies selon l'espèce et l'âge du lot (« Pour l'âge du lot, semaine N »). Chaque fichier peut être gardé sur le téléphone pour le regarder sans internet.
+- **Contrôle** : mesures de température, d'humidité et d'eau enregistrées pour l'étude, plage conseillée selon l'âge (volailles, porcs, ruminants), alertes « trop chaud / trop froid », graphique et export Excel. Les mesures automatiques du dispositif B2A viendront plus tard.
+- **Vétérinaire** : l'éleveur envoie ses vaccins faits (produit, numéro de lot du flacon, photo) à un vétérinaire en ligne dans Services. Le vétérinaire fixe son tarif, l'éleveur le paie directement (Orange Money / Moov Money) et donne la référence, puis le vétérinaire valide chaque vaccin (conforme / non conforme). Le carnet validé peut être partagé aux acheteurs. Une commission B2A (10 % par défaut) est due à chaque validation ; le vétérinaire la voit dans son espace (Marché > Services).
+- **Prix du marché** : étude du marché en temps réel calculée sur les annonces du Marché B2A (prix conseillé, fourchette, nombre d'annonces, demande, tendance sur 30 jours), avec le coût d'aliment du lot pour les œufs. Aussi disponible pour le matériel, en haut de Marché > Vendre.
+
+**À faire une fois**
+1. Firebase > Firestore > **Règles** : remplacez tout par le nouveau `firestore.rules`, puis **Publier** (nouvelles collections `pro_fermes`, `pro_paiements`, `formations`, `veto_demandes` et mesures des fermes).
+2. Pour envoyer des vidéos et des PDF : Firebase > **Build > Storage > Commencer**. Firebase demande de passer au forfait **Blaze** (paiement à l'usage, carte bancaire) : l'usage gratuit reste inclus (5 Go stockés). Conseil : réglez une alerte de budget dans Google Cloud. Onglet **Règles** de Storage : collez le contenu de `storage.rules`, puis **Publier**.
+   Sans Storage, vous pouvez quand même ajouter une formation en collant l'adresse https:// d'un fichier déjà en ligne.
+3. Page **utilisateurs.html > Version Pro** : réglez les tarifs Pro et la commission vétérinaire. Le numéro de paiement est celui du Marché.
+
+**Au quotidien (utilisateurs.html > Version Pro)** : vérifiez les paiements Pro reçus puis « Paiement reçu : activer » ; ajoutez les vidéos et PDF (espèces, semaines de l'âge, ordre) ; encaissez les commissions des vétérinaires puis « Commission reçue ».
+
 ## Mettre à jour l'application plus tard
 
 1. Remplacez sur GitHub les fichiers modifiés (en général `www/index.html` et parfois les autres fichiers de `www`).

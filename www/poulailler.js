@@ -440,7 +440,8 @@ async function refresh(){
   if(!api)return;if(V.hidden&&(demo||(tick++%10)))return;   // écran fermé : la démo s'arrête, le vrai dispositif est surveillé toutes les 30 s pour les alertes
   {const sig=lotsPoules().map(l=>l.id).join();if(sig!==lotsSig){const premier=lotsSig==="";lotsSig=sig;if(!premier&&!busy){envoyerConsignes();return}}}
   try{data=await api.readAll();horsLigne=null;render();
-    try{const I=infoLot();window.B2A_PC_HIER=!demo&&I.l&&!I.l.__couv&&I.esp!=="culture"&&data.alimHier>0?{lotId:I.l.id,date:new Date(new Date(A.today()+"T12:00")-864e5).toISOString().slice(0,10),alimKg:Math.round(data.alimHier*10)/10}:null}catch(e){}if($("pc-status").classList.contains("bad"))setStatus(demo?"warn":"on",demo?"Démo":cfg.ip)}
+    try{const I=infoLot();window.B2A_PC_HIER=!demo&&I.l&&!I.l.__couv&&I.esp!=="culture"&&data.alimHier>0?{lotId:I.l.id,date:new Date(new Date(A.today()+"T12:00")-864e5).toISOString().slice(0,10),alimKg:Math.round(data.alimHier*10)/10}:null}catch(e){}try{const I=infoLot();window.B2A_PC_LIVE={t:Date.now(),demo,data:Object.assign({},data),lotId:I.l&&!I.l.__couv?I.l.id:null,lotNom:(I.l&&I.l.nom)||""};window.dispatchEvent(new Event("b2a-pc-data"))}catch(e){}   /* relevés pour l'onglet Contrôle (version Pro) */
+    if($("pc-status").classList.contains("bad"))setStatus(demo?"warn":"on",demo?"Démo":cfg.ip)}
   catch(e){setStatus("bad","Hors ligne");$("pc-updated").textContent="Dispositif injoignable (VPN actif ?)";if(!horsLigne)horsLigne=Date.now();renderAlertes()}}
 async function send(vals){busy=true;try{await api.write(vals);await refresh()}catch(e){setStatus("bad","Commande non envoyée")}finally{busy=false}}
 

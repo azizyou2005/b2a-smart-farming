@@ -1,0 +1,14 @@
+rules_version = '2';
+// B2A Smart Farming : fichiers de formation (vidéos et PDF) envoyés par B2A depuis utilisateurs.html.
+// À publier dans Firebase > Storage > Règles.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /formations/{fichier} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.token.email == 'azizyou2005@yahoo.fr'
+        && request.resource.size < 300 * 1024 * 1024
+        && (request.resource.contentType.matches('video/.*') || request.resource.contentType == 'application/pdf');
+      allow delete: if request.auth != null && request.auth.token.email == 'azizyou2005@yahoo.fr';
+    }
+  }
+}
