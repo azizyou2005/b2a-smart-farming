@@ -42,7 +42,8 @@ function stats(l){
   const last7=out.slice(-7),prev7=out.slice(-14,-7);
   res.ponte7=mean(last7.map(r=>r.ponte));res.pontePrev=mean(prev7.map(r=>r.ponte));res.lait7=mean(last7.map(r=>r.lait));res.laitPrev=mean(prev7.map(r=>r.lait));
   res.morts7=last7.reduce((p,r)=>p+r.morts,0);res.mortsTot=(Number(l.effectif)||0)-alive;
-  res.morts7pct=alive>0?res.morts7/alive*100:0;res.mortsTotPct=l.effectif?res.mortsTot/l.effectif*100:0;
+  /* % des morts de la semaine : rapporté à l'effectif au DÉBUT de la semaine (vivants + morts de la semaine) */
+  {const st7=alive+res.morts7;res.morts7pct=st7>0?res.morts7/st7*100:0}res.mortsTotPct=l.effectif?res.mortsTot/l.effectif*100:0;
   {const fr=last7.filter(r=>r.gpj!=null);const bd=fr.reduce((p,r)=>p+r.start,0);res.gpj7=bd>0?fr.reduce((p,r)=>p+r.aliment,0)*1000/bd:null;res.feedDays7=fr.length}
   const pa=Number(l.prixAliment)||0,pv=Number(l.prixOeuf)||0;
   const o7=last7.reduce((p,r)=>p+(r.oeufs||0),0);
@@ -1007,7 +1008,10 @@ function project(l,s,f,factor,paAlt){
   for(let i=1;a0+i<=end;i++){const w=a0+i;
     /* 1re semaine : seulement les jours pas encore comptés dans les dépenses à ce jour */
     const fr=i===1?(7-r0)/7:1;const mw=i<=4?mRecent:mNorm;
-    const g=(w>=18&&s.ageW>=18&&s.gpj7!=null&&isPoultry(l)&&!isBroiler(l))?s.gpj7:(s.gpj7!=null&&!isPoultry(l)?s.gpj7:stdFeed(l,w));
+    /* gros animaux et poissons : la ration grandit avec l'animal → on suit la courbe standard, ajustée à ce qu'ils mangent
+       réellement aujourd'hui (avant : la ration d'aujourd'hui restait figée jusqu'à la fin du cycle, aliment sous-estimé) */
+    const g0=stdFeed(l,a0),kf=s.gpj7!=null&&g0>0?Math.min(1.5,Math.max(0.5,s.gpj7/g0)):1;
+    const g=(w>=18&&s.ageW>=18&&s.gpj7!=null&&isPoultry(l)&&!isBroiler(l))?s.gpj7:(s.gpj7!=null&&!isPoultry(l)?(g0>0?stdFeed(l,w)*kf:s.gpj7):stdFeed(l,w));
     let e=0;if(isLayer(l))e=birds*Math.min(98,stdPonte(w)*k*factor)/100*7*fr;else if(isDairy(l))e=birds*P.lait*k*factor*7*fr;eggs+=e;
     const kg=birds*g*7/1000*fr;fut.oeufs+=e*pv;fut.alimentKg+=kg;fut.aliment+=kg*pa;fut.charges+=ch*fr;
     solde+=e*pv-kg*pa-ch*fr;birds*=(1-mw*fr);
