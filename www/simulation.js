@@ -141,12 +141,15 @@ function calc(){
     }
     flows.push({t,out,inn});
   }
-  /* fonds de roulement : le plus gros manque d'argent après le démarrage (charges avant les premières ventes) */
+  /* fonds de roulement : le plus gros manque d'argent pendant le PREMIER cycle (charges avant les premières ventes).
+     Avant : cherché sur 15 ans → si le projet perd de l'argent, toutes les pertes de 15 ans s'ajoutaient ici. */
   let cum=0,cumOp=0,minOp=0,payback=null;const curve=[];
-  flows.forEach(f=>{cum+=f.inn-f.out;if(f.t>=tS){cumOp+=f.inn-f.out;if(cumOp<minOp)minOp=cumOp}});
+  const finFdr=tS+(p.verger?84:c); // verger : jusqu'à la production pleine (≈ 7 ans)
+  flows.forEach(f=>{cum+=f.inn-f.out;if(f.t>=tS&&f.t<finFdr){cumOp+=f.inn-f.out;if(cumOp<minOp)minOp=cumOp}});
   const fdr=Math.max(0,-minOp);
   add("fdr","Fonds de roulement jusqu'aux premières ventes",fdr);
-  const sous=inv.reduce((a,x)=>a+x.v,0);add("impr","Imprévus (10 %)",sous*.1);
+  /* imprévus : 10 % des investissements seulement (pas sur le fonds de roulement) */
+  const sous=inv.filter(x=>x.k!=="fdr").reduce((a,x)=>a+x.v,0);add("impr","Imprévus (10 %)",sous*.1);
   const total=inv.reduce((a,x)=>a+x.v,0);
   cum=-(inv.find(x=>x.k==="impr").v);
   flows.forEach((f,i)=>{cum+=f.inn-f.out;if(i%4===3)curve.push({m:(i+1)/4,v:cum});if(payback==null&&f.t>tS&&cum>=0)payback=f.t});
