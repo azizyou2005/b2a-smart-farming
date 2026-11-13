@@ -148,7 +148,7 @@ jobs:
             --target "$GITHUB_SHA" --latest
 
       # Envoi automatique dans Google Play Console (secret PLAY_SERVICE_ACCOUNT_JSON, voir LISEZ-MOI-GOOGLE-PLAY.md).
-      # Piste choisie avec la variable PLAY_TRACK : internal (par défaut, test interne), alpha, beta ou production.
+      # Piste : production par défaut (examen Google puis tous les utilisateurs). Variable PLAY_PISTE pour changer : internal, alpha ou beta.
       # Sans le secret, rien ne change : l'AAB reste dans la « Release » GitHub, à envoyer à la main.
       - name: Envoi automatique à Google Play possible ?
         if: steps.cle.outputs.ok == 'true'
@@ -169,7 +169,7 @@ jobs:
           packageName: com.b2a.smartfarming
           releaseFiles: b2a-smart-farming-${{ env.VERSION_NAME }}-${{ env.VERSION_CODE }}.aab
           releaseName: ${{ env.VERSION_NAME }} (${{ env.VERSION_CODE }})
-          track: ${{ vars.PLAY_TRACK || 'internal' }}
+          track: ${{ vars.PLAY_PISTE || 'production' }}
           status: completed
           whatsNewDirectory: ${{ runner.temp }}/nouveautes
 

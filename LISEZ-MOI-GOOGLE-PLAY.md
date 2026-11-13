@@ -24,8 +24,8 @@ Une fois réglé, chaque version unie dans `main` est envoyée toute seule dans 
    et *Publier des applications sur les canaux de test*. Envoyer l'invitation.
 3. **GitHub > Settings > Secrets and variables > Actions > New repository secret** : nom `PLAY_SERVICE_ACCOUNT_JSON`, valeur = tout le contenu du fichier `.json`.
    Ensuite, supprimer le fichier `.json` de l'ordinateur.
-4. Facultatif, onglet **Variables** du même écran : `PLAY_TRACK` = `internal` (par défaut : test interne), `alpha`, `beta` ou `production`.
-   Avec `production`, chaque version part directement en examen Google puis chez tous les utilisateurs.
+4. Piste : **production** par défaut (depuis la 60.28) : chaque version part toute seule en examen Google puis chez tous les utilisateurs.
+   Pour revenir au test interne : onglet **Variables** du même écran, `PLAY_PISTE` = `internal` (ou `alpha`, `beta`).
 
 Sans le secret, rien ne change : l'AAB reste dans la Release GitHub, à envoyer à la main.
 
