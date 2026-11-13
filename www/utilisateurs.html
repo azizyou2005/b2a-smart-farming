@@ -63,6 +63,9 @@ input,select{width:100%;font:16px var(--body);padding:10px 12px;border:1px solid
 .pill{font:700 12px var(--body);padding:4px 10px;border-radius:999px;white-space:nowrap}
 .p-attente{background:var(--warn-bg);color:var(--warn)}.p-approuve{background:var(--ok-bg);color:var(--ok)}.p-refuse,.p-bloque{background:var(--bad-bg);color:var(--bad)}
 .acts{display:flex;flex-wrap:wrap;gap:8px}
+.pills{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}.p-suspect,.p-doublon{background:var(--warn-bg);color:var(--warn)}
+.u small.u-why{color:var(--warn)}
+.bulk{display:flex;flex-direction:column;gap:8px;padding:12px 0}.bulk .note{color:var(--page-muted);margin:0}
 .empty{color:var(--page-muted);text-align:center;padding:20px}
 .tablewrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:14px}
@@ -93,6 +96,7 @@ td{padding:7px 8px;border-bottom:1px solid var(--line)}td.n{text-align:right;fon
         <button class="chip" type="button" data-f="approuve" aria-pressed="true">Avec accès</button>
         <button class="chip" type="button" data-f="refuse" aria-pressed="false">Accès retiré</button>
         <button class="chip" type="button" data-f="tous" aria-pressed="false">Tous</button>
+        <button class="chip" type="button" data-f="verifier" aria-pressed="false">À vérifier</button>
       </div>
       <div class="field"><label for="u-q" style="color:#fff">Rechercher</label><input type="text" id="u-q" placeholder="Nom, ville, pays, élevage"></div>
       <div class="list" id="u-list"></div>
@@ -106,6 +110,7 @@ td{padding:7px 8px;border-bottom:1px solid var(--line)}td.n{text-align:right;fon
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
+<script src="noms.js"></script>
 <script src="utilisateurs.js"></script>
 <script src="admin-marche.js"></script>
 <script src="admin-services.js"></script>

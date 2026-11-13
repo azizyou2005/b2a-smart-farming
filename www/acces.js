@@ -45,14 +45,52 @@ const mailErr=e=>{const c=(e&&e.code)||"";
   if(/invalid-credential|wrong-password|user-not-found|invalid-login/.test(c))return "E-mail ou mot de passe incorrect.";
   if(/too-many-requests/.test(c))return "Trop d'essais. Réessayez dans quelques minutes.";
   return null};
+/* ---------- pays : liste (moins de fautes, pas de pays inventé) ----------
+   La valeur enregistrée reste le nom français (comme avant) ; l'affichage suit la langue choisie. */
+const PAYS=["BF","CI","ML","NE","SN","TG","BJ","GH","GN","NG","CM","TD","MR","GW","SL","LR","GM","CV","CF","GA","CG","CD","MA","DZ","TN","EG","RW","BI","KE","MG","FR","IT","BE","CH","ES","DE","GB","CA","US","CN"];
+const PAYS_FR={BF:"Burkina Faso",CI:"Côte d'Ivoire",ML:"Mali",NE:"Niger",SN:"Sénégal",TG:"Togo",BJ:"Bénin",GH:"Ghana",GN:"Guinée",NG:"Nigeria",CM:"Cameroun",TD:"Tchad",MR:"Mauritanie",GW:"Guinée-Bissau",SL:"Sierra Leone",LR:"Liberia",GM:"Gambie",CV:"Cap-Vert",CF:"République centrafricaine",GA:"Gabon",CG:"Congo-Brazzaville",CD:"Congo-Kinshasa",MA:"Maroc",DZ:"Algérie",TN:"Tunisie",EG:"Égypte",RW:"Rwanda",BI:"Burundi",KE:"Kenya",MG:"Madagascar",FR:"France",IT:"Italie",BE:"Belgique",CH:"Suisse",ES:"Espagne",DE:"Allemagne",GB:"Royaume-Uni",CA:"Canada",US:"États-Unis",CN:"Chine"};
+const paysNom=(c,l)=>{if(l==="fr")return PAYS_FR[c];try{return new Intl.DisplayNames([l],{type:"region"}).of(c)||PAYS_FR[c]}catch(e){return PAYS_FR[c]}};
+function paysSel(g){const f=el("div","field");const l=el("label",null,"Pays");l.htmlFor="acc-pays";const s=el("select");s.id="acc-pays";s.setAttribute("data-notr","");
+  const L=curLang();const autres=PAYS.slice(1).sort((a,b)=>paysNom(a,L).localeCompare(paysNom(b,L),L));
+  for(const c of [PAYS[0],...autres])s.append(new Option(paysNom(c,L),PAYS_FR[c]));
+  s.value=PAYS_FR.BF;f.append(l,s);g.append(f);return s}
+
+/* ---------- doublons ----------
+   doublons/<clé> = { uid, mail } : la clé est une empreinte (illisible) du téléphone ou du nom + ville + pays.
+   Avant d'inscrire, l'application regarde si ce téléphone ou cette personne est déjà inscrit et propose de se reconnecter.
+   Sans les nouvelles règles Firebase, la vérification est simplement sautée. */
+const N=window.B2A_NOMS,LS_CLES="b2a-acces-cles";
+let appId=null;
+async function idTel(){if(appId!==null)return appId;appId="";
+  try{const C=window.Capacitor,D=C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.Device;
+    if(D){const r=await D.getId();const x=r&&(r.identifier||r.uuid);if(x&&N)appId=await N.sha("tel|"+x)}}catch(e){}
+  return appId}
+async function cles(d){const app=await idTel();const nm=N?await N.sha("nom|"+N.cleNom(d)):"";
+  const k={app:app?"a"+app:"",dev:app?"d_"+app:"",nom:nm?"n_"+nm:""};B.lsSet(LS_CLES,JSON.stringify(k));return k}
+async function dejaInscrit(k,uid){if(!navigator.onLine)return null;
+  const fs=firebase.firestore(),lire=id=>id?fs.doc("doublons/"+id).get().then(s=>s.exists?s.data():null).catch(()=>null):Promise.resolve(null);
+  const r=await Promise.race([Promise.all([lire(k.dev),lire(k.nom)]),new Promise(ok=>setTimeout(()=>ok([null,null]),5000))]);
+  const [a,n]=r;if(a&&a.uid&&a.uid!==uid)return {type:"tel",mail:!!a.mail};
+  if(n&&n.uid&&n.uid!==uid)return {type:"nom",mail:!!n.mail};return null}
+function marquer(k,uid,mail){if(!k)return;const fs=firebase.firestore();
+  for(const id of [k.dev,k.nom])if(id)fs.doc("doublons/"+id).set({uid,mail:!!mail,le:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{})}
+function dup(c,dp,suite){c.querySelectorAll(".acc-dup").forEach(x=>x.remove());
+  const w=el("div","acc-dup");
+  w.append(el("p","msg err",dp.type==="tel"?"Ce téléphone est déjà inscrit dans B2A Smart Farming.":"Une personne avec le même nom est déjà inscrite dans la même ville."));
+  w.append(el("p","note",dp.mail?"Si c'est vous, connectez-vous avec votre e-mail et votre mot de passe : vous retrouvez votre accès, votre ferme et votre équipe sans créer de deuxième inscription."
+    :"Si c'est vous, inutile de vous inscrire une deuxième fois. Si vous aviez mis un e-mail, connectez-vous avec lui."));
+  const lg=el("button","btn","C'est moi : me connecter");lg.type="button";lg.onclick=()=>login();
+  const go=el("button","btn ghost acc-alt",dp.type==="tel"?"Continuer : nouvelle inscription":"Ce n'est pas moi : continuer");go.type="button";go.onclick=()=>{w.remove();suite()};
+  w.append(lg,go);const b=c.querySelector(".btn");c.insertBefore(w,b);w.scrollIntoView({block:"center",behavior:"smooth"})}
+
 function form(err){const c=head("Inscription","Remplissez ce formulaire pour ouvrir l'application. Vos informations sont envoyées à B2A, propriétaire de l'application, qui peut retirer l'accès en cas d'abus.");
   const fld=(g,id,lb,type,ph,opts)=>{const f=el("div","field");const l=el("label",null,lb);l.htmlFor=id;let i;
     if(opts){i=el("select");i.append(new Option("Choisir…",""));opts.forEach(o=>i.append(new Option(o,o)))}else{i=el("input");i.type=type;if(ph)i.placeholder=ph}
     i.id=id;f.append(l,i);g.append(f);return i};
   const g=el("div","grid2");
   const p=fld(g,"acc-prenom","Prénom","text","ex. Moussa"),n=fld(g,"acc-nom","Nom","text","ex. Ouédraogo"),v=fld(g,"acc-ville","Ville ou village","text","ex. Koudougou"),
-    py=fld(g,"acc-pays","Pays","text","ex. Burkina Faso"),e=fld(g,"acc-elev","Type d'élevage",null,null,ELEV),t=fld(g,"acc-taille","Taille","text","ex. 500 pondeuses, 2 couveuses");
-  py.value="Burkina Faso";[p,n,v,t].forEach(i=>{i.maxLength=60;i.autocomplete="off"});p.autocomplete="given-name";n.autocomplete="family-name";
+    py=paysSel(g),e=fld(g,"acc-elev","Type d'élevage",null,null,ELEV),t=fld(g,"acc-taille","Taille","text","ex. 500 pondeuses, 2 couveuses");
+  [p,n,v,t].forEach(i=>{i.maxLength=60;i.autocomplete="off"});p.autocomplete="given-name";n.autocomplete="family-name";
   c.append(g);
   /* compte e-mail facultatif : permet de retrouver l'accès et la ferme après une réinstallation ou sur un autre téléphone */
   c.append(el("h3","acc-sub","E-mail et mot de passe (facultatif)"),
@@ -68,20 +106,32 @@ function form(err){const c=head("Inscription","Remplissez ce formulaire pour ouv
     if(!d.prenom||!d.nom){m.textContent="Indiquez votre prénom et votre nom.";m.className="msg err";return}
     if(!d.ville||!d.pays){m.textContent="Indiquez votre ville et votre pays.";m.className="msg err";return}
     if(!d.elevage){m.textContent="Choisissez votre type d'élevage.";m.className="msg err";return}
+    /* noms de test (« John Doe »…), chiffres, lettres tapées au hasard */
+    const ck=N?N.check(d):{erreur:"",suspect:[]};
+    if(ck.erreur){m.textContent=ck.erreur;m.className="msg err";return}
+    const sig=JSON.stringify(d);
+    if(ck.suspect.length&&b.dataset.ok!==sig){b.dataset.ok=sig;
+      m.textContent=ck.suspect.includes("ville")&&!ck.suspect.includes("nom")?"Le nom de la ville semble mal écrit. Corrigez-le, ou appuyez de nouveau sur le bouton s'il est juste."
+        :"Ce nom semble mal écrit. Écrivez votre vrai prénom et votre vrai nom, ou appuyez de nouveau sur le bouton s'il est juste.";m.className="msg err";return}
     if(mail||pass){if(!okMail(mail)){m.textContent="Adresse e-mail non valide (ou laissez l'e-mail et le mot de passe vides).";m.className="msg err";return}
       if(pass.length<6){m.textContent="Mot de passe trop court : 6 caractères minimum.";m.className="msg err";return}}
     if(!navigator.onLine){offlineStart(d,!!(mail||pass));return}
     b.disabled=true;b.textContent="Envoi…";m.textContent="";
     const reset=x=>{b.disabled=false;b.textContent="M'inscrire et ouvrir l'application";m.textContent=x;m.className="msg err"};
     try{const u=await B.ensureUser(B.CFG);
+      /* déjà inscrit ? (même téléphone, ou même nom dans la même ville) : proposer de se reconnecter */
+      const ks=await cles(d);
+      if(b.dataset.dup!==sig){const dp=await dejaInscrit(ks,u.uid);
+        if(dp){b.dataset.dup=sig;b.disabled=false;b.textContent="M'inscrire et ouvrir l'application";dup(c,dp,()=>b.click());return}}
       let linked=!u.isAnonymous&&!!u.email;
       if(mail&&u.isAnonymous){
         try{await u.linkWithCredential(firebase.auth.EmailAuthProvider.credential(mail,pass));linked=true}
         catch(x){console.warn(x);reset(mailErr(x)||"La création du compte e-mail a échoué. Vérifiez la connexion et réessayez.");return}}
       const ref=firebase.firestore().doc("inscriptions/"+u.uid);
       await ref.set({...d,statut:"approuve",creeLe:firebase.firestore.FieldValue.serverTimestamp(),vuLe:today(),
-        plateforme:plateforme(),langue:(window.B2A_LANG?window.B2A_LANG():"fr"),version:VERSION,appareil:B.me});
+        plateforme:plateforme(),langue:(window.B2A_LANG?window.B2A_LANG():"fr"),version:VERSION,appareil:ks.app||B.me});
       if(linked&&u.email){const x={email:u.email};if(B.farm)x.ferme=B.farm;ref.update(x).catch(()=>{})}
+      marquer(ks,u.uid,linked);
       if(!B.lsGet(B.LS_NAME))B.lsSet(B.LS_NAME,d.prenom+" "+d.nom);
       save({uid:u.uid,statut:"approuve"});notify(d,linked?u.email:"");hide();toast("Inscription réussie. Bienvenue dans B2A Smart Farming.");listen()}
     catch(err){console.warn(err);reset("L'inscription a échoué. Vérifiez la connexion et réessayez.")}}}
@@ -148,6 +198,7 @@ B.renderCompte=async(sec,box)=>{if(!sec||!box)return;box.innerHTML="";
     try{await u.linkWithCredential(firebase.auth.EmailAuthProvider.credential(mail,pass));
       const x={email:u.email||mail};if(B.farm)x.ferme=B.farm;
       await firebase.firestore().doc("inscriptions/"+u.uid).update(x).catch(()=>{});
+      try{const k=JSON.parse(B.lsGet(LS_CLES)||"null");if(k)marquer(k,u.uid,true)}catch(e){}
       toast("Compte protégé. Gardez bien votre e-mail et votre mot de passe.");B.renderCompte(sec,box)}
     catch(x){console.warn(x);b.disabled=false;b.textContent="Protéger mon compte";ko(mailErr(x)||"La création du compte e-mail a échoué. Vérifiez la connexion et réessayez.")}}};
 
@@ -174,8 +225,8 @@ async function sendPending(){if(sending||!acc||acc.statut!=="local"||!navigator.
     const old=await ref.get();
     if(!old.exists){await ref.set({prenom:d.prenom||"",nom:d.nom||"",ville:d.ville||"",pays:d.pays||"",elevage:d.elevage||"",taille:d.taille||"",
       statut:"approuve",creeLe:firebase.firestore.FieldValue.serverTimestamp(),vuLe:today(),
-      plateforme:plateforme(),langue:(window.B2A_LANG?window.B2A_LANG():"fr"),version:VERSION,appareil:B.me});
-      notify(d,"")}
+      plateforme:plateforme(),langue:(window.B2A_LANG?window.B2A_LANG():"fr"),version:VERSION,appareil:(await cles(d)).app||B.me});
+      notify(d,"");marquer(await cles(d),u.uid,false)}
     save({uid:u.uid,statut:old.exists?old.data().statut:"approuve"});listen()}
   catch(e){console.warn(e)}
   sending=false}

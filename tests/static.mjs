@@ -53,7 +53,7 @@ for (const f of walk(ROOT)) {
 }
 // 7. règles Firestore : collections utilisées par l'application toutes couvertes
 const rules = readFileSync(join(ROOT, "firestore.rules"), "utf8");
-for (const c of ["inscriptions", "farms", "marche_annonces", "marche_commandes", "marche_contacts", "marche_vendeurs", "marche_boutiques", "marche_pieces", "marche_paiements", "marche_config", "services_pros", "services_paiements", "erreurs", "suppressions"])
+for (const c of ["inscriptions", "farms", "marche_annonces", "marche_commandes", "marche_contacts", "marche_vendeurs", "marche_boutiques", "marche_pieces", "marche_paiements", "marche_config", "services_pros", "services_paiements", "erreurs", "suppressions", "doublons"])
   ok(rules.includes(`match /${c}/`), `firestore.rules : pas de règle pour ${c}`);
 
 if (fails.length) { console.error("ÉCHEC des contrôles :\n- " + fails.join("\n- ")); process.exit(1); }

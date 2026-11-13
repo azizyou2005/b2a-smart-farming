@@ -3,6 +3,20 @@
    Les clés suivent i18n.js : nombres → {0}, {1}… ; texte entre « » → {q0}… */
 (function(){
 const T={
+/* inscription : faux noms et doublons (novembre 2026) */
+"Le prénom et le nom ne doivent contenir que des lettres.":["First name and last name may only contain letters.", "Nome e cognome possono contenere solo lettere.", "El nombre y el apellido solo pueden contener letras."],
+"Le prénom et le nom doivent avoir au moins {0} lettres chacun.":["First name and last name must each have at least {0} letters.", "Nome e cognome devono avere almeno {0} lettere ciascuno.", "El nombre y el apellido deben tener al menos {0} letras cada uno."],
+"Indiquez le vrai nom de votre ville ou village.":["Enter the real name of your town or village.", "Indica il vero nome della tua città o del tuo villaggio.", "Indique el nombre real de su ciudad o pueblo."],
+"Indiquez votre vrai prénom et votre vrai nom.":["Enter your real first name and last name.", "Indica il tuo vero nome e il tuo vero cognome.", "Indique su nombre y apellido reales."],
+"Le nom de la ville semble mal écrit. Corrigez-le, ou appuyez de nouveau sur le bouton s'il est juste.":["The town name looks misspelled. Correct it, or tap the button again if it is right.", "Il nome della città sembra scritto male. Correggilo, oppure premi di nuovo il pulsante se è giusto.", "El nombre de la ciudad parece mal escrito. Corríjalo, o pulse de nuevo el botón si es correcto."],
+"Ce nom semble mal écrit. Écrivez votre vrai prénom et votre vrai nom, ou appuyez de nouveau sur le bouton s'il est juste.":["This name looks misspelled. Write your real first and last name, or tap the button again if it is right.", "Questo nome sembra scritto male. Scrivi il tuo vero nome e cognome, oppure premi di nuovo il pulsante se è giusto.", "Este nombre parece mal escrito. Escriba su nombre y apellido reales, o pulse de nuevo el botón si es correcto."],
+"Ce téléphone est déjà inscrit dans B{0}A Smart Farming.":["This phone is already registered in B{0}A Smart Farming.", "Questo telefono è già registrato in B{0}A Smart Farming.", "Este teléfono ya está registrado en B{0}A Smart Farming."],
+"Une personne avec le même nom est déjà inscrite dans la même ville.":["Someone with the same name is already registered in the same town.", "Una persona con lo stesso nome è già registrata nella stessa città.", "Una persona con el mismo nombre ya está registrada en la misma ciudad."],
+"Si c'est vous, connectez-vous avec votre e-mail et votre mot de passe : vous retrouvez votre accès, votre ferme et votre équipe sans créer de deuxième inscription.":["If it is you, sign in with your e-mail and password: you get back your access, your farm and your team without creating a second registration.", "Se sei tu, accedi con la tua e-mail e la tua password: ritrovi l'accesso, la tua fattoria e la tua squadra senza creare una seconda registrazione.", "Si es usted, inicie sesión con su correo y su contraseña: recupera su acceso, su granja y su equipo sin crear un segundo registro."],
+"Si c'est vous, inutile de vous inscrire une deuxième fois. Si vous aviez mis un e-mail, connectez-vous avec lui.":["If it is you, there is no need to register a second time. If you had entered an e-mail, sign in with it.", "Se sei tu, non serve registrarti una seconda volta. Se avevi inserito un'e-mail, accedi con quella.", "Si es usted, no hace falta registrarse una segunda vez. Si había puesto un correo, inicie sesión con él."],
+"C'est moi : me connecter":["It's me: sign in", "Sono io: accedi", "Soy yo: iniciar sesión"],
+"Continuer : nouvelle inscription":["Continue: new registration", "Continua: nuova registrazione", "Continuar: nuevo registro"],
+"Ce n'est pas moi : continuer":["It's not me: continue", "Non sono io: continua", "No soy yo: continuar"],
 /* cailles (novembre 2026) */
 "Cailles pondeuses":["Laying quails", "Quaglie ovaiole", "Codornices ponedoras"],
 "Cailles de chair":["Meat quails", "Quaglie da carne", "Codornices de engorde"],

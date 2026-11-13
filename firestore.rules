@@ -27,6 +27,18 @@ service cloud.firestore {
       allow read, delete: if isAdmin();
     }
 
+    // Repérage des doubles inscriptions : doublons/<empreinte du téléphone ou du nom + ville + pays> = { uid, mail, le }.
+    // On peut lire une empreinte précise (jamais la liste) ; on n'écrit que son propre identifiant, une fois inscrit.
+    match /doublons/{id} {
+      allow get: if request.auth != null;
+      allow create, update: if request.auth != null && id.matches('^[dn]_[a-f0-9]{32}$')
+        && request.resource.data.keys().hasOnly(['uid','mail','le'])
+        && request.resource.data.uid == request.auth.uid && request.resource.data.mail is bool
+        && exists(/databases/$(database)/documents/inscriptions/$(request.auth.uid));
+      allow list: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
     // Inscriptions : une par téléphone (identifiant anonyme Firebase). L'accès est accordé à l'inscription ;
     // le propriétaire peut le retirer (statut 'bloque').
     match /inscriptions/{uid} {

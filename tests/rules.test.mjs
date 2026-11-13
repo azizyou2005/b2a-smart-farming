@@ -37,6 +37,23 @@ const anon = () => env.unauthenticatedContext().firestore();
 const annonce = o => ({ devise: "XOF", vendeur: "vendeur", vendeurNom: "Boutique", vendeurTel: "", ville: "Ouaga", cat: "oeufs", titre: "Œufs frais", desc: "", prix: 2500, unite: "plateau de 30", qte: 10, photo: "", statut: "actif", ...o });
 const fiche = o => ({ nom: "Dr Test", metier: "veto", specialites: "", ville: "Ouaga", quartier: "", zones: "", tel: "70123456", wa: "", horaires: "", deplace: true, agrement: "", desc: "", photo: "", ...o });
 
+test("doublons : on lit une empreinte précise, jamais la liste ; on n'écrit que la sienne, une fois inscrit", async () => {
+  await setup();
+  const K = "n_" + "a".repeat(32), D = "d_" + "b".repeat(32);
+  await assertSucceeds(as("alice").doc("doublons/" + K).set({ uid: "alice", mail: false }));
+  await assertSucceeds(as("bob").doc("doublons/" + K).get());
+  await assertFails(anon().doc("doublons/" + K).get());
+  await assertFails(as("bob").collection("doublons").get());
+  await assertSucceeds(as("x", ADMIN).collection("doublons").get());
+  await assertFails(as("bob").doc("doublons/" + D).set({ uid: "alice", mail: false }));
+  await assertFails(as("carol").doc("doublons/" + D).set({ uid: "carol", mail: false }));
+  await assertFails(as("bob").doc("doublons/autre").set({ uid: "bob", mail: false }));
+  await assertFails(as("bob").doc("doublons/" + D).set({ uid: "bob", mail: "oui" }));
+  await assertFails(as("bob").doc("doublons/" + D).set({ uid: "bob", mail: true, nom: "Bob" }));
+  await assertSucceeds(as("bob").doc("doublons/" + K).set({ uid: "bob", mail: true }));
+  await assertFails(as("bob").doc("doublons/" + K).delete());
+});
+
 test("inscriptions : on ne lit que la sienne ; personne ne se met « bloqué » ou un autre statut", async () => {
   await setup();
   await assertSucceeds(as("alice").doc("inscriptions/alice").get());
