@@ -12,7 +12,7 @@ const dd=t=>t?new Date(t).toLocaleDateString("fr-FR",{day:"numeric",month:"short
 const tel226=t=>{let p=String(t||"").replace(/\D/g,"");if(p.length===8)p="226"+p;return p};
 const FORM={m1:"1 mois",m3:"3 mois",m12:"12 mois"};
 const DEF={proM1:2500,proM3:6000,proM12:20000,vetoTaux:10};
-const ESP=[["tous","Toutes les espèces"],["pondeuse","Pondeuses"],["chair","Poulets de chair"],["local","Volaille locale / pintades"],["porc","Porcs"],["poisson","Poissons"],
+const ESP=[["tous","Toutes les espèces"],["pondeuse","Pondeuses"],["chair","Poulets de chair"],["local","Volaille locale, pintades, cailles"],["porc","Porcs"],["poisson","Poissons"],
   ["petitsrum","Moutons et chèvres"],["bovin","Bovins"],["vachelait","Vaches laitières"],["chevrelait","Chèvres laitières"],["culture","Cultures"]];
 function finApres(cur,mois){const base=Math.max(Date.now(),cur||0);const d=new Date(base);const j=d.getDate();d.setMonth(d.getMonth()+mois);if(d.getDate()<j)d.setDate(0);d.setHours(23,59,0,0);return d.getTime()}
 

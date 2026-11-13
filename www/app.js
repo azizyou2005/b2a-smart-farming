@@ -29,6 +29,9 @@ function dbMsg(t,err){const m=$("dbmsg");m.hidden=!t;m.textContent=t||"";m.class
 
 /* ---------- stats ---------- */
 function isLayer(l){return /pondeuse/i.test(l.espece||"")}
+function isQuail(l){return /caille/i.test(l.espece||"")}
+/* âge (semaines) du début de la ponte : 6 pour les cailles, 18 pour les poules */
+function layAge(l){return isQuail(l)?6:18}
 function isCrop(l){return !!l&&l.type==="culture"}
 const CC=()=>window.B2A_CULT||null;
 function stats(l){
@@ -62,9 +65,12 @@ function stats(l){
   if(isDairy(l)&&res.lait7!=null&&res.laitPrev!=null&&res.lait7<res.laitPrev*0.9)al.push(["warn",`Production de lait en baisse : ${fmt(res.lait7,2)} L/tête/jour contre ${fmt(res.laitPrev,2)} la semaine précédente. Vérifier eau, ration, mammites.`]);
   if((!hasProd(l)||isLayer(l))&&res.poids!=null&&res.poidsDate&&daysBetween(res.poidsDate,today())<=21){const aW=(Number(l.ageArrivee)||0)+(l.arrivee?daysBetween(l.arrivee,res.poidsDate)/7:0);const sw=stdWeight(l,aW);
     if(sw&&res.poids/1000<sw*0.9){const ra=ration(l,res);al.push([res.poids/1000<sw*0.8?"bad":"warn",`Croissance en retard : ${fmtW(l,res.poids)} contre ≈ ${fmtW(l,sw*1000)} attendu à cet âge (−${fmt((1-res.poids/1000/sw)*100)} %). Rattrapage : ${ra?`donner ${fmt(ra.g)} g par sujet et par jour, `:""}garder l'aliment de croissance, déparasiter et peser chaque semaine.`])}
-    else if(sw&&res.poids/1000>sw*1.1&&isLayer(l)&&aW<18)al.push(["info",`Poulettes plus lourdes que le standard (${fmtW(l,res.poids)} contre ≈ ${fmtW(l,sw*1000)}) : ration légèrement réduite pour éviter l'engraissement avant la ponte.`]);}
+    else if(sw&&res.poids/1000>sw*1.1&&isLayer(l)&&aW<layAge(l))al.push(["info",`Poulettes plus lourdes que le standard (${fmtW(l,res.poids)} contre ≈ ${fmtW(l,sw*1000)}) : ration légèrement réduite pour éviter l'engraissement avant la ponte.`]);}
   if(res.morts7pct>0.5)al.push(["bad",`Mortalité élevée : ${res.morts7} morts en 7 jours (${fmt(res.morts7pct,2)} % du lot). Faire autopsier un sujet par un vétérinaire.`]);
   else if(res.morts7pct>0.2)al.push(["warn",`Mortalité à surveiller : ${res.morts7} morts en 7 jours.`]);
+  if(isQuail(l)&&isLayer(l)&&res.gpj7!=null&&res.ageW>=7){
+    if(res.gpj7<20)al.push(["warn",`Consommation faible : ${fmt(res.gpj7)} g/caille/jour (normal 25 à 30 g pour une caille pondeuse).`]);
+    else if(res.gpj7>40)al.push(["warn",`Consommation élevée : ${fmt(res.gpj7)} g/caille/jour. Vérifier le gaspillage aux mangeoires.`]);}
   if(/poule|poulet|pintade/i.test(l.espece||"")&&res.gpj7!=null&&res.ageW>=18){
     if(res.gpj7<95)al.push(["warn",`Consommation faible : ${fmt(res.gpj7)} g/sujet/jour (normal 110–125 g pour une pondeuse adulte).`]);
     else if(res.gpj7>140)al.push(["warn",`Consommation élevée : ${fmt(res.gpj7)} g/sujet/jour. Vérifier le gaspillage aux mangeoires.`]);}
@@ -110,6 +116,23 @@ const PROG={
   {c:"verm1",j:42,n:"Déparasitage",t:"traitement",v:"Eau de boisson"},
   {c:"ndr",j:105,n:"Newcastle rappel",t:"vaccin",v:"Eau de boisson",every:90},
   {c:"vermr",j:120,n:"Déparasitage",t:"traitement",v:"Eau de boisson",every:90}]},
+ caillepond:{mode:"age",items:[
+  {c:"vit1",j:1,n:"Vitamines anti-stress + sucre (3 jours)",t:"traitement",v:"Eau de boisson"},
+  {c:"chaleur",j:1,n:"Chauffage des cailleteaux : 37 à 38 °C la 1re semaine, puis −3 °C par semaine",t:"conduite",v:"Abreuvoirs à billes ou cailloux dans l'eau (évite les noyades)"},
+  {c:"nd1",j:7,n:"Newcastle (HB1), conseillé si la maladie circule dans la zone",t:"vaccin",v:"Eau de boisson ou goutte oculaire"},
+  {c:"cocci1",j:10,n:"Anticoccidien préventif (3 jours)",t:"traitement",v:"Eau de boisson (amprolium)"},
+  {c:"nd2",j:21,n:"Newcastle rappel (La Sota)",t:"vaccin",v:"Eau de boisson"},
+  {c:"sexage",j:28,n:"Sexage : séparer mâles et femelles, garder 1 mâle pour 3 à 4 femelles (œufs à couver) ou aucun (œufs de table)",t:"conduite",v:"Les mâles ont la poitrine rousse unie, les femelles tachetée"},
+  {c:"lum",j:35,n:"Éclairage 14 à 16 h par jour pour lancer la ponte",t:"conduite",v:"Lumière douce, horaires réguliers"},
+  {c:"verm1",j:42,n:"Déparasitage",t:"traitement",v:"Eau de boisson, produit sans délai d'attente sur les œufs"},
+  {c:"ndr",j:105,n:"Newcastle rappel en ponte (La Sota)",t:"vaccin",v:"Eau de boisson",every:90},
+  {c:"vermr",j:126,n:"Déparasitage en ponte",t:"traitement",v:"Eau de boisson, produit sans délai d'attente sur les œufs",every:84}]},
+ caillechair:{mode:"age",items:[
+  {c:"vit1",j:1,n:"Vitamines anti-stress + sucre (3 jours)",t:"traitement",v:"Eau de boisson"},
+  {c:"chaleur",j:1,n:"Chauffage des cailleteaux : 37 à 38 °C la 1re semaine, puis −3 °C par semaine",t:"conduite",v:"Abreuvoirs à billes ou cailloux dans l'eau (évite les noyades)"},
+  {c:"nd1",j:7,n:"Newcastle (HB1), conseillé si la maladie circule dans la zone",t:"vaccin",v:"Eau de boisson ou goutte oculaire"},
+  {c:"cocci1",j:10,n:"Anticoccidien préventif (3 jours)",t:"traitement",v:"Eau de boisson (amprolium)"},
+  {c:"vente",j:35,n:"Préparer la vente : peser 10 cailles, viser 180 à 250 g",t:"conduite",v:"Vendre entre 5 et 6 semaines (au-delà, l'aliment coûte plus que le gain de poids)"}]},
  petitsrum:{mode:"arr",items:[
   {c:"verm1",j:7,n:"Déparasitage interne + externe",t:"traitement",v:"Voie orale + bain ou pour-on",every:90},
   {c:"ppr",j:14,n:"Peste des petits ruminants (PPR)",t:"vaccin",v:"Injection sous-cutanée",every:365},
@@ -129,7 +152,7 @@ const PROG={
   {c:"tri",j:60,n:"Tri par taille",t:"conduite",v:"Séparer les gros et les petits (évite le cannibalisme du silure)",every:60},
   {c:"sel",j:45,n:"Bain de sel si poissons stressés ou blessés",t:"traitement",v:"Bain à 3 % de sel pendant 5 minutes",every:90}]}
 };
-function progKey(l){const e=l.espece||"";return /poisson|tilapia|silure|clarias/i.test(e)?"poisson":/pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade/i.test(e)?"local":/chèvre|mouton/i.test(e)?"petitsrum":/bovin|vache/i.test(e)?"bovin":/porc/i.test(e)?"porc":null}
+function progKey(l){const e=l.espece||"";return /poisson|tilapia|silure|clarias/i.test(e)?"poisson":/caille/i.test(e)?(/chair/i.test(e)?"caillechair":"caillepond"):/pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade/i.test(e)?"local":/chèvre|mouton/i.test(e)?"petitsrum":/bovin|vache/i.test(e)?"bovin":/porc/i.test(e)?"porc":null}
 const dAdd=(isoD,n)=>{const d=new Date(isoD+"T12:00");d.setDate(d.getDate()+Math.round(n));return iso(d)};
 function programme(l){
   const out=isCrop(l)?(CC()?CC().programme(l,soins):[]):[];const key=isCrop(l)?null:progKey(l);if(key&&l.arrivee){const P=PROG[key];const age0=(Number(l.ageArrivee)||0)*7;
@@ -173,11 +196,11 @@ function allAlerts(l,s){
   const fa=feedAge(l,s),ph=feedPhase(l,fa);if(ph&&ph.next&&ph.next[0]-fa<=1&&ph.next[0]-fa>=0){
     const lag=s.ageW-fa;A.push(["warn",`Changement d'aliment : passer de « ${ph.cur} » à « ${ph.next[1]} » ${lag>=0.5?`quand le lot aura le poids standard de ${ph.next[0]} semaines`:`à ${ph.next[0]} semaines`} (vers le ${fdate(dAdd(l.arrivee,(ph.next[0]-(Number(l.ageArrivee)||0)+lag)*7))}). Faire la transition sur 3 à 5 jours.`,"feed"]);}
   const end=Number(l.ageFin)||defaultEnd(l);const left=end-s.ageW;
-  if(isLayer(l)&&left>=0&&left<=4)A.push(["warn",`Fin de cycle dans ${left} semaine(s) : préparer la vente des poules de réforme et commander le prochain lot.`,"plan"]);
+  if(isLayer(l)&&left>=0&&left<=4)A.push(["warn",`Fin de cycle dans ${left} semaine(s) : préparer la vente des ${isQuail(l)?"cailles":"poules"} de réforme et commander le prochain lot.`,"plan"]);
   if(!hasProd(l)&&left>=0&&left<=(isPoultry(l)?1:3))A.push(["warn",`Fin d'engraissement dans ${left} semaine(s) : organiser la vente (${sp(l).sale.toLowerCase()}) et préparer le prochain lot.`,"plan"]);
   if(isDairy(l)&&left>=0&&left<=4)A.push(["warn",`Fin de la période prévue dans ${left} semaine(s) : décider des réformes et du renouvellement.`,"plan"]);
   if(big(l)&&spKey(l)&&s.rows.length){const lp=s.rows.filter(r=>r.poids!=null).pop();if(!lp||daysBetween(lp.date,t)>30)A.push(["info","Pesée mensuelle : pesez quelques animaux (ou mesurez le tour de poitrine) et notez le poids moyen.","plan"])}
-  if(isPoultry(l)&&s.ageW<18&&s.rows.length){const lastP=s.rows.filter(r=>r.poids!=null).pop();if(!lastP||daysBetween(lastP.date,t)>7)A.push(["info","Pesée hebdomadaire : pesez 10 sujets et notez le poids moyen dans la saisie.","plan"])}
+  if(isPoultry(l)&&s.ageW<layAge(l)&&s.rows.length){const lastP=s.rows.filter(r=>r.poids!=null).pop();if(!lastP||daysBetween(lastP.date,t)>7)A.push(["info","Pesée hebdomadaire : pesez 10 sujets et notez le poids moyen dans la saisie.","plan"])}
   const order={bad:0,warn:1,info:2,ok:3};return A.sort((a,b)=>order[a[0]]-order[b[0]]);
 }
 let alertsAll=false;
@@ -294,10 +317,10 @@ const ING_LIM={
  poisson:{mais:40,sorgho:20,son:20,sonriz:15,dreche:15,soja:45,sojagrain:25,arachide:20,coton:20,poisson:55,sang:8,huile:6,phosphate:2,premix:1.5,lysine:0.5,methionine:0.4},
  rum:{mais:50,sorgho:40,mil:30,son:50,sonriz:30,dreche:30,soja:15,arachide:20,coton:35,graincoton:30,fanes:30,melasse:15,coquille:3,phosphate:2,premix:1,sel:2}
 };
-const SP_GRP={pondeuse:"volaille",chair:"volaille",local:"volaille",porc:"porc",poisson:"poisson",petitsrum:"rum",chevrelait:"rum",bovin:"rum",vachelait:"rum"};
+const SP_GRP={pondeuse:"volaille",chair:"volaille",local:"volaille",caillepond:"volaille",caillechair:"volaille",porc:"porc",poisson:"poisson",petitsrum:"rum",chevrelait:"rum",bovin:"rum",vachelait:"rum"};
 const SP_LIM_X={pondeuse:{coton:3,poisson:6},chair:{son:5,sonriz:5}};
 function ingLim(sp){return Object.assign({},ING_LIM[SP_GRP[sp]]||{},SP_LIM_X[sp]||{})}
-const SPN={pondeuse:"Poules pondeuses",chair:"Poulets de chair",local:"Poulets locaux et pintades",porc:"Porcs",poisson:"Poissons (tilapia, silure)",petitsrum:"Moutons et chèvres (croissance et embouche)",chevrelait:"Chèvres laitières",bovin:"Bovins (croissance et embouche)",vachelait:"Vaches laitières"};
+const SPN={pondeuse:"Poules pondeuses",chair:"Poulets de chair",local:"Poulets locaux et pintades",caillepond:"Cailles pondeuses",caillechair:"Cailles de chair",porc:"Porcs",poisson:"Poissons (tilapia, silure)",petitsrum:"Moutons et chèvres (croissance et embouche)",chevrelait:"Chèvres laitières",bovin:"Bovins (croissance et embouche)",vachelait:"Vaches laitières"};
 /* a : âge en semaines [début, fin[ · c : objectifs · g : ration repère en g par animal et par jour */
 const FORM={
  pondeuse:[
@@ -323,6 +346,18 @@ const FORM={
    f:{mais:39.95,soja:30.5,sorgho:16.5,poisson:6,son:4,phosphate:1.5,coquille:0.65,premix:0.5,sel:0.25,methionine:0.15}},
   {id:"croissance",t:"Croissance volailles locales (après 6 semaines)",a:[6,999],g:70,c:{pb:[15,17],ca:[0.9,1.1],em:[2550,2800],lys:[0.72,0.9],met:[0.32,0.42],pd:[0.36,0.48]},d:"Environ 50 à 90 g par sujet et par jour, en complément du parcours.",
    f:{mais:40.25,sorgho:17.5,son:15,sonriz:8,arachide:6,coton:5,poisson:5,phosphate:1.2,coquille:1.1,premix:0.5,sel:0.25,lysine:0.15,methionine:0.05}}],
+ caillepond:[
+  {id:"demarrage",t:"Démarrage cailleteaux (0 à 3 semaines)",a:[0,3],g:9,c:{pb:[24,27],ca:[0.8,1.1],em:[2850,3000],lys:[1.3,1.7],met:[0.5,0.7],pd:[0.45,0.6]},d:"À volonté, en farine fine. Environ 3 à 15 g par caille et par jour. Les cailleteaux ont besoin de beaucoup de protéines.",
+   f:{mais:44.15,soja:38,poisson:8,sorgho:5,huile:2,phosphate:1.4,coquille:0.3,premix:0.5,sel:0.25,methionine:0.25,lysine:0.15}},
+  {id:"croissance",t:"Croissance (3 à 6 semaines)",a:[3,6],g:20,c:{pb:[20,23],ca:[0.8,1.1],em:[2800,2950],lys:[1.05,1.3],met:[0.45,0.6],pd:[0.4,0.5]},d:"À volonté. Environ 15 à 25 g par caille et par jour.",
+   f:{mais:50.35,soja:30,poisson:5,sorgho:8,son:3,huile:1,phosphate:1.2,coquille:0.5,premix:0.5,sel:0.25,methionine:0.2}},
+  {id:"ponte",t:"Ponte cailles (à partir de 6 semaines)",a:[6,999],g:27,c:{pb:[20,22.5],ca:[2.8,3.6],em:[2750,2900],lys:[1.05,1.3],met:[0.45,0.6],pd:[0.4,0.55]},d:"Environ 25 à 30 g par caille et par jour. Eau propre en permanence, coquilles fines en complément.",
+   f:{mais:44.55,soja:31,poisson:6,sorgho:6,coquille:7,huile:3,phosphate:1.5,premix:0.5,sel:0.25,methionine:0.2}}],
+ caillechair:[
+  {id:"demarrage",t:"Démarrage cailleteaux (0 à 3 semaines)",a:[0,3],g:10,c:{pb:[24,27],ca:[0.8,1.1],em:[2850,3000],lys:[1.3,1.7],met:[0.5,0.7],pd:[0.45,0.6]},d:"À volonté, en farine fine. Environ 4 à 18 g par caille et par jour.",
+   f:{mais:44.15,soja:38,poisson:8,sorgho:5,huile:2,phosphate:1.4,coquille:0.3,premix:0.5,sel:0.25,methionine:0.25,lysine:0.15}},
+  {id:"finition",t:"Finition cailles de chair (à partir de 3 semaines)",a:[3,999],g:28,c:{pb:[20,22.5],ca:[0.8,1],em:[2950,3150],lys:[1.05,1.3],met:[0.45,0.6],pd:[0.4,0.5]},d:"À volonté jusqu'à la vente. Environ 22 à 34 g par caille et par jour.",
+   f:{mais:52.6,soja:30,poisson:5,sorgho:6,huile:3.5,phosphate:1.4,coquille:0.6,premix:0.5,sel:0.25,methionine:0.15}}],
  porc:[
   {id:"demarrage",t:"Porcelets (10 à 25 kg)",a:[0,9],g:750,c:{pb:[18.5,21],ca:[0.8,1],ed:[3200,3450],lys:[1.2,1.4],pd:[0.35,0.5]},d:"Environ 0,5 à 1 kg par porcelet et par jour, en 3 repas.",
    f:{mais:44.1,sorgho:20,soja:16.5,arachide:6,son:5,poisson:5,phosphate:1.5,coquille:0.7,premix:0.5,lysine:0.4,sel:0.3}},
@@ -370,7 +405,7 @@ let prixIng={},prixEng={},mesFormules=[];
 const pIng=k=>Number(prixIng[k]??(ING[k]||{}).prix)||0,pEng=k=>Number(prixEng[k]??ENG[k].prix)||0;
 const ingN=k=>ING[k]?ING[k].n:k;
 function formAt(key,w){const L=FORM[key]||[];return L.find(x=>w>=x.a[0]&&w<x.a[1])||L[L.length-1]}
-const FAKE_ESP={pondeuse:"Poules pondeuses",chair:"Poulets de chair",local:"Poulets locaux",porc:"Porcs",poisson:"Poissons",petitsrum:"Moutons et chèvres",bovin:"Bovins"};
+const FAKE_ESP={pondeuse:"Poules pondeuses",chair:"Poulets de chair",local:"Poulets locaux",caillepond:"Cailles pondeuses",caillechair:"Cailles de chair",porc:"Porcs",poisson:"Poissons",petitsrum:"Moutons et chèvres",bovin:"Bovins"};
 /* ration repère en g par animal et par jour, pour une espèce, un âge (semaines) et une formule */
 function rationG(key,w,fo){
   if(FAKE_ESP[key]&&w!=null){try{const g=stdFeed({espece:FAKE_ESP[key]},w);if(g>0)return g}catch(e){}}
@@ -911,6 +946,8 @@ function kpi(lbl,val,sub,cls){const d=el("div","kpi");d.append(el("span",null,lb
 const SP={
  pondeuse:{prod:"oeufs",unit:"œufs",end:80,mort:0.1,w:[[0,.04],[4,.27],[8,.66],[12,1.04],[16,1.38],[20,1.65],[30,1.9],[80,2.0]],sale:"Poules de réforme",prodName:"ponte"},
  chair:{end:7,mort:0.7,w:[[0,.042],[1,.19],[2,.47],[3,.94],[4,1.5],[5,2.1],[6,2.7],[7,3.2],[8,3.6]],sale:"Poulets vendus"},
+ caillepond:{prod:"oeufs",unit:"œufs",end:58,mort:0.25,w:[[0,.008],[1,.025],[2,.055],[3,.09],[4,.12],[5,.14],[6,.155],[8,.165],[20,.175],[60,.18]],sale:"Cailles de réforme",prodName:"ponte"},
+ caillechair:{end:6,mort:0.6,w:[[0,.009],[1,.03],[2,.07],[3,.12],[4,.17],[5,.21],[6,.24],[7,.26],[8,.27]],sale:"Cailles vendues"},
  local:{end:20,mort:0.5,w:[[0,.035],[4,.3],[8,.8],[12,1.3],[16,1.7],[20,2.0],[30,2.2]],sale:"Volailles vendues"},
  petitsrum:{emb:13,mort:0.1,w:[[0,3],[12,12],[26,20],[52,30],[104,40]],sale:"Animaux vendus"},
  chevrelait:{prod:"lait",unit:"litres",lait:1.0,emb:104,mort:0.05,w:[[0,3],[52,30],[104,38]],sale:"Chèvres réformées",prodName:"lait"},
@@ -919,9 +956,9 @@ const SP={
  porc:{end:26,mort:0.2,w:[[0,1.5],[8,20],[16,55],[24,95],[28,110],[52,150]],sale:"Porcs vendus"},
  poisson:{end:28,mort:0.2,w:[[0,.002],[4,.01],[8,.04],[12,.09],[16,.16],[20,.25],[24,.36],[28,.48],[32,.6]],sale:"Poissons vendus"}
 };
-function spKey(l){const e=l.espece||"";return /poisson|tilapia|silure|clarias/i.test(e)?"poisson":/pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade/i.test(e)?"local":/vache/i.test(e)?"vachelait":/chèvre.*lait/i.test(e)?"chevrelait":/chèvre|mouton/i.test(e)?"petitsrum":/bovin/i.test(e)?"bovin":/porc/i.test(e)?"porc":null}
+function spKey(l){const e=l.espece||"";return /poisson|tilapia|silure|clarias/i.test(e)?"poisson":/caille/i.test(e)?(/chair/i.test(e)?"caillechair":"caillepond"):/pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade/i.test(e)?"local":/vache/i.test(e)?"vachelait":/chèvre.*lait/i.test(e)?"chevrelait":/chèvre|mouton/i.test(e)?"petitsrum":/bovin/i.test(e)?"bovin":/porc/i.test(e)?"porc":null}
 function sp(l){return SP[spKey(l)]||{mort:0.1,w:null,sale:"Animaux vendus"}}
-function isPoultry(l){return /poule|poulet|pintade/i.test(l.espece||"")}
+function isPoultry(l){return /poule|poulet|pintade|caille/i.test(l.espece||"")}
 function isBroiler(l){return /chair/i.test(l.espece||"")}
 function hasProd(l){return !!sp(l).prod}
 function isDairy(l){return sp(l).prod==="lait"}
@@ -941,15 +978,18 @@ function weightStatus(l,s){if(!s||s.poids==null||!s.poidsDate||!l.arrivee||daysB
   return {kg,sw,ratio,aW,physio,date:s.poidsDate,late:ratio<0.95,ahead:ratio>1.1}}
 /* coefficient de ration : + jusqu'à 15 % si les animaux sont en retard, − jusqu'à 10 % si les poulettes sont trop lourdes */
 function catchFactor(l,ws){if(!ws)return 1;if(ws.late)return 1+Math.min(0.15,(1-ws.ratio)*0.6);
-  if(ws.ahead&&(isLayer(l)?ws.aW<18:!isBroiler(l)))return 1-Math.min(0.1,(ws.ratio-1.1)*0.5);return 1}
+  if(ws.ahead&&(isLayer(l)?ws.aW<layAge(l):!isBroiler(l)))return 1-Math.min(0.1,(ws.ratio-1.1)*0.5);return 1}
 /* âge utilisé pour choisir l'aliment : un lot en retard reste plus longtemps sur l'aliment de croissance */
 function feedAge(l,s){const ws=weightStatus(l,s);if(ws&&ws.ratio<0.9&&ws.physio!=null)return Math.min(s.ageW,Math.max(0,ws.physio));return s.ageW}
 function stdGain(l,w){const a=stdWeight(l,w),b=stdWeight(l,w+1);return a!=null&&b!=null?Math.max(0,(b-a)*1000/7):null}
-function stdPonte(w){ // courbe type pondeuse brune (ISA Brown / Lohmann)
+function stdPonte(w,l){ // courbe type pondeuse brune (ISA Brown / Lohmann) ; caille japonaise si l est un lot de cailles
+  if(l&&isQuail(l)){if(w<6)return 0;if(w<7)return 30;if(w<8)return 65;if(w<9)return 82;if(w<26)return 88;return Math.max(55,88-(w-26)*0.6)}
   if(w<18)return 0;if(w<19)return 10;if(w<20)return 35;if(w<21)return 60;if(w<22)return 80;if(w<23)return 89;if(w<25)return 93;if(w<31)return 95;
   return Math.max(65,95-(w-30)*0.55);}
 function stdFeed(l,w){ // g/sujet/jour
   const k=spKey(l);
+  if(k==="caillepond"){const T=[5,9,14,18,21,24];const i=Math.max(0,Math.floor(w));return i<T.length?T[i]:27}
+  if(k==="caillechair"){const T=[6,12,18,23,28,32,34];const i=Math.max(0,Math.floor(w));return i<T.length?T[i]:35}
   if(k==="chair")return [25,50,80,110,140,160,175,185][Math.min(7,Math.max(0,Math.floor(w)))];
   if(k==="local")return w<4?20:w<8?45:w<12?65:w<16?80:90;
   if(k==="pondeuse"){const T=[10,17,23,28,34,39,44,49,53,57,61,64,67,70,73,76,80,85,92,98,103,107,110];const i=Math.max(0,Math.floor(w));return i<T.length?T[i]:115}
@@ -968,7 +1008,7 @@ function ration(l,s,date){const d=date||today();const w=(Number(l.ageArrivee)||0
 function defaultEnd(l){const P=sp(l);if(P.end)return P.end;if(P.emb)return (Number(l.ageArrivee)||0)+P.emb;return 52}
 function fmtW(l,g){return g==null?"—":big(l)?fmt(g/1000,1)+" kg":fmt(g)+" g"}
 function prodSummary(l,s){
-  if(isLayer(l))return `Ponte moyenne 7 j : ${fmt(s.ponte7,1)} % (semaine précédente ${fmt(s.pontePrev,1)} %, standard ${fmt(stdPonte(s.ageW))} %).`;
+  if(isLayer(l))return `Ponte moyenne 7 j : ${fmt(s.ponte7,1)} % (semaine précédente ${fmt(s.pontePrev,1)} %, standard ${fmt(stdPonte(s.ageW,l))} %).`;
   if(isDairy(l))return `Lait moyen 7 j : ${fmt(s.lait7,2)} L/tête/jour (standard ≈ ${fmt(sp(l).lait,1)} L).`;
   const sw=stdWeight(l,s.ageW);return `Poids moyen : ${fmtW(l,s.poids)} (standard à cet âge ≈ ${sw!=null?fmtW(l,sw*1000):"—"})${s.gmq!=null?`, gain moyen ${fmtW(l,s.gmq)}/jour`:""}.`;
 }
@@ -999,7 +1039,7 @@ function project(l,s,f,factor,paAlt){
   const mNorm=l.mortPrev!=null&&l.mortPrev!==""?Number(l.mortPrev)/100:(P.mort||0.1)/100;
   const mr=s.alive>0?recentMort(s):null;const mRecent=mr==null?mNorm:Math.min(0.01,Math.max(0.0005,mr));const m=mRecent;
   const r0=f.daysSince!=null?f.daysSince%7:0;
-  let k=1;if(isLayer(l)&&s.ponte7!=null&&stdPonte(a0)>=30)k=Math.min(1.15,Math.max(0.5,s.ponte7/stdPonte(a0)));
+  let k=1;if(isLayer(l)&&s.ponte7!=null&&stdPonte(a0,l)>=30)k=Math.min(1.15,Math.max(0.5,s.ponte7/stdPonte(a0,l)));
   if(isDairy(l)&&s.lait7!=null&&P.lait)k=Math.min(1.6,Math.max(0.3,s.lait7/P.lait));
   let kw=1;if(s.poids!=null&&s.poidsDate&&daysBetween(s.poidsDate,today())<=30){const aW=(Number(l.ageArrivee)||0)+(l.arrivee?daysBetween(l.arrivee,s.poidsDate)/7:0);const sw=stdWeight(l,aW);if(sw)kw=Math.min(1.3,Math.max(0.6,s.poids/1000/sw))}
   const sf=hasProd(l)?1:factor;
@@ -1011,8 +1051,8 @@ function project(l,s,f,factor,paAlt){
     /* gros animaux et poissons : la ration grandit avec l'animal → on suit la courbe standard, ajustée à ce qu'ils mangent
        réellement aujourd'hui (avant : la ration d'aujourd'hui restait figée jusqu'à la fin du cycle, aliment sous-estimé) */
     const g0=stdFeed(l,a0),kf=s.gpj7!=null&&g0>0?Math.min(1.5,Math.max(0.5,s.gpj7/g0)):1;
-    const g=(w>=18&&s.ageW>=18&&s.gpj7!=null&&isPoultry(l)&&!isBroiler(l))?s.gpj7:(s.gpj7!=null&&!isPoultry(l)?(g0>0?stdFeed(l,w)*kf:s.gpj7):stdFeed(l,w));
-    let e=0;if(isLayer(l))e=birds*Math.min(98,stdPonte(w)*k*factor)/100*7*fr;else if(isDairy(l))e=birds*P.lait*k*factor*7*fr;eggs+=e;
+    const g=(w>=layAge(l)&&s.ageW>=layAge(l)&&s.gpj7!=null&&isPoultry(l)&&!isBroiler(l))?s.gpj7:(s.gpj7!=null&&!isPoultry(l)?(g0>0?stdFeed(l,w)*kf:s.gpj7):stdFeed(l,w));
+    let e=0;if(isLayer(l))e=birds*Math.min(98,stdPonte(w,l)*k*factor)/100*7*fr;else if(isDairy(l))e=birds*P.lait*k*factor*7*fr;eggs+=e;
     const kg=birds*g*7/1000*fr;fut.oeufs+=e*pv;fut.alimentKg+=kg;fut.aliment+=kg*pa;fut.charges+=ch*fr;
     solde+=e*pv-kg*pa-ch*fr;birds*=(1-mw*fr);
     if(a0+i+1>end){wEnd=(stdWeight(l,w)||0)*kw*sf;const unit=Number(l.prixKg)?wEnd*Number(l.prixKg):(Number(l.prixFin)||0)*sf;const r=birds*unit;fut.reforme+=r;solde+=r}
@@ -1030,7 +1070,7 @@ function cashSVG(base,low,high,l,s){
   const short=v=>{const a=Math.abs(v),sg=v<0?"−":v>0?"+":"";return sg+(a>=1e6?fmt(a/1e6,1)+" M":a>=1e3?fmt(a/1e3)+" k":fmt(a))};
   let o=`<defs><clipPath id="cpos"><rect x="0" y="0" width="${W}" height="${y0}"/></clipPath><clipPath id="cneg"><rect x="0" y="${y0}" width="${W}" height="${H}"/></clipPath></defs>`;
   // phases (pondeuses)
-  if(isLayer(l)){const iL=Math.max(0,Math.min(n,18-s.ageW));
+  if(isLayer(l)){const iL=Math.max(0,Math.min(n,layAge(l)-s.ageW));
     if(iL>0)o+=`<rect class="phase" x="${pl}" y="${pt-22}" width="${x(iL)-pl}" height="16" rx="3"/><text class="phaselbl" x="${pl+6}" y="${pt-10}">Élevage</text>`;
     if(iL<n)o+=`<text class="phaselbl" x="${x(iL)+6}" y="${pt-10}">Ponte</text>`;
     o+=`<text class="phaselbl" x="${W-pr}" y="${pt-10}" text-anchor="end">Réforme</text>`;}
@@ -1230,7 +1270,7 @@ async function renderDetail(){
       D.append(g)}}
     const key=isLayer(l)?"ponte":isDairy(l)?"lait":"poidsD";
     const unitC=key==="ponte"?"%":key==="lait"?"L":big(l)?"kg":"g";
-    const refFn=key==="ponte"?stdPonte:key==="lait"?(()=>sp(l).lait):(sp(l).w?(a=>stdWeight(l,a)*(big(l)?1:1000)):null);
+    const refFn=key==="ponte"?(a=>stdPonte(a,l)):key==="lait"?(()=>sp(l).lait):(sp(l).w?(a=>stdWeight(l,a)*(big(l)?1:1000)):null);
     const svg=chartSVG(s.rows,key,unitC,key==="ponte"?100:0,l,refFn);
     const lblC={ponte:"Taux de ponte (30 derniers jours)",lait:"Lait par tête et par jour (L)",poidsD:`Poids moyen (${unitC})`}[key];
     D.append(el("h3","sec",lblC));
@@ -1292,7 +1332,8 @@ $("l-espece").onchange=syncSpeciesForm;$("l-age").addEventListener("input",syncS
 $("l-cancel").onclick=closeForm;
 $("l-save").onclick=async()=>{
   if(!db)return;const eff=N($("l-effectif").value);
-  if(/pondeuse/i.test($("l-espece").value)&&N($("l-agefin").value)!=null&&N($("l-agefin").value)<40){$("l-msg").textContent="Pour des pondeuses, la fin du cycle est vers 72 à 80 semaines (7 correspond aux poulets de chair).";$("l-msg").className="msg err";return}
+  if(/caille/i.test($("l-espece").value)&&/pondeuse/i.test($("l-espece").value)&&N($("l-agefin").value)!=null&&N($("l-agefin").value)<20){$("l-msg").textContent="Pour des cailles pondeuses, la fin du cycle est vers 50 à 60 semaines (6 correspond aux cailles de chair).";$("l-msg").className="msg err";return}
+  if(!/caille/i.test($("l-espece").value)&&/pondeuse/i.test($("l-espece").value)&&N($("l-agefin").value)!=null&&N($("l-agefin").value)<40){$("l-msg").textContent="Pour des pondeuses, la fin du cycle est vers 72 à 80 semaines (7 correspond aux poulets de chair).";$("l-msg").className="msg err";return}
   if(!$("l-nom").value.trim()||!eff){lStep=0;renderStep();$("l-msg").textContent="Indiquez au moins le nom et l'effectif.";$("l-msg").className="msg err";return}
   const body={nom:$("l-nom").value.trim(),espece:$("l-espece").value,race:$("l-race").value.trim(),effectif:eff,arrivee:$("l-arrivee").value||today(),
     ageArrivee:N($("l-age").value)||0,prixAliment:N($("l-paliment").value),prixOeuf:N($("l-pvente").value),prixKg:N($("l-pkg").value),actif:true,
@@ -1359,7 +1400,7 @@ $("s-del").onclick=async()=>{const id=$("s-lot").value,d=$("s-date").value,b=$("
 /* accès pour les modules complémentaires (plus.js) */
 window.B2A.app={isCrop,kpi,alertList,calItem,errText,loadNames,names,openLotForm,closeLot,renderLots,renderDetail,notr,
   saisies:()=>saisies,soins:()=>soins,allLots:()=>lots,CULT,ENG,pEng,setForm:v=>{formOpen=v},setSel:(id,open)=>{selLot=id;detailOpen=!!open},setCalLot:id=>{calLot=id},
-  db:()=>db,me:()=>me,can:()=>canWrite,lots:()=>lots.filter(l=>l.actif!==false),stats,allAlerts,programme,feedItems,isLayer,isDairy,fmt,fdate,today,show,openLot,factures:()=>factures,facTotals,spName:l=>sp(l).sale};
+  db:()=>db,me:()=>me,can:()=>canWrite,lots:()=>lots.filter(l=>l.actif!==false),stats,allAlerts,programme,feedItems,isLayer,isQuail,layAge,isDairy,fmt,fdate,today,show,openLot,factures:()=>factures,facTotals,spName:l=>sp(l).sale};
 
 /* ---------- diagnostic ---------- */
 const OBJ={animal:["Non précisé","Ponte","Chair / engraissement","Lait","Reproduction / élevage","Traction"],

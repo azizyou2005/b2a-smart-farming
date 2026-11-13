@@ -470,7 +470,7 @@ const R={
     const L2=list.slice(0,60);if(L2.length)await LN.schedule({notifications:L2});return L2.length},
   /* ramassage des œufs : rappel chaque jour pour les lots de pondeuses en ponte (18 semaines et plus) */
   eggsOn:()=>B.lsGet("b2a-rem-oeufs")!=="0",eggsHour:()=>{const h=Number(B.lsGet("b2a-rem-oeufs-h"));return h>=5&&h<=20?h:10},
-  eggsLots(){if(!this.eggsOn())return [];return A.lots().filter(l=>{if(!A.isLayer(l)||A.isCrop(l))return false;try{const s=A.stats(l);return s.ageW>=18&&(s.alive==null||s.alive>0)}catch(e){return false}})},
+  eggsLots(){if(!this.eggsOn())return [];return A.lots().filter(l=>{if(!A.isLayer(l)||A.isCrop(l))return false;try{const s=A.stats(l);return s.ageW>=(A.layAge?A.layAge(l):18)&&(s.alive==null||s.alive>0)}catch(e){return false}})},
   /* rappel du soir (18:00) : aujourd'hui si un lot d'animaux n'a pas encore sa saisie du jour, sinon demain */
   saisieOn:()=>B.lsGet("b2a-rem-saisie")!=="0",
   saisieAt(){if(!this.saisieOn())return null;const lots=A.lots().filter(l=>!A.isCrop(l));if(!lots.length)return null;

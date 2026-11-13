@@ -35,7 +35,7 @@ document.addEventListener("b2a-lang",()=>mark());
 function show(){if(!ov.isConnected)document.body.append(ov);document.documentElement.classList.add("acces-on")}
 function hide(){ov.remove();document.documentElement.classList.remove("acces-on")}
 
-const ELEV=["Poules pondeuses","Poulets de chair","Volaille locale / pintades","Couvoir (poussins)","Porcs","Moutons / chèvres","Bovins","Poissons","Cultures","Autre"];
+const ELEV=["Poules pondeuses","Poulets de chair","Volaille locale / pintades","Cailles","Couvoir (poussins)","Porcs","Moutons / chèvres","Bovins","Poissons","Cultures","Autre"];
 const LS_MSG="b2a-acces-msg";
 const okMail=x=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(x);
 const mailErr=e=>{const c=(e&&e.code)||"";

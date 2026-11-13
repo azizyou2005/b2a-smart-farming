@@ -180,7 +180,7 @@ const genre=esp=>esp==="couvee"||esp==="culture"||esp==="poisson"?esp:VOLAILLES.
 const HORS={culture:["alNh3","alVis","alTremie"],couvee:["alNh3","alVis","alTremie","alEauRemplit","alFuite","alEauQualite"],poisson:["alNh3"]};
 const pertinente=k=>!(HORS[genre(infoLot().esp)]||[]).includes(k);
 function especeDe(l){const e=(l&&l.espece)||"";
-  return /poisson|tilapia|silure|clarias/i.test(e)?"poisson":/pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade|caille|dinde|canard/i.test(e)?"local":
+  return /poisson|tilapia|silure|clarias/i.test(e)?"poisson":/caille/i.test(e)?"local":/pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade|caille|dinde|canard/i.test(e)?"local":
     /vache/i.test(e)?"vachelait":/chèvre.*lait/i.test(e)?"chevrelait":/chèvre|mouton|brebis|agneau/i.test(e)?"petitsrum":/bovin|veau|taurillon/i.test(e)?"bovin":/porc|truie/i.test(e)?"porc":"autre"}
 const num=x=>Number(String(x==null?"":x).replace(",","."));
 const plage=x=>{const m=String(x||"").match(/(\d+)\D+(\d+)/);return m?[+m[1],+m[2]]:[50,55]};
@@ -197,6 +197,8 @@ function consignes(ageJ,esp,sante,X){
     else if(s===3){t=27.5;hb=50;hh=65;lum=14}else if(s===4){t=25.5;hb=50;hh=70;lum=12}else{t=23;hb=50;hh=70;lum=s<=16?11:Math.min(16,11+0.5*(s-16))}
   }else if(esp==="chair"){ /* poulets de chair : environ 32 °C au premier jour, puis baisse régulière vers 21 °C */
     t=Math.max(21,Math.round((32-ageJ*0.3)*2)/2);hb=ageJ<=7?60:50;lum=ageJ<=7?23:18}
+  else if(esp==="local"&&X&&X.caille){ /* cailles : 37 à 38 °C au premier jour, puis −3 °C par semaine ; 16 h de lumière pour la ponte */
+    t=Math.max(21,Math.round((38-ageJ*0.45)*2)/2);hb=ageJ<=7?60:50;lum=ageJ<=7?23:ageJ<=28?16:X.ponte?16:12}
   else if(esp==="local"){ /* poulets locaux, pintades : démarrage plus chaud et croissance plus lente */
     t=Math.max(21,Math.round((33-ageJ*0.25)*2)/2);hb=ageJ<=7?60:50;lum=ageJ<=7?23:ageJ<=28?16:12}
   else if(esp==="porc"){ /* porcelets au chaud, porcs à l'engrais au frais : sensibles à la chaleur */
@@ -428,8 +430,8 @@ function infoLot(){
   if(l.arrivee){const d=Math.floor((new Date(A.today()+"T12:00")-new Date(l.arrivee+"T12:00"))/864e5);if(d>0)ageJ+=d}
   let s=null;try{s=A.stats(l)}catch(e){}
   let malade=0;try{malade=+(!!s&&(s.morts7pct>1||(A.allAlerts(l,s)||[]).some(a=>a[0]==="bad")))}catch(e){}
-  const esp=especeDe(l);
-  return{l,ageJ,esp,ponte:esp==="pondeuse",alive:s?s.alive:Number(l.effectif)||0,sante:santeForcee!=null?santeForcee:malade}
+  const esp=especeDe(l);const cai=/caille/i.test(l.espece||""),caiP=cai&&/pondeuse/i.test(l.espece||"");
+  return{l,ageJ,esp,X:cai?{caille:true,ponte:caiP}:undefined,ponte:esp==="pondeuse"||caiP,alive:s?s.alive:Number(l.effectif)||0,sante:santeForcee!=null?santeForcee:malade}
 }
 function setStatus(cls,t){const e=$("pc-status");e.className="pc-st "+cls;e.textContent=t}
 function connect(){

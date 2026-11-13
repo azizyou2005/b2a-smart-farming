@@ -402,9 +402,9 @@ function pieceStatus(){const c=el("section","card");
 function fromLot(l){const C=window.B2A_CULT;
   if(A.isCrop&&A.isCrop(l)){const c=C&&C.crops[l.culture];return {cat:c&&c.g==="arbre"?"recoltes":"recoltes",titre:(l.espece||"Récolte")+(l.variete?" "+l.variete:""),unite:"kg",prix:Number(l.prixVente)||(c?c.prix:null)}}
   const e=l.espece||"";
-  if(A.isLayer(l))return {cat:"oeufs",titre:"Œufs frais"+(l.race?" ("+l.race+")":""),unite:"plateau de 30",prix:Number(l.prixOeuf)?Math.round(Number(l.prixOeuf)*30):null};
+  if(A.isLayer(l))return {cat:"oeufs",titre:(/caille/i.test(e)?"Œufs de caille frais":"Œufs frais")+(l.race?" ("+l.race+")":""),unite:"plateau de 30",prix:Number(l.prixOeuf)?Math.round(Number(l.prixOeuf)*30):null};
   if(A.isDairy(l))return {cat:"lait",titre:"Lait frais",unite:"litre",prix:Number(l.prixOeuf)||null};
-  if(/poulet|pintade/i.test(e))return {cat:"animaux",titre:e+(l.race?" "+l.race:""),unite:Number(l.prixKg)?"kg":"tête",prix:Number(l.prixKg)||Number(l.prixFin)||null};
+  if(/poulet|pintade|caille/i.test(e))return {cat:"animaux",titre:e+(l.race?" "+l.race:""),unite:Number(l.prixKg)?"kg":"tête",prix:Number(l.prixKg)||Number(l.prixFin)||null};
   return {cat:"animaux",titre:e+(l.race?" "+l.race:""),unite:"tête",prix:Number(l.prixFin)||null}}
 function annForm(){const a=editA||{};const c=el("section","card");const bk=el("button","back","‹ Annuler");bk.type="button";bk.onclick=()=>{formOpen=false;editA=null;render()};c.append(bk);
   c.append(el("h2","sec",editA?"Modifier l'annonce":"Nouvelle annonce"));

@@ -235,10 +235,11 @@ function proHead(D){const p=el("p","pro-ok");p.append(notr(el("span","pro-badge"
 
 /* ================= espèce et âge ================= */
 function espKey(l){if(A.isCrop&&A.isCrop(l))return "culture";const e=l.espece||"";
-  return /poisson|tilapia|silure|clarias/i.test(e)?"poisson":/pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade|caille|canard|dinde/i.test(e)?"local":/vache/i.test(e)?"vachelait":/chèvre.*lait/i.test(e)?"chevrelait":/chèvre|mouton/i.test(e)?"petitsrum":/bovin/i.test(e)?"bovin":/porc/i.test(e)?"porc":"autre"}
+  return /poisson|tilapia|silure|clarias/i.test(e)?"poisson":/caille/i.test(e)?"local":/pondeuse/i.test(e)?"pondeuse":/chair/i.test(e)?"chair":/poulet|pintade|caille|canard|dinde/i.test(e)?"local":/vache/i.test(e)?"vachelait":/chèvre.*lait/i.test(e)?"chevrelait":/chèvre|mouton/i.test(e)?"petitsrum":/bovin/i.test(e)?"bovin":/porc/i.test(e)?"porc":"autre"}
 const isBird=k=>k==="pondeuse"||k==="chair"||k==="local";
 /* plages conseillées (volailles) : chauffage dégressif les premières semaines, puis zone de confort de l'adulte */
 function plage(l,s){const k=espKey(l);const w=s&&s.ageW!=null?s.ageW:null;
+  if(isBird(k)&&w!=null&&/caille/i.test(l.espece||"")){const T=w<1?[35,38]:w<2?[32,35]:w<3?[29,32]:w<4?[26,29]:[18,28];return {t:T,h:[50,70]}}
   if(isBird(k)&&w!=null){const T=w<1?[32,35]:w<2?[29,32]:w<3?[26,29]:w<4?[23,26]:[18,27];return {t:T,h:[50,70]}}
   if(k==="porc")return {t:w!=null&&w<4?[26,32]:[16,25],h:[50,75]};
   if(k==="petitsrum"||k==="bovin"||k==="vachelait"||k==="chevrelait")return {t:[5,27],h:[40,80]};
