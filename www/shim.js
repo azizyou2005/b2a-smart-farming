@@ -48,7 +48,12 @@ function loadFirebase(cfg){if(!fbP)fbP=(async()=>{const v="10.14.1",b=`https://w
   if(!firebase.apps.length)firebase.initializeApp(cfg);
   /* cache illimité : les fiches déjà téléchargées restent sur le téléphone (la synchronisation ne relit que ce qui a changé) */
   const fs=firebase.firestore();try{fs.settings({ignoreUndefinedProperties:true,merge:true,cacheSizeBytes:firebase.firestore.CACHE_SIZE_UNLIMITED})}catch(e){}
-  try{await fs.enablePersistence({synchronizeTabs:true});window.__b2aPersist=true}catch(e){window.__b2aPersist=false}
+  /* iPhone/iPad (Safari, web) : un seul onglet, sans partage entre onglets. Le mode « plusieurs onglets » écrit dans la mémoire
+     locale toutes les 4 s ; si Safari met l'app en pause pendant une de ces écritures, Firebase s'arrête (voir plus bas).
+     Moins d'écritures = beaucoup moins d'arrêts. Les données déjà sur le téléphone sont conservées. */
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1;
+  const C=window.Capacitor,native=!!(C&&C.isNativePlatform&&C.isNativePlatform());
+  try{await fs.enablePersistence(ios&&!native?{synchronizeTabs:false}:{synchronizeTabs:true});window.__b2aPersist=true}catch(e){window.__b2aPersist=false}
   return firebase})();fbP.catch(()=>{fbP=null});return fbP}
 /* iPhone (Safari) : quand l'app reste en arrière-plan, Safari peut fermer la mémoire locale de Firebase (IndexedDB).
    Firebase s'arrête alors (« ... without an in-progress transaction », « Connection to Indexed Database server lost »,
