@@ -118,6 +118,7 @@ function compute(Y){
   order.forEach(g=>acts[g]={v:0,d:0});
   let enc=0,poussFact=0,poussPaye=0,nb=0;const facProd=new Set();
   /* détail des dépenses pour l'écran « D'où viennent les dépenses » */
+  let ponct=0;/* achats ponctuels (animaux à l'arrivée du lot) : pas répétés dans la projection de fin d'année */
   const det=[],caisseAgg={},lotName=l=>(l&&(l.nom||l.espece))||"";
   const add=(label,who,calc,amt)=>{if(amt>0)det.push({label,who,calc,amt})};
   /* ventes : factures de l'année */
@@ -142,7 +143,7 @@ function compute(Y){
   (A.saisies()||[]).forEach(s=>{if(yearOf(s.date)!==Y)return;const l=byId[s.lotId];if(!l||has("aliment",grpOf(l)))return;const kg=N(s.alimentKg),pa=Number(l.prixAliment)||0;
     if(kg>0&&pa>0){G(grpOf(l)).d+=kg*pa;const k="al|"+l.id,c=caisseAgg[k]||(caisseAgg[k]={kg:0,pa,l});c.kg+=kg}});
   Object.keys(caisseAgg).filter(k=>k.startsWith("al|")).forEach(k=>{const c=caisseAgg[k];add("Aliment estimé (saisies)",lotName(c.l),fmt(Math.round(c.kg))+" kg × "+fmt(c.pa)+" F",c.kg*c.pa)});
-  lots.forEach(l=>{if(yearOf(l.arrivee)!==Y||(A.isCrop&&A.isCrop(l))||has("animaux",grpOf(l)))return;const v=(Number(l.prixSujet)||0)*(Number(l.effectif)||0);if(v>0){G(grpOf(l)).d+=v;nb++;
+  lots.forEach(l=>{if(yearOf(l.arrivee)!==Y||(A.isCrop&&A.isCrop(l))||has("animaux",grpOf(l)))return;const v=(Number(l.prixSujet)||0)*(Number(l.effectif)||0);if(v>0){G(grpOf(l)).d+=v;nb++;ponct+=v;
     add("Achat des animaux (estimé)",lotName(l)+" · "+(l.arrivee||""),fmt(Number(l.effectif))+" × "+fmt(Number(l.prixSujet))+" F",v)}});
   /* couvoir : coûts des couvées et poussins encaissés (toutes espèces couvées)
      - électricité des couveuses : déjà dans la caisse si « Eau et électricité » y est notée
@@ -186,7 +187,7 @@ function compute(Y){
   const ca=rows.reduce((p,[,a])=>p+a.v,0),dep=rows.reduce((p,[,a])=>p+a.d,0);
   const marge=ca-dep,avant=marge-amort,imp=avant>0?avant*taux()/100:0;
   det.sort((a,b)=>b.amt-a.amt);
-  return {rows,ca,dep,marge,amort,amortYear,avant,imp,net:avant-imp,enc,det,notes,empty:!nb&&!amort};
+  return {rows,ca,dep,marge,ponct,amort,amortYear,avant,imp,net:avant-imp,enc,det,notes,empty:!nb&&!amort};
 }
 
 /* ================= affichage ================= */
@@ -224,7 +225,7 @@ function render(){
     D.append(ul);S.notes.forEach(([w,t])=>{const p=el("p","note");const b=el("b",null,w);b.setAttribute("data-notr","");p.append(b,document.createElement("br"),el("span",null,t));D.append(p)});W.append(D)}
   /* projection sur l'année en cours */
   if(year===cy){const now=new Date(),d0=new Date(cy,0,1);const doy=Math.floor((now-d0)/864e5)+1;
-    if(doy>=30&&doy<355){const k=365/doy;const avant=S.marge*k-S.amortYear,net=avant-(avant>0?avant*taux()/100:0);
+    if(doy>=30&&doy<355){const k=365/doy;const avant=(S.marge+S.ponct)*k-S.ponct-S.amortYear,net=avant-(avant>0?avant*taux()/100:0);
       const P=$("b-proj");P.append(el("span","label","Si le rythme continue jusqu'à la fin de l'année"));
       const tl=el("div","tiles");tl.style.gridTemplateColumns="repeat(2,minmax(0,1fr))";
       [["Chiffre d'affaires prévu",short(S.ca*k),null],["Bénéfice net prévu",short(net),net>=0?"ok":"bad"]].forEach(([l,v,c])=>{const t=el("div","tile"+(c?" "+c:""));t.append(el("span",null,l),el("b",null,v));tl.append(t)});
