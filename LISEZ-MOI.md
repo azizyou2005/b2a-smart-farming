@@ -229,3 +229,17 @@ La clé de signature de l'APK n'est **pas** dans ce dossier : elle est dans le d
 | Prix pour l'éleveur | 0 F | Fixé par B2A |
 
 Le guide et l'IA aident à réagir vite mais ne remplacent pas un vétérinaire.
+
+---
+
+## Statistiques nationales pour le ministère de l'Agriculture et de l'Élevage
+
+**Côté éleveur** : dans l'application, *Réglages > Statistiques nationales de l'élevage* (et une question unique sur l'accueil). Si l'éleveur accepte, le téléphone envoie une fois par jour un résumé **anonyme** : pays, ville, province (facultative) et, par espèce, nombre d'animaux, morts sur 30 jours, production, vaccins prévus et faits. Jamais de nom, téléphone, client ni argent. Dans une ferme partagée, seul le propriétaire envoie. Décocher efface le résumé.
+
+**Côté B2A** : page des utilisateurs, onglet **Ministère**.
+1. *Calculer l'aperçu* (choisir le pays), vérifier, puis *Publier pour le ministère*. Les groupes de moins de 3 fermes sont fusionnés ; il faut au moins 3 fermes pour publier.
+2. *Accès du ministère* : créez le compte dans Firebase (**Authentication > Users > Ajouter un utilisateur**), copiez son **UID**, collez-le dans l'onglet Ministère.
+
+**Côté ministère** : https://azizyou2005.github.io/b2a-smart-farming/ministere.html (e-mail + mot de passe). Il voit seulement les rapports publiés, peut les imprimer en PDF ou les télécharger pour Excel. Il n'a aucun accès aux fermes, aux inscriptions ni au code.
+
+**Important** : après la mise à jour, publiez le nouveau `firestore.rules` dans Firebase (Firestore > Règles > Publier), sinon rien ne s'enregistre.

@@ -233,3 +233,39 @@ test("personnel : salaires, paie et évaluations réservés au propriétaire ; t
   await assertSucceeds(as("bob").doc("farms/ABCDE12345/taches/t1").update({ faits: { "2026-11-14": { par: "B" } } }));
   await assertFails(as("vendeur").doc("farms/ABCDE12345/taches/t1").get());
 });
+
+test("statistiques nationales : résumé anonyme par l'éleveur, rapports lus seulement par le ministère autorisé", async () => {
+  await setup(async db => { await db.doc("ministere_acces/mini").set({ nom: "DGSV" }); });
+  const { serverTimestamp } = await import("firebase/firestore");
+  const MIN = { email: "dgsv@agriculture.gov.bf", firebase: { sign_in_provider: "password" } };
+  const res = o => ({ pays: "Burkina Faso", ville: "Ouaga", province: "Kadiogo", cle: "", nbLots: 2, version: "60.32",
+    especes: { pondeuse: { lots: 1, effectif: 500, morts30: 3, oeufs30: 9000, lait30: 0, vaccDus: 2, vaccFaits: 2, alerte: 0 } }, cultures: {}, majLe: serverTimestamp(), ...o });
+  // l'éleveur inscrit envoie et relit SON résumé ; jamais celui d'un autre, jamais avec un nom ou un téléphone
+  await assertSucceeds(as("alice").doc("stats_contrib/alice").set(res()));
+  await assertSucceeds(as("alice").doc("stats_contrib/alice").get());
+  await assertFails(as("bob").doc("stats_contrib/alice").get());
+  await assertFails(as("bob").collection("stats_contrib").get());
+  await assertFails(as("bob").doc("stats_contrib/alice").set(res()));
+  await assertFails(as("carol").doc("stats_contrib/carol").set(res()));            // pas inscrit
+  await assertFails(as("bob").doc("stats_contrib/bob").set(res({ nom: "Bob" })));
+  await assertFails(as("bob").doc("stats_contrib/bob").set(res({ tel: "70000000" })));
+  await assertFails(as("bob").doc("stats_contrib/bob").set(res({ cle: "CODEFERME1" })));   // jamais le code de la ferme en clair
+  await assertSucceeds(as("bob").doc("stats_contrib/bob").set(res({ cle: "a".repeat(32) })));
+  // retrait de l'accord
+  await assertSucceeds(as("alice").doc("stats_contrib/alice").delete());
+  // B2A lit tous les résumés et publie ; le ministère ne lit que les rapports
+  await assertSucceeds(as("x", ADMIN).collection("stats_contrib").get());
+  await assertSucceeds(as("x", ADMIN).doc("ministere_rapports/r1").set({ titre: "Rapport", nbFermes: 5 }));
+  await assertSucceeds(as("mini", MIN).doc("ministere_rapports/r1").get());
+  await assertSucceeds(as("mini", MIN).collection("ministere_rapports").get());
+  await assertFails(as("mini", MIN).doc("ministere_rapports/r2").set({ titre: "Faux" }));
+  await assertFails(as("mini", MIN).collection("stats_contrib").get());
+  await assertFails(as("mini", MIN).doc("inscriptions/alice").get());
+  await assertFails(as("mini", MIN).doc("ministere_acces/autre").set({ nom: "moi" }));
+  // un éleveur, un compte sans accès ou un compte anonyme ne lisent pas les rapports
+  await assertFails(as("alice").doc("ministere_rapports/r1").get());
+  await assertFails(as("autre", MIN).doc("ministere_rapports/r1").get());
+  await assertFails(as("mini").doc("ministere_rapports/r1").get());               // même uid mais sans mot de passe
+  await assertFails(anon().doc("ministere_rapports/r1").get());
+  await assertSucceeds(as("x", ADMIN).doc("ministere_acces/nouveau").set({ nom: "DPA" }));
+});

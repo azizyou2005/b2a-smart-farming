@@ -407,6 +407,38 @@ service cloud.firestore {
       allow read, delete: if isAdmin();
     }
 
+    // ---------- Statistiques nationales (ministère de l'Agriculture et de l'Élevage) ----------
+    // stats_contrib/<uid> : résumé ANONYME d'une ferme, envoyé seulement si l'utilisateur a donné son accord
+    // (Réglages > Statistiques nationales). Ni nom, ni téléphone, ni clients, ni argent : pays, ville, effectifs,
+    // mortalité, production et vaccins par espèce. Lisible par l'utilisateur lui-même et par B2A ; jamais par le ministère.
+    function statNum(v) { return v is number && v >= 0 && v < 100000000; }
+    match /stats_contrib/{uid} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow create, update: if approved() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['pays','ville','province','cle','especes','cultures','nbLots','majLe','version'])
+        && txt(request.resource.data.pays, 60) && txt(request.resource.data.ville, 60)
+        && txt(request.resource.data.get('province', ''), 60) && txt(request.resource.data.get('version', ''), 20)
+        && (request.resource.data.get('cle', '') == '' || (request.resource.data.cle is string && request.resource.data.cle.matches('^[a-f0-9]{32}$')))
+        && request.resource.data.especes is map && request.resource.data.especes.size() <= 15
+        && request.resource.data.get('cultures', {}) is map && request.resource.data.get('cultures', {}).size() <= 30
+        && statNum(request.resource.data.nbLots) && request.resource.data.majLe == request.time;
+      // retrait de l'accord : l'utilisateur efface son résumé
+      allow delete: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+    }
+    // Comptes du ministère : ministere_acces/<uid du compte E-mail / mot de passe créé par B2A dans Firebase>.
+    function ministere() { return request.auth != null && request.auth.token.firebase.sign_in_provider == 'password'
+      && exists(/databases/$(database)/documents/ministere_acces/$(request.auth.uid)); }
+    match /ministere_acces/{uid} {
+      allow read: if isAdmin() || (request.auth != null && request.auth.uid == uid);
+      allow write: if isAdmin();
+    }
+    // Rapports publiés par B2A : uniquement des chiffres regroupés (zones de moins de 3 fermes fusionnées).
+    // Le ministère les lit ; il n'a aucun accès aux fermes, aux inscriptions ni aux résumés individuels.
+    match /ministere_rapports/{id} {
+      allow read: if isAdmin() || ministere();
+      allow write: if isAdmin();
+    }
+
     // ---------- Erreurs de l'application ----------
     // Chaque téléphone peut signaler une erreur technique (message court, sans données de la ferme) ; seul B2A les lit et les efface.
     match /erreurs/{id} {
