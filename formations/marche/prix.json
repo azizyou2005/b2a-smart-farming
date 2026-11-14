@@ -1,0 +1,3379 @@
+{
+ "version": 1,
+ "devise": "XOF",
+ "pays": "Burkina Faso",
+ "maj": "2026-11-14T05:47Z",
+ "produits": [
+  {
+   "id": "oeufs-plateau",
+   "cat": "oeufs",
+   "unite": "plateau de 30",
+   "nom": {
+    "fr": "Œufs (plateau de 30)",
+    "en": "Eggs (tray of 30)",
+    "it": "Uova (vassoio da 30)",
+    "es": "Huevos (bandeja de 30)"
+   },
+   "mots": [
+    "oeuf",
+    "oeufs",
+    "plateau",
+    "plaquette",
+    "pondeuse"
+   ]
+  },
+  {
+   "id": "pondeuse-reforme",
+   "cat": "animaux",
+   "unite": "tête",
+   "nom": {
+    "fr": "Poule pondeuse de réforme",
+    "en": "Spent laying hen",
+    "it": "Gallina ovaiola a fine carriera",
+    "es": "Gallina ponedora de desecho"
+   },
+   "mots": [
+    "pondeuse",
+    "reforme",
+    "poule",
+    "isa"
+   ]
+  },
+  {
+   "id": "poulet-chair",
+   "cat": "animaux",
+   "unite": "tête",
+   "nom": {
+    "fr": "Poulet de chair vivant",
+    "en": "Live broiler",
+    "it": "Pollo da carne vivo",
+    "es": "Pollo de engorde vivo"
+   },
+   "mots": [
+    "poulet",
+    "chair",
+    "broiler",
+    "cobb"
+   ]
+  },
+  {
+   "id": "poulet-local",
+   "cat": "animaux",
+   "unite": "tête",
+   "nom": {
+    "fr": "Poulet local (bicyclette)",
+    "en": "Local chicken",
+    "it": "Pollo locale",
+    "es": "Pollo local"
+   },
+   "mots": [
+    "poulet",
+    "poule",
+    "local",
+    "bicyclette",
+    "bio"
+   ]
+  },
+  {
+   "id": "dinde",
+   "cat": "animaux",
+   "unite": "tête",
+   "nom": {
+    "fr": "Dinde / dindon",
+    "en": "Turkey",
+    "it": "Tacchino",
+    "es": "Pavo"
+   },
+   "mots": [
+    "dinde",
+    "dindon"
+   ]
+  },
+  {
+   "id": "lapin",
+   "cat": "animaux",
+   "unite": "tête",
+   "nom": {
+    "fr": "Lapin",
+    "en": "Rabbit",
+    "it": "Coniglio",
+    "es": "Conejo"
+   },
+   "mots": [
+    "lapin"
+   ]
+  },
+  {
+   "id": "mouton",
+   "cat": "animaux",
+   "unite": "tête",
+   "nom": {
+    "fr": "Mouton (bélier)",
+    "en": "Sheep (ram)",
+    "it": "Montone (ariete)",
+    "es": "Carnero"
+   },
+   "mots": [
+    "mouton",
+    "belier",
+    "ovin"
+   ]
+  },
+  {
+   "id": "chevre",
+   "cat": "animaux",
+   "unite": "tête",
+   "nom": {
+    "fr": "Chèvre / bouc",
+    "en": "Goat",
+    "it": "Capra",
+    "es": "Cabra"
+   },
+   "mots": [
+    "chevre",
+    "bouc",
+    "caprin",
+    "maradi"
+   ]
+  },
+  {
+   "id": "boeuf",
+   "cat": "animaux",
+   "unite": "tête",
+   "nom": {
+    "fr": "Bœuf / taureau",
+    "en": "Cattle",
+    "it": "Bovino",
+    "es": "Bovino"
+   },
+   "mots": [
+    "boeuf",
+    "taureau",
+    "bovin",
+    "vache"
+   ]
+  },
+  {
+   "id": "poussin-chair",
+   "cat": "poussins",
+   "unite": "tête",
+   "nom": {
+    "fr": "Poussin chair d'un jour",
+    "en": "Day-old broiler chick",
+    "it": "Pulcino da carne di un giorno",
+    "es": "Pollito de engorde de un día"
+   },
+   "mots": [
+    "poussin",
+    "chair",
+    "cobb",
+    "ross"
+   ]
+  },
+  {
+   "id": "poussin-local",
+   "cat": "poussins",
+   "unite": "tête",
+   "nom": {
+    "fr": "Poussin local / amélioré",
+    "en": "Local or improved chick",
+    "it": "Pulcino locale o migliorato",
+    "es": "Pollito local o mejorado"
+   },
+   "mots": [
+    "poussin",
+    "local",
+    "ameliore",
+    "bleu",
+    "hollande",
+    "coquelet",
+    "brahma"
+   ]
+  },
+  {
+   "id": "pintadeau",
+   "cat": "poussins",
+   "unite": "tête",
+   "nom": {
+    "fr": "Pintadeau",
+    "en": "Guinea keet",
+    "it": "Faraona pulcino",
+    "es": "Pollito de pintada"
+   },
+   "mots": [
+    "pintade",
+    "pintadeau"
+   ]
+  },
+  {
+   "id": "tilapia",
+   "cat": "viande",
+   "unite": "kg",
+   "nom": {
+    "fr": "Tilapia frais",
+    "en": "Fresh tilapia",
+    "it": "Tilapia fresca",
+    "es": "Tilapia fresca"
+   },
+   "mots": [
+    "tilapia",
+    "poisson"
+   ]
+  },
+  {
+   "id": "viande-boeuf",
+   "cat": "viande",
+   "unite": "kg",
+   "nom": {
+    "fr": "Viande de bœuf",
+    "en": "Beef",
+    "it": "Carne bovina",
+    "es": "Carne de vacuno"
+   },
+   "mots": [
+    "viande",
+    "boeuf"
+   ]
+  },
+  {
+   "id": "lait",
+   "cat": "lait",
+   "unite": "litre",
+   "nom": {
+    "fr": "Lait frais",
+    "en": "Fresh milk",
+    "it": "Latte fresco",
+    "es": "Leche fresca"
+   },
+   "mots": [
+    "lait"
+   ]
+  },
+  {
+   "id": "mais",
+   "cat": "recoltes",
+   "unite": "sac de 100 kg",
+   "nom": {
+    "fr": "Maïs grain",
+    "en": "Maize",
+    "it": "Mais",
+    "es": "Maíz"
+   },
+   "mots": [
+    "mais",
+    "cereale"
+   ]
+  },
+  {
+   "id": "aliment-ponte",
+   "cat": "aliment",
+   "unite": "sac de 50 kg",
+   "nom": {
+    "fr": "Aliment ponte / poussin / poulette",
+    "en": "Layer, chick or pullet feed",
+    "it": "Mangime ovaiole / pulcini",
+    "es": "Pienso ponedoras / pollitos"
+   },
+   "mots": [
+    "aliment",
+    "ponte",
+    "poussin",
+    "poulette",
+    "pondeuse"
+   ]
+  },
+  {
+   "id": "aliment-chair",
+   "cat": "aliment",
+   "unite": "sac de 50 kg",
+   "nom": {
+    "fr": "Aliment poulet de chair",
+    "en": "Broiler feed",
+    "it": "Mangime polli da carne",
+    "es": "Pienso de engorde"
+   },
+   "mots": [
+    "aliment",
+    "chair"
+   ]
+  },
+  {
+   "id": "aliment-betail",
+   "cat": "aliment",
+   "unite": "sac de 50 kg",
+   "nom": {
+    "fr": "Aliment bétail (embouche, lait)",
+    "en": "Cattle feed",
+    "it": "Mangime bestiame",
+    "es": "Pienso para ganado"
+   },
+   "mots": [
+    "aliment",
+    "betail",
+    "embouche",
+    "son",
+    "mouton",
+    "boeuf"
+   ]
+  },
+  {
+   "id": "son",
+   "cat": "aliment",
+   "unite": "sac de 50 kg",
+   "nom": {
+    "fr": "Son de maïs ou de riz",
+    "en": "Maize or rice bran",
+    "it": "Crusca di mais o riso",
+    "es": "Salvado de maíz o arroz"
+   },
+   "mots": [
+    "son",
+    "mais",
+    "riz"
+   ]
+  },
+  {
+   "id": "couveuse",
+   "cat": "materiel",
+   "unite": "unité",
+   "nom": {
+    "fr": "Couveuse automatique",
+    "en": "Automatic incubator",
+    "it": "Incubatrice automatica",
+    "es": "Incubadora automática"
+   },
+   "mots": [
+    "couveuse",
+    "incubateur",
+    "oeufs"
+   ]
+  },
+  {
+   "id": "mangeoire",
+   "cat": "materiel",
+   "unite": "unité",
+   "nom": {
+    "fr": "Mangeoire / abreuvoir volaille",
+    "en": "Poultry feeder or drinker",
+    "it": "Mangiatoia o abbeveratoio",
+    "es": "Comedero o bebedero"
+   },
+   "mots": [
+    "mangeoire",
+    "abreuvoir"
+   ]
+  },
+  {
+   "id": "cage",
+   "cat": "materiel",
+   "unite": "unité",
+   "nom": {
+    "fr": "Cage pour volaille",
+    "en": "Poultry cage",
+    "it": "Gabbia per pollame",
+    "es": "Jaula para aves"
+   },
+   "mots": [
+    "cage",
+    "poulailler",
+    "grille"
+   ]
+  },
+  {
+   "id": "chauffage",
+   "cat": "materiel",
+   "unite": "unité",
+   "nom": {
+    "fr": "Chauffage poussins (radiant, thermostat)",
+    "en": "Brooder heater",
+    "it": "Riscaldamento pulcini",
+    "es": "Calefacción de pollitos"
+   },
+   "mots": [
+    "chauffage",
+    "radiant",
+    "thermostat",
+    "eleveuse"
+   ]
+  },
+  {
+   "id": "plumeuse",
+   "cat": "materiel",
+   "unite": "unité",
+   "nom": {
+    "fr": "Plumeuse",
+    "en": "Plucker",
+    "it": "Spennatrice",
+    "es": "Desplumadora"
+   },
+   "mots": [
+    "plumeuse"
+   ]
+  },
+  {
+   "id": "pierre-lecher",
+   "cat": "materiel",
+   "unite": "unité",
+   "nom": {
+    "fr": "Pierre à lécher / bloc de sel",
+    "en": "Salt lick",
+    "it": "Blocco di sale",
+    "es": "Bloque de sal"
+   },
+   "mots": [
+    "pierre",
+    "lecher",
+    "sel"
+   ]
+  },
+  {
+   "id": "mil",
+   "cat": "recoltes",
+   "unite": "sac de 100 kg",
+   "nom": {
+    "fr": "Mil grain",
+    "en": "Millet (grain)",
+    "it": "Miglio (granella)",
+    "es": "Mijo (grano)"
+   },
+   "mots": [
+    "mil",
+    "millet",
+    "petit mil"
+   ]
+  },
+  {
+   "id": "sorgho",
+   "cat": "recoltes",
+   "unite": "sac de 100 kg",
+   "nom": {
+    "fr": "Sorgho grain",
+    "en": "Sorghum (grain)",
+    "it": "Sorgo (granella)",
+    "es": "Sorgo (grano)"
+   },
+   "mots": [
+    "sorgho",
+    "sorgo",
+    "sorghum",
+    "gros mil"
+   ]
+  },
+  {
+   "id": "niebe",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Niébé (haricot)",
+    "en": "Cowpea (beans)",
+    "it": "Fagiolo dall'occhio",
+    "es": "Caupí (frijol)"
+   },
+   "mots": [
+    "niebe",
+    "haricot",
+    "cowpea",
+    "benga"
+   ]
+  },
+  {
+   "id": "riz",
+   "cat": "recoltes",
+   "unite": "sac de 50 kg",
+   "nom": {
+    "fr": "Riz",
+    "en": "Rice",
+    "it": "Riso",
+    "es": "Arroz"
+   },
+   "mots": [
+    "riz",
+    "rice",
+    "paddy"
+   ]
+  },
+  {
+   "id": "tourteau-soja",
+   "cat": "aliment",
+   "unite": "sac de 50 kg",
+   "nom": {
+    "fr": "Tourteau de soja",
+    "en": "Soybean meal",
+    "it": "Panello di soia",
+    "es": "Torta de soja"
+   },
+   "mots": [
+    "tourteau",
+    "soja",
+    "soya",
+    "tourteau de soja"
+   ]
+  },
+  {
+   "id": "seringue",
+   "cat": "materiel",
+   "unite": "unité",
+   "nom": {
+    "fr": "Seringue automatique (vaccination)",
+    "en": "Automatic syringe (vaccination)",
+    "it": "Siringa automatica (vaccinazione)",
+    "es": "Jeringa automática (vacunación)"
+   },
+   "mots": [
+    "seringue",
+    "vaccin",
+    "vaccination",
+    "injection"
+   ]
+  },
+  {
+   "id": "thermometre",
+   "cat": "materiel",
+   "unite": "unité",
+   "nom": {
+    "fr": "Thermomètre / hygromètre d'élevage",
+    "en": "Poultry house thermometer / hygrometer",
+    "it": "Termometro / igrometro per allevamento",
+    "es": "Termómetro / higrómetro de granja"
+   },
+   "mots": [
+    "thermometre",
+    "hygrometre",
+    "temperature",
+    "humidite"
+   ]
+  },
+  {
+   "id": "arachide",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Arachide en coque",
+    "en": "Groundnut (in shell)",
+    "it": "Arachide in guscio",
+    "es": "Cacahuete con cáscara"
+   },
+   "mots": [
+    "arachide",
+    "arachides",
+    "cacahuete",
+    "pistache"
+   ]
+  },
+  {
+   "id": "sesame",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Sésame",
+    "en": "Sesame",
+    "it": "Sesamo",
+    "es": "Sésamo"
+   },
+   "mots": [
+    "sesame",
+    "benniseed"
+   ]
+  },
+  {
+   "id": "oignon",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Oignon",
+    "en": "Onion",
+    "it": "Cipolla",
+    "es": "Cebolla"
+   },
+   "mots": [
+    "oignon",
+    "oignons"
+   ]
+  },
+  {
+   "id": "tomate",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Tomate",
+    "en": "Tomato",
+    "it": "Pomodoro",
+    "es": "Tomate"
+   },
+   "mots": [
+    "tomate",
+    "tomates"
+   ]
+  },
+  {
+   "id": "miel",
+   "cat": "autre",
+   "unite": "kg",
+   "nom": {
+    "fr": "Miel brut",
+    "en": "Raw honey",
+    "it": "Miele grezzo",
+    "es": "Miel cruda"
+   },
+   "mots": [
+    "miel",
+    "apiculture",
+    "ruche"
+   ]
+  },
+  {
+   "id": "semence-mais",
+   "cat": "plants",
+   "unite": "kg",
+   "nom": {
+    "fr": "Semence de maïs certifiée",
+    "en": "Certified maize seed",
+    "it": "Seme di mais certificato",
+    "es": "Semilla de maíz certificada"
+   },
+   "mots": [
+    "semence",
+    "semences",
+    "mais",
+    "graine"
+   ]
+  },
+  {
+   "id": "semence-riz",
+   "cat": "plants",
+   "unite": "kg",
+   "nom": {
+    "fr": "Semence de riz certifiée",
+    "en": "Certified rice seed",
+    "it": "Seme di riso certificato",
+    "es": "Semilla de arroz certificada"
+   },
+   "mots": [
+    "semence",
+    "semences",
+    "riz",
+    "graine"
+   ]
+  },
+  {
+   "id": "semence-sorgho",
+   "cat": "plants",
+   "unite": "kg",
+   "nom": {
+    "fr": "Semence de sorgho certifiée",
+    "en": "Certified sorghum seed",
+    "it": "Seme di sorgo certificato",
+    "es": "Semilla de sorgo certificada"
+   },
+   "mots": [
+    "semence",
+    "semences",
+    "sorgho",
+    "graine"
+   ]
+  },
+  {
+   "id": "semence-mil",
+   "cat": "plants",
+   "unite": "kg",
+   "nom": {
+    "fr": "Semence de mil certifiée",
+    "en": "Certified millet seed",
+    "it": "Seme di miglio certificato",
+    "es": "Semilla de mijo certificada"
+   },
+   "mots": [
+    "semence",
+    "semences",
+    "mil",
+    "petit mil",
+    "graine"
+   ]
+  },
+  {
+   "id": "semence-arachide",
+   "cat": "plants",
+   "unite": "kg",
+   "nom": {
+    "fr": "Semence d'arachide certifiée",
+    "en": "Certified groundnut seed",
+    "it": "Seme di arachide certificato",
+    "es": "Semilla de cacahuete certificada"
+   },
+   "mots": [
+    "semence",
+    "semences",
+    "arachide",
+    "graine"
+   ]
+  },
+  {
+   "id": "semence-sesame",
+   "cat": "plants",
+   "unite": "kg",
+   "nom": {
+    "fr": "Semence de sésame certifiée",
+    "en": "Certified sesame seed",
+    "it": "Seme di sesamo certificato",
+    "es": "Semilla de sésamo certificada"
+   },
+   "mots": [
+    "semence",
+    "semences",
+    "sesame",
+    "graine"
+   ]
+  },
+  {
+   "id": "semence-soja",
+   "cat": "plants",
+   "unite": "kg",
+   "nom": {
+    "fr": "Semence de soja certifiée",
+    "en": "Certified soybean seed",
+    "it": "Seme di soia certificato",
+    "es": "Semilla de soja certificada"
+   },
+   "mots": [
+    "semence",
+    "semences",
+    "soja",
+    "soya",
+    "graine"
+   ]
+  },
+  {
+   "id": "soja",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Soja grain",
+    "en": "Soybean (grain)",
+    "it": "Soia in granella",
+    "es": "Soja en grano"
+   },
+   "mots": [
+    "soja",
+    "soya",
+    "grain"
+   ]
+  },
+  {
+   "id": "arachide-decortiquee",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Arachide décortiquée",
+    "en": "Shelled groundnut",
+    "it": "Arachide sgusciata",
+    "es": "Cacahuete pelado"
+   },
+   "mots": [
+    "arachide",
+    "decortiquee",
+    "cacahuete",
+    "pistache"
+   ]
+  },
+  {
+   "id": "cajou",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Noix de cajou brute",
+    "en": "Raw cashew nut",
+    "it": "Anacardi grezzi",
+    "es": "Anacardo crudo"
+   },
+   "mots": [
+    "cajou",
+    "anacarde",
+    "noix",
+    "cashew"
+   ]
+  },
+  {
+   "id": "mangue",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Mangue fraîche",
+    "en": "Fresh mango",
+    "it": "Mango fresco",
+    "es": "Mango fresco"
+   },
+   "mots": [
+    "mangue",
+    "mangues",
+    "mango"
+   ]
+  },
+  {
+   "id": "engrais",
+   "cat": "autre",
+   "unite": "sac",
+   "nom": {
+    "fr": "Engrais minéral (NPK / urée)",
+    "en": "Mineral fertilizer (NPK / urea)",
+    "it": "Concime minerale (NPK / urea)",
+    "es": "Fertilizante mineral (NPK / urea)"
+   },
+   "mots": [
+    "engrais",
+    "npk",
+    "uree",
+    "fertilisant",
+    "fumure"
+   ]
+  },
+  {
+   "id": "gingembre",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Gingembre",
+    "en": "Ginger",
+    "it": "Zenzero",
+    "es": "Jengibre"
+   },
+   "mots": [
+    "gingembre",
+    "gnamakou",
+    "ginger"
+   ]
+  },
+  {
+   "id": "lance-bolus",
+   "cat": "materiel",
+   "unite": "unité",
+   "nom": {
+    "fr": "Lance-bolus (pistolet à bolus)",
+    "en": "Bolus gun",
+    "it": "Pistola per boli",
+    "es": "Pistola de bolos"
+   },
+   "mots": [
+    "lance bolus",
+    "bolus",
+    "pistolet",
+    "vermifuge",
+    "comprime"
+   ]
+  }
+ ],
+ "releves": [
+  {
+   "produit": "aliment-betail",
+   "prix": 12500,
+   "source": "Rodwoko (aliment lait et embouche)",
+   "url": "https://rodwoko.com/vente-daliments-betail/16876",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-08-03"
+  },
+  {
+   "produit": "aliment-chair",
+   "prix": 19000,
+   "source": "Rodwoko (Bergerie B-B-B-F)",
+   "url": "https://rodwoko.com/aliments-de-volaille/9752",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "aliment-ponte",
+   "prix": 17500,
+   "source": "Rodwoko (Bergerie B-B-B-F, poussin et croissance poulette)",
+   "url": "https://rodwoko.com/aliments-de-volaille/9752",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "aliment-ponte",
+   "prix": 17500,
+   "source": "Rodwoko (aliments volailles)",
+   "url": "https://rodwoko.com/aliments-volailles/8997",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "aliment-ponte",
+   "prix": 20200,
+   "source": "Store NJS (AM1 poussin ponte, 50 kg)",
+   "url": "https://www.storenjs.com/product/am1-aliment-poussin-ponte-50-farine",
+   "ville": "Burkina Faso",
+   "type": "boutique",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "arachide",
+   "prix": 360,
+   "source": "Prix plancher bord champ 2026 (communiqué gouvernemental), La Tribune du Faso (arachide en coque ; décortiquée 575 F/kg)",
+   "url": "https://www.latribunedufaso.net/?p=28162",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
+  },
+  {
+   "produit": "arachide-decortiquee",
+   "prix": 575,
+   "source": "Prix plancher bord champ 2026 (gouvernement), Agratime",
+   "url": "https://agratime.com/burkina-faso-des-prix-planchers-fixes-pour-11-produits-agricoles-en-2026/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
+  },
+  {
+   "produit": "boeuf",
+   "prix": 400000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/autres-animaux/boeuf-5497842",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "cage",
+   "prix": 45000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/cage-4074740",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "cage",
+   "prix": 32000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/cage-volaille-3798011",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "cage",
+   "prix": 49000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/cage-3719460",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "cage",
+   "prix": 35000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/cage-elevage-2685803",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "cajou",
+   "prix": 385,
+   "source": "Prix plancher bord champ 2026 (gouvernement), Agratime",
+   "url": "https://agratime.com/burkina-faso-des-prix-planchers-fixes-pour-11-produits-agricoles-en-2026/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
+  },
+  {
+   "produit": "chauffage",
+   "prix": 37500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/radiant-a-gaz-6090975",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "chauffage",
+   "prix": 35000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/thermostats-5988502",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "chauffage",
+   "prix": 15000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/chauffage-intelligent-5937273",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "chevre",
+   "prix": 40000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/autres-animaux/chevres-maradi-4519431",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "chevre",
+   "prix": 45000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/autres-animaux/chevres-4499548",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "couveuse",
+   "prix": 85000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/couveuses-automatique-hybride-128-ufs-nouveau-modele-6004500",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "couveuse",
+   "prix": 135000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/couveuse-automatique-hybride-de-200-oeufs-6003510",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "couveuse",
+   "prix": 80000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/couveuses-automatique-hybride-de-128-oeufs-6003507",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "couveuse",
+   "prix": 35000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/couveuses-automatique-hybride-26-oeufs-et-56-oeufs-6003503",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "couveuse",
+   "prix": 70000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/couveuses-automatique-3833783",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "couveuse",
+   "prix": 45000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/couveuse-ufs-3310455",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "couveuse",
+   "prix": 600000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/couveuse-automatique-3334480",
+   "ville": "Bobo-Dioulasso",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "dinde",
+   "prix": 35000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/autres-animaux/dindon-5318105",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "dinde",
+   "prix": 30000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/autres-animaux/dindons-4938101",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "dinde",
+   "prix": 50000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/autres-animaux/dindons-4930497",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "dinde",
+   "prix": 21000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/autres-animaux/dinde-4839322",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "dinde",
+   "prix": 22000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/autres-animaux/dinde-en-ponte-4590727",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "dinde",
+   "prix": 35000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/autres-animaux/dindons-4505142",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "dinde",
+   "prix": 45000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/autres-animaux/dindons-4499914",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "engrais",
+   "prix": 15000,
+   "source": "Sidwaya : engrais subventionné, le sac",
+   "url": "https://www.sidwaya.info/carrefour/2026/08/31/perimetres-amenages-de-bama-et-de-la-leraba-des-productions-en-hausse-croissante/",
+   "ville": "Bama",
+   "type": "presse",
+   "date": "2026-08-31",
+   "variante": "subventionne"
+  },
+  {
+   "produit": "engrais",
+   "prix": 25000,
+   "source": "Sidwaya : engrais minéral au marché, le sac (environ)",
+   "url": "https://www.sidwaya.info/carrefour/2026/08/31/perimetres-amenages-de-bama-et-de-la-leraba-des-productions-en-hausse-croissante/",
+   "ville": "Bama",
+   "type": "presse",
+   "date": "2026-08-31",
+   "variante": "marche"
+  },
+  {
+   "produit": "gingembre",
+   "prix": 1500,
+   "source": "Sidwaya (marché Accart-ville, au kg)",
+   "url": "https://www.sidwaya.info/2026/08/20/consommation-du-gingembre-la-rarete-du-gnamakou-pimente-les-prix/",
+   "ville": "Bobo-Dioulasso",
+   "type": "presse",
+   "date": "2026-08-20",
+   "variante": "bobo-kg"
+  },
+  {
+   "produit": "gingembre",
+   "prix": 2250,
+   "source": "Sidwaya (marché de Larlé : 45 000 F le sac de 20 kg, ramené au kg)",
+   "url": "https://www.sidwaya.info/2026/08/20/consommation-du-gingembre-la-rarete-du-gnamakou-pimente-les-prix/",
+   "ville": "Ouagadougou",
+   "type": "presse",
+   "date": "2026-08-20",
+   "variante": "ouaga-sac20"
+  },
+  {
+   "produit": "gingembre",
+   "prix": 3250,
+   "source": "Sidwaya (300 000 à 350 000 F le sac de 100 kg, milieu de fourchette ramené au kg)",
+   "url": "https://www.sidwaya.info/2026/08/20/consommation-du-gingembre-la-rarete-du-gnamakou-pimente-les-prix/",
+   "ville": "Bobo-Dioulasso",
+   "type": "presse",
+   "date": "2026-08-20",
+   "variante": "bobo-sac100"
+  },
+  {
+   "produit": "lait",
+   "prix": 1464,
+   "source": "Combien-coûte / Numbeo (lait en bouteille)",
+   "url": "https://www.combien-coute.net/lait/burkina-faso/ouagadougou/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "lance-bolus",
+   "prix": 4000,
+   "source": "CoinAfrique (petit modèle ; autres modèles 7 500, 17 500 et 22 500 F)",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/lance-bolus-5993006",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-14",
+   "variante": "petit"
+  },
+  {
+   "produit": "lance-bolus",
+   "prix": 22500,
+   "source": "CoinAfrique (grand modèle)",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/lance-bolus-5993006",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-14",
+   "variante": "grand"
+  },
+  {
+   "produit": "lapin",
+   "prix": 12500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/lapins-hybride-5955859",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "lapin",
+   "prix": 6000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/lapins-hybride-de-3mois-tel-03500161-65715188-5951537",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "lapin",
+   "prix": 5000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/lapins-5332081",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "lapin",
+   "prix": 10000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/lapin-papillon-metisse-3553978",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "lapin",
+   "prix": 5000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/lapins-2372894",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "mais",
+   "prix": 17100,
+   "source": "INSD, relevé de mai 2026 (Kadiogo), cité par Beezy",
+   "url": "https://blog.iambeezy.app/fr/acheter-au-meilleur-prix-calendrier-courses-burkina-faso-2026/",
+   "ville": "Ouagadougou",
+   "type": "officiel",
+   "date": "2026-05-31"
+  },
+  {
+   "produit": "mais",
+   "prix": 12000,
+   "source": "SONAGESS, prix social (6 000 F le sac de 50 kg, converti en 100 kg)",
+   "url": "https://www.ouestinfo.bf/burkina-faso-la-sonagess-met-en-vente-du-mais-du-mil-du-sorgho-et-du-riz-a-prix-social/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-06-11"
+  },
+  {
+   "produit": "mais",
+   "prix": 18300,
+   "source": "DGEP note n°162 via OuagaNews (183 F/kg, moyenne nationale août 2026, converti en sac de 100 kg)",
+   "url": "https://ouaganews.net/burkina-les-prix-des-cereales-nettement-moins-chers-quun-an-plus-tot/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-10-17"
+  },
+  {
+   "produit": "mangeoire",
+   "prix": 2500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/mangeoire-et-abreuvoirs-anti-gaspillage-5981992",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "mangeoire",
+   "prix": 6500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/mangeoire-anti-gaspillage-4855548",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "mangeoire",
+   "prix": 12500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/mangeoire-de-20kg-4713443",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "mangeoire",
+   "prix": 2000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/mangeoir-3321342",
+   "ville": "Bobo-Dioulasso",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "mangeoire",
+   "prix": 2000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/abreuvoirs-2602457",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "mangeoire",
+   "prix": 1000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/abreuvoirs-et-mangeoires-animaux-2585865",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "mangue",
+   "prix": 95,
+   "source": "Prix plancher bord champ 2026 (gouvernement), Agratime",
+   "url": "https://agratime.com/burkina-faso-des-prix-planchers-fixes-pour-11-produits-agricoles-en-2026/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
+  },
+  {
+   "produit": "miel",
+   "prix": 1000,
+   "source": "Prix plancher bord champ 2026 (communiqué gouvernemental), La Tribune du Faso",
+   "url": "https://www.latribunedufaso.net/?p=28162",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
+  },
+  {
+   "produit": "mil",
+   "prix": 25000,
+   "source": "SONAGESS, prix social (12 500 F le sac de 50 kg, converti en 100 kg)",
+   "url": "https://www.ouestinfo.bf/burkina-faso-la-sonagess-met-en-vente-du-mais-du-mil-du-sorgho-et-du-riz-a-prix-social/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-06-11"
+  },
+  {
+   "produit": "mil",
+   "prix": 28400,
+   "source": "DGEP note n°162 via OuagaNews (284 F/kg, moyenne nationale août 2026, converti en sac de 100 kg)",
+   "url": "https://ouaganews.net/burkina-les-prix-des-cereales-nettement-moins-chers-quun-an-plus-tot/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-10-17"
+  },
+  {
+   "produit": "mouton",
+   "prix": 150000,
+   "source": "Ouest Info, marché à bétail de Kiri (Tabaski 2026)",
+   "url": "https://www.ouestinfo.bf/burkina-tabaski-2026-au-marche-a-betail-de-bobo-les-moutons-se-vendent-entre-50-000-et-250-000-f-cfa/",
+   "ville": "Bobo-Dioulasso",
+   "type": "presse",
+   "date": "2026-05-25"
+  },
+  {
+   "produit": "mouton",
+   "prix": 135000,
+   "source": "Sidwaya via AllAfrica : mouton acheté (Tabaski)",
+   "url": "https://fr.allafrica.com/stories/202605260463.html",
+   "ville": "Bobo-Dioulasso",
+   "type": "presse",
+   "date": "2026-05-25",
+   "variante": "achat"
+  },
+  {
+   "produit": "mouton",
+   "prix": 50000,
+   "source": "Sidwaya via AllAfrica : petit mouton après baisse (Tabaski)",
+   "url": "https://fr.allafrica.com/stories/202605260463.html",
+   "ville": "Bobo-Dioulasso",
+   "type": "presse",
+   "date": "2026-05-25",
+   "variante": "petit"
+  },
+  {
+   "produit": "mouton",
+   "prix": 150000,
+   "source": "AIB : mouton revendu (Tabaski)",
+   "url": "https://www.aib.media/?p=150610",
+   "ville": "Bittou",
+   "type": "presse",
+   "date": "2026-05-25"
+  },
+  {
+   "produit": "mouton",
+   "prix": 225000,
+   "source": "Sidwaya / AllAfrica (2 béliers 450 000 F, Lanoag-Yiri, Tabaski 2026)",
+   "url": "https://fr.allafrica.com/stories/202605260546.html",
+   "ville": "Ouagadougou",
+   "type": "presse",
+   "date": "2026-05-26"
+  },
+  {
+   "produit": "mouton",
+   "prix": 120000,
+   "source": "Studio Yafa, Tabaski 2026 (acheteur à Tanghin : 100 000 à 140 000 F, milieu de fourchette)",
+   "url": "https://www.studioyafa.bf/39429-tabaski-2026-a-ouaga-des-moutons-chers-malgre-linterdiction-dexportation",
+   "ville": "Ouagadougou",
+   "type": "presse",
+   "date": "2026-05-26"
+  },
+  {
+   "produit": "mouton",
+   "prix": 125000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/moutons/mouton-5328693",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "mouton",
+   "prix": 165000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/moutons/mouton-4621985",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "mouton",
+   "prix": 195000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/moutons/mouton-4501553",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "mouton",
+   "prix": 170000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/moutons/moutons-boer-4476282",
+   "ville": "Bobo-Dioulasso",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "mouton",
+   "prix": 148000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/moutons/mouton-4424010",
+   "ville": "Bobo-Dioulasso",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "niebe",
+   "prix": 426,
+   "source": "Horonya Finance, données officielles juin 2026",
+   "url": "https://www.horonyafinance.com/burkina-faso-les-prix-du-riz-et-des-cereales-locales-poursuivent-leur-baisse-en-juin-2026/",
+   "ville": "Burkina Faso",
+   "type": "presse",
+   "date": "2026-08-22"
+  },
+  {
+   "produit": "niebe",
+   "prix": 427,
+   "source": "DGEP note n°162 via OuagaNews (moyenne nationale août 2026)",
+   "url": "https://ouaganews.net/burkina-les-prix-des-cereales-nettement-moins-chers-quun-an-plus-tot/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-10-17"
+  },
+  {
+   "produit": "oeufs-plateau",
+   "prix": 3000,
+   "source": "FasoAmazone : prix officiel consommateur (100 F l'œuf) depuis le 10/07/2026",
+   "url": "https://www.fasoamazone.net/2026/07/10/burkina-faso-le-gouvernement-fixe-de-nouveaux-prix-officiels-des-oeufs-de-poules-pondeuses-a-compter-du-10-juillet-2026/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-07-10",
+   "variante": "consommateur"
+  },
+  {
+   "produit": "oeufs-plateau",
+   "prix": 2600,
+   "source": "FasoAmazone : prix officiel producteur → grossiste (plateau de 30)",
+   "url": "https://www.fasoamazone.net/2026/07/10/burkina-faso-le-gouvernement-fixe-de-nouveaux-prix-officiels-des-oeufs-de-poules-pondeuses-a-compter-du-10-juillet-2026/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-07-10",
+   "variante": "producteur"
+  },
+  {
+   "produit": "oeufs-plateau",
+   "prix": 3000,
+   "source": "Burkina 24 (prix fixé par l'État, 13/08/2026)",
+   "url": "https://burkina24.com/?p=450735",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-08-13"
+  },
+  {
+   "produit": "oeufs-plateau",
+   "prix": 3755,
+   "source": "Combien-coûte / Numbeo (1 502 F les 12 œufs, converti en plateau de 30)",
+   "url": "https://www.combien-coute.net/oeufs/burkina-faso/ouagadougou/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-01"
+  },
+  {
+   "produit": "oignon",
+   "prix": 165,
+   "source": "Prix plancher bord champ 2026 (communiqué gouvernemental), La Tribune du Faso",
+   "url": "https://www.latribunedufaso.net/?p=28162",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
+  },
+  {
+   "produit": "pierre-lecher",
+   "prix": 2250,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/bloc-de-sel-pour-animaux-4656321",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "pierre-lecher",
+   "prix": 2500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/pierre-a-lecher-2kg-4630465",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "pintadeau",
+   "prix": 600,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/pintadeaux-2601604",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "pintadeau",
+   "prix": 600,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/pintadeaux-2560821",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "plumeuse",
+   "prix": 125000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/plumeuse-6090979",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "pondeuse-reforme",
+   "prix": 3500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/pondeuses-3876076",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-chair",
+   "prix": 2750,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulet-chair-5585156",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-chair",
+   "prix": 2500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulet-de-chair-5547138",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-chair",
+   "prix": 2300,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulet-de-chair-3664950",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-chair",
+   "prix": 2300,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulet-de-chair-3664941",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-chair",
+   "prix": 3000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulet-de-chair-1831219",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-chair",
+   "prix": 2500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulet-de-chair-1068470",
+   "ville": "Bobo-Dioulasso",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-chair",
+   "prix": 2500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poule-de-chair-2693090",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 3000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poules-locales-4512059",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 3000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poules-locales-4365407",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 4000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulets-locales-4223407",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 2500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulet-bio-4625947",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 2500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poule-4622116",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 2500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poules-4586912",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 2500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poules-4544701",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 3500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulets-vivants-et-frais-5937286",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 3750,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulets-4563093",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 3000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulets-5487761",
+   "ville": "Bobo-Dioulasso",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 2500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poules-3788053",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-14"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 3000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulets-1386023",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-14"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 4000,
+   "source": "CoinAfrique (poulet bleu de Hollande)",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulet-bleu-dhollande-2940321",
+   "ville": "Bobo-Dioulasso",
+   "type": "annonce",
+   "date": "2026-11-14"
+  },
+  {
+   "produit": "poussin-chair",
+   "prix": 750,
+   "source": "CoinAfrique (37 500 F le carton de 50 poussins, soit 750 F/poussin)",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poussin-chair-6090980",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-10-25"
+  },
+  {
+   "produit": "poussin-local",
+   "prix": 600,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poussins-4094446",
+   "ville": "Dédougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poussin-local",
+   "prix": 1500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poussins-3074316",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poussin-local",
+   "prix": 1250,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poussins-blue-dhollande-2591490",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "poussin-local",
+   "prix": 1500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poussins-brahama-et-coq-759509",
+   "ville": "Burkina Faso",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "riz",
+   "prix": 20000,
+   "source": "SONAGESS, prix social (10 000 F le sac de 25 kg, converti en 50 kg)",
+   "url": "https://www.ouestinfo.bf/burkina-faso-la-sonagess-met-en-vente-du-mais-du-mil-du-sorgho-et-du-riz-a-prix-social/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-06-11"
+  },
+  {
+   "produit": "riz",
+   "prix": 20252,
+   "source": "Horonya Finance (riz importé, juin 2026)",
+   "url": "https://www.horonyafinance.com/burkina-faso-les-prix-du-riz-et-des-cereales-locales-poursuivent-leur-baisse-en-juin-2026/",
+   "ville": "Burkina Faso",
+   "type": "presse",
+   "date": "2026-08-22",
+   "variante": "importe"
+  },
+  {
+   "produit": "riz",
+   "prix": 22149,
+   "source": "Horonya Finance (riz local étuvé, juin 2026)",
+   "url": "https://www.horonyafinance.com/burkina-faso-les-prix-du-riz-et-des-cereales-locales-poursuivent-leur-baisse-en-juin-2026/",
+   "ville": "Burkina Faso",
+   "type": "presse",
+   "date": "2026-08-22",
+   "variante": "local"
+  },
+  {
+   "produit": "riz",
+   "prix": 22418,
+   "source": "DGEP note n°162 via OuagaNews (riz importé, août 2026)",
+   "url": "https://ouaganews.net/burkina-les-prix-des-cereales-nettement-moins-chers-quun-an-plus-tot/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-10-17",
+   "variante": "importe"
+  },
+  {
+   "produit": "riz",
+   "prix": 23056,
+   "source": "DGEP note n°162 via OuagaNews (riz local étuvé, août 2026)",
+   "url": "https://ouaganews.net/burkina-les-prix-des-cereales-nettement-moins-chers-quun-an-plus-tot/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-10-17",
+   "variante": "local"
+  },
+  {
+   "produit": "semence-arachide",
+   "prix": 1400,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10"
+  },
+  {
+   "produit": "semence-mais",
+   "prix": 200,
+   "source": "Sidwaya : kit de semence de maïs 15 kg à 3 000 F (subventionné)",
+   "url": "https://www.sidwaya.info/carrefour/2026/08/31/perimetres-amenages-de-bama-et-de-la-leraba-des-productions-en-hausse-croissante/",
+   "ville": "Bama",
+   "type": "presse",
+   "date": "2026-08-31"
+  },
+  {
+   "produit": "semence-mais",
+   "prix": 600,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne (certifiee)",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10",
+   "variante": "certifiee"
+  },
+  {
+   "produit": "semence-mais",
+   "prix": 1500,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne (hybride)",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10",
+   "variante": "hybride"
+  },
+  {
+   "produit": "semence-mil",
+   "prix": 900,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10"
+  },
+  {
+   "produit": "semence-riz",
+   "prix": 300,
+   "source": "Sidwaya : kit de semence de riz 10 kg à 3 000 F (subventionné)",
+   "url": "https://www.sidwaya.info/carrefour/2026/08/31/perimetres-amenages-de-bama-et-de-la-leraba-des-productions-en-hausse-croissante/",
+   "ville": "Bama",
+   "type": "presse",
+   "date": "2026-08-31"
+  },
+  {
+   "produit": "semence-riz",
+   "prix": 600,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne (irrigue)",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10",
+   "variante": "irrigue"
+  },
+  {
+   "produit": "semence-riz",
+   "prix": 700,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne (pluvial)",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10",
+   "variante": "pluvial"
+  },
+  {
+   "produit": "semence-sesame",
+   "prix": 1500,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10"
+  },
+  {
+   "produit": "semence-soja",
+   "prix": 1200,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10"
+  },
+  {
+   "produit": "semence-sorgho",
+   "prix": 900,
+   "source": "UNPS-B (Union nationale des producteurs semenciers), boutique en ligne",
+   "url": "https://www.unpsburkina.org/shop/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-10"
+  },
+  {
+   "produit": "seringue",
+   "prix": 32500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/seringue-automatique-pour-animaux-5993002",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-08-09"
+  },
+  {
+   "produit": "sesame",
+   "prix": 450,
+   "source": "Prix plancher bord champ 2026 (communiqué gouvernemental), La Tribune du Faso",
+   "url": "https://www.latribunedufaso.net/?p=28162",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
+  },
+  {
+   "produit": "soja",
+   "prix": 325,
+   "source": "Prix plancher bord champ 2026 (gouvernement), Agratime",
+   "url": "https://agratime.com/burkina-faso-des-prix-planchers-fixes-pour-11-produits-agricoles-en-2026/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
+  },
+  {
+   "produit": "son",
+   "prix": 7000,
+   "source": "EspaceAgro (son de riz, Gampela)",
+   "url": "https://www.espaceagro.com/ads/aliments-pour-animaux/producteur/burkina-faso/",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "sorgho",
+   "prix": 20000,
+   "source": "SONAGESS, prix social (10 000 F le sac de 50 kg, converti en 100 kg)",
+   "url": "https://www.ouestinfo.bf/burkina-faso-la-sonagess-met-en-vente-du-mais-du-mil-du-sorgho-et-du-riz-a-prix-social/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-06-11"
+  },
+  {
+   "produit": "sorgho",
+   "prix": 22300,
+   "source": "DGEP note n°162 via OuagaNews (223 F/kg, moyenne nationale août 2026, converti en sac de 100 kg)",
+   "url": "https://ouaganews.net/burkina-les-prix-des-cereales-nettement-moins-chers-quun-an-plus-tot/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-10-17"
+  },
+  {
+   "produit": "thermometre",
+   "prix": 6000,
+   "source": "CoinAfrique (modèle HTC-1)",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/thermometres-mural-5981996",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-08-09",
+   "variante": "htc1"
+  },
+  {
+   "produit": "thermometre",
+   "prix": 12500,
+   "source": "CoinAfrique (modèle TA218D)",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/thermometres-mural-5981996",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-08-09",
+   "variante": "ta218d"
+  },
+  {
+   "produit": "tilapia",
+   "prix": 3700,
+   "source": "Selina Wamucii (prix de détail 2 669 à 4 745 F/kg)",
+   "url": "https://www.selinawamucii.com/insights/prices/burkina-faso/tilapia/",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-07"
+  },
+  {
+   "produit": "tomate",
+   "prix": 195,
+   "source": "Prix plancher bord champ 2026 (communiqué gouvernemental), La Tribune du Faso",
+   "url": "https://www.latribunedufaso.net/?p=28162",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-03-17"
+  },
+  {
+   "produit": "tourteau-soja",
+   "prix": 16500,
+   "source": "CoinAfrique (sac de 50 kg)",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/tourteau-de-soja-5940610",
+   "ville": "Houndé",
+   "type": "annonce",
+   "date": "2026-06-09"
+  },
+  {
+   "produit": "viande-boeuf",
+   "prix": 3165,
+   "source": "INSD, relevé de mai 2026 (Kadiogo), cité par Beezy",
+   "url": "https://blog.iambeezy.app/fr/acheter-au-meilleur-prix-calendrier-courses-burkina-faso-2026/",
+   "ville": "Ouagadougou",
+   "type": "officiel",
+   "date": "2026-05-31",
+   "variante": "kadiogo"
+  },
+  {
+   "produit": "viande-boeuf",
+   "prix": 2841,
+   "source": "INSD, relevé de mai 2026 (Guiriko), cité par Beezy",
+   "url": "https://blog.iambeezy.app/fr/acheter-au-meilleur-prix-calendrier-courses-burkina-faso-2026/",
+   "ville": "Bobo-Dioulasso",
+   "type": "officiel",
+   "date": "2026-05-31",
+   "variante": "guiriko"
+  }
+ ],
+ "historique": {
+  "oeufs-plateau": [
+   {
+    "date": "2026-11-07",
+    "med": 3650,
+    "n": 2
+   },
+   {
+    "date": "2026-11-08",
+    "med": 3650,
+    "n": 2
+   },
+   {
+    "date": "2026-11-09",
+    "med": 3378,
+    "n": 2
+   },
+   {
+    "date": "2026-11-10",
+    "med": 3378,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 3378,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 3000,
+    "n": 4
+   }
+  ],
+  "pondeuse-reforme": [
+   {
+    "date": "2026-11-07",
+    "med": 3500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-08",
+    "med": 3500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 3500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 3500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 3500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 3500,
+    "n": 1
+   }
+  ],
+  "poulet-chair": [
+   {
+    "date": "2026-11-07",
+    "med": 2500,
+    "n": 7
+   },
+   {
+    "date": "2026-11-08",
+    "med": 2500,
+    "n": 7
+   },
+   {
+    "date": "2026-11-09",
+    "med": 2500,
+    "n": 7
+   },
+   {
+    "date": "2026-11-10",
+    "med": 2500,
+    "n": 7
+   },
+   {
+    "date": "2026-11-11",
+    "med": 2500,
+    "n": 7
+   },
+   {
+    "date": "2026-11-14",
+    "med": 2500,
+    "n": 7
+   }
+  ],
+  "poulet-local": [
+   {
+    "date": "2026-11-07",
+    "med": 3000,
+    "n": 10
+   },
+   {
+    "date": "2026-11-08",
+    "med": 3000,
+    "n": 10
+   },
+   {
+    "date": "2026-11-09",
+    "med": 3000,
+    "n": 10
+   },
+   {
+    "date": "2026-11-10",
+    "med": 3000,
+    "n": 10
+   },
+   {
+    "date": "2026-11-11",
+    "med": 3000,
+    "n": 10
+   },
+   {
+    "date": "2026-11-14",
+    "med": 3000,
+    "n": 13
+   }
+  ],
+  "dinde": [
+   {
+    "date": "2026-11-07",
+    "med": 35000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-08",
+    "med": 35000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-09",
+    "med": 35000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-10",
+    "med": 35000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-11",
+    "med": 35000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-14",
+    "med": 35000,
+    "n": 7
+   }
+  ],
+  "lapin": [
+   {
+    "date": "2026-11-07",
+    "med": 6000,
+    "n": 5
+   },
+   {
+    "date": "2026-11-08",
+    "med": 6000,
+    "n": 5
+   },
+   {
+    "date": "2026-11-09",
+    "med": 6000,
+    "n": 5
+   },
+   {
+    "date": "2026-11-10",
+    "med": 6000,
+    "n": 5
+   },
+   {
+    "date": "2026-11-11",
+    "med": 6000,
+    "n": 5
+   },
+   {
+    "date": "2026-11-14",
+    "med": 6000,
+    "n": 5
+   }
+  ],
+  "mouton": [
+   {
+    "date": "2026-11-07",
+    "med": 167500,
+    "n": 6
+   },
+   {
+    "date": "2026-11-08",
+    "med": 167500,
+    "n": 6
+   },
+   {
+    "date": "2026-11-09",
+    "med": 165000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-10",
+    "med": 165000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-11",
+    "med": 150000,
+    "n": 10
+   },
+   {
+    "date": "2026-11-14",
+    "med": 150000,
+    "n": 11
+   }
+  ],
+  "chevre": [
+   {
+    "date": "2026-11-07",
+    "med": 42500,
+    "n": 2
+   },
+   {
+    "date": "2026-11-08",
+    "med": 42500,
+    "n": 2
+   },
+   {
+    "date": "2026-11-09",
+    "med": 42500,
+    "n": 2
+   },
+   {
+    "date": "2026-11-10",
+    "med": 42500,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 42500,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 42500,
+    "n": 2
+   }
+  ],
+  "boeuf": [
+   {
+    "date": "2026-11-07",
+    "med": 400000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-08",
+    "med": 400000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 400000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 400000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 400000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 400000,
+    "n": 1
+   }
+  ],
+  "poussin-chair": [
+   {
+    "date": "2026-11-07",
+    "med": 750,
+    "n": 1
+   },
+   {
+    "date": "2026-11-08",
+    "med": 750,
+    "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 750,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 750,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 750,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 750,
+    "n": 1
+   }
+  ],
+  "poussin-local": [
+   {
+    "date": "2026-11-07",
+    "med": 1375,
+    "n": 4
+   },
+   {
+    "date": "2026-11-08",
+    "med": 1375,
+    "n": 4
+   },
+   {
+    "date": "2026-11-09",
+    "med": 1375,
+    "n": 4
+   },
+   {
+    "date": "2026-11-10",
+    "med": 1375,
+    "n": 4
+   },
+   {
+    "date": "2026-11-11",
+    "med": 1375,
+    "n": 4
+   },
+   {
+    "date": "2026-11-14",
+    "med": 1375,
+    "n": 4
+   }
+  ],
+  "pintadeau": [
+   {
+    "date": "2026-11-07",
+    "med": 600,
+    "n": 2
+   },
+   {
+    "date": "2026-11-08",
+    "med": 600,
+    "n": 2
+   },
+   {
+    "date": "2026-11-09",
+    "med": 600,
+    "n": 2
+   },
+   {
+    "date": "2026-11-10",
+    "med": 600,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 600,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 600,
+    "n": 2
+   }
+  ],
+  "tilapia": [
+   {
+    "date": "2026-11-07",
+    "med": 3700,
+    "n": 1
+   },
+   {
+    "date": "2026-11-08",
+    "med": 3700,
+    "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 3700,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 3700,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 3700,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 3700,
+    "n": 1
+   }
+  ],
+  "viande-boeuf": [
+   {
+    "date": "2026-11-07",
+    "med": 3003,
+    "n": 2
+   },
+   {
+    "date": "2026-11-08",
+    "med": 3003,
+    "n": 2
+   },
+   {
+    "date": "2026-11-09",
+    "med": 3003,
+    "n": 2
+   },
+   {
+    "date": "2026-11-10",
+    "med": 3003,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 3003,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 3003,
+    "n": 2
+   }
+  ],
+  "lait": [
+   {
+    "date": "2026-11-07",
+    "med": 1464,
+    "n": 1
+   },
+   {
+    "date": "2026-11-08",
+    "med": 1464,
+    "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 1464,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 1464,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 1464,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 1464,
+    "n": 1
+   }
+  ],
+  "mais": [
+   {
+    "date": "2026-11-07",
+    "med": 17100,
+    "n": 1
+   },
+   {
+    "date": "2026-11-08",
+    "med": 17100,
+    "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 17100,
+    "n": 3
+   },
+   {
+    "date": "2026-11-10",
+    "med": 17100,
+    "n": 3
+   },
+   {
+    "date": "2026-11-11",
+    "med": 17100,
+    "n": 3
+   },
+   {
+    "date": "2026-11-14",
+    "med": 17100,
+    "n": 3
+   }
+  ],
+  "aliment-ponte": [
+   {
+    "date": "2026-11-07",
+    "med": 17500,
+    "n": 3
+   },
+   {
+    "date": "2026-11-08",
+    "med": 17500,
+    "n": 3
+   },
+   {
+    "date": "2026-11-09",
+    "med": 17500,
+    "n": 3
+   },
+   {
+    "date": "2026-11-10",
+    "med": 17500,
+    "n": 3
+   },
+   {
+    "date": "2026-11-11",
+    "med": 17500,
+    "n": 3
+   },
+   {
+    "date": "2026-11-14",
+    "med": 17500,
+    "n": 3
+   }
+  ],
+  "aliment-chair": [
+   {
+    "date": "2026-11-07",
+    "med": 19000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-08",
+    "med": 19000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 19000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 19000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 19000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 19000,
+    "n": 1
+   }
+  ],
+  "aliment-betail": [
+   {
+    "date": "2026-11-07",
+    "med": 12500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-08",
+    "med": 12500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 12500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 12500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 12500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 12500,
+    "n": 1
+   }
+  ],
+  "son": [
+   {
+    "date": "2026-11-07",
+    "med": 7000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-08",
+    "med": 7000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 7000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 7000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 7000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 7000,
+    "n": 1
+   }
+  ],
+  "couveuse": [
+   {
+    "date": "2026-11-07",
+    "med": 80000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-08",
+    "med": 80000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-09",
+    "med": 80000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-10",
+    "med": 80000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-11",
+    "med": 80000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-14",
+    "med": 80000,
+    "n": 7
+   }
+  ],
+  "mangeoire": [
+   {
+    "date": "2026-11-07",
+    "med": 2250,
+    "n": 6
+   },
+   {
+    "date": "2026-11-08",
+    "med": 2250,
+    "n": 6
+   },
+   {
+    "date": "2026-11-09",
+    "med": 2250,
+    "n": 6
+   },
+   {
+    "date": "2026-11-10",
+    "med": 2250,
+    "n": 6
+   },
+   {
+    "date": "2026-11-11",
+    "med": 2250,
+    "n": 6
+   },
+   {
+    "date": "2026-11-14",
+    "med": 2250,
+    "n": 6
+   }
+  ],
+  "cage": [
+   {
+    "date": "2026-11-07",
+    "med": 40000,
+    "n": 4
+   },
+   {
+    "date": "2026-11-08",
+    "med": 40000,
+    "n": 4
+   },
+   {
+    "date": "2026-11-09",
+    "med": 40000,
+    "n": 4
+   },
+   {
+    "date": "2026-11-10",
+    "med": 40000,
+    "n": 4
+   },
+   {
+    "date": "2026-11-11",
+    "med": 40000,
+    "n": 4
+   },
+   {
+    "date": "2026-11-14",
+    "med": 40000,
+    "n": 4
+   }
+  ],
+  "chauffage": [
+   {
+    "date": "2026-11-07",
+    "med": 35000,
+    "n": 3
+   },
+   {
+    "date": "2026-11-08",
+    "med": 35000,
+    "n": 3
+   },
+   {
+    "date": "2026-11-09",
+    "med": 35000,
+    "n": 3
+   },
+   {
+    "date": "2026-11-10",
+    "med": 35000,
+    "n": 3
+   },
+   {
+    "date": "2026-11-11",
+    "med": 35000,
+    "n": 3
+   },
+   {
+    "date": "2026-11-14",
+    "med": 35000,
+    "n": 3
+   }
+  ],
+  "plumeuse": [
+   {
+    "date": "2026-11-07",
+    "med": 125000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-08",
+    "med": 125000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-09",
+    "med": 125000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 125000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 125000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 125000,
+    "n": 1
+   }
+  ],
+  "pierre-lecher": [
+   {
+    "date": "2026-11-07",
+    "med": 2375,
+    "n": 2
+   },
+   {
+    "date": "2026-11-08",
+    "med": 2375,
+    "n": 2
+   },
+   {
+    "date": "2026-11-09",
+    "med": 2375,
+    "n": 2
+   },
+   {
+    "date": "2026-11-10",
+    "med": 2375,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 2375,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 2375,
+    "n": 2
+   }
+  ],
+  "mil": [
+   {
+    "date": "2026-11-09",
+    "med": 26700,
+    "n": 2
+   },
+   {
+    "date": "2026-11-10",
+    "med": 26700,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 26700,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 26700,
+    "n": 2
+   }
+  ],
+  "sorgho": [
+   {
+    "date": "2026-11-09",
+    "med": 21150,
+    "n": 2
+   },
+   {
+    "date": "2026-11-10",
+    "med": 21150,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 21150,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 21150,
+    "n": 2
+   }
+  ],
+  "niebe": [
+   {
+    "date": "2026-11-09",
+    "med": 426,
+    "n": 2
+   },
+   {
+    "date": "2026-11-10",
+    "med": 426,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 426,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 426,
+    "n": 2
+   }
+  ],
+  "riz": [
+   {
+    "date": "2026-11-09",
+    "med": 22149,
+    "n": 5
+   },
+   {
+    "date": "2026-11-10",
+    "med": 22149,
+    "n": 5
+   },
+   {
+    "date": "2026-11-11",
+    "med": 22149,
+    "n": 5
+   },
+   {
+    "date": "2026-11-14",
+    "med": 22149,
+    "n": 5
+   }
+  ],
+  "tourteau-soja": [
+   {
+    "date": "2026-11-09",
+    "med": 16500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 16500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 16500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 16500,
+    "n": 1
+   }
+  ],
+  "seringue": [
+   {
+    "date": "2026-11-09",
+    "med": 32500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-10",
+    "med": 32500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 32500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 32500,
+    "n": 1
+   }
+  ],
+  "thermometre": [
+   {
+    "date": "2026-11-09",
+    "med": 9250,
+    "n": 2
+   },
+   {
+    "date": "2026-11-10",
+    "med": 9250,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 9250,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 9250,
+    "n": 2
+   }
+  ],
+  "arachide": [
+   {
+    "date": "2026-11-10",
+    "med": 360,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 360,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 360,
+    "n": 1
+   }
+  ],
+  "sesame": [
+   {
+    "date": "2026-11-10",
+    "med": 450,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 450,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 450,
+    "n": 1
+   }
+  ],
+  "oignon": [
+   {
+    "date": "2026-11-10",
+    "med": 165,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 165,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 165,
+    "n": 1
+   }
+  ],
+  "tomate": [
+   {
+    "date": "2026-11-10",
+    "med": 195,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 195,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 195,
+    "n": 1
+   }
+  ],
+  "miel": [
+   {
+    "date": "2026-11-10",
+    "med": 1000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 1000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 1000,
+    "n": 1
+   }
+  ],
+  "semence-mais": [
+   {
+    "date": "2026-11-10",
+    "med": 1050,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 600,
+    "n": 3
+   },
+   {
+    "date": "2026-11-14",
+    "med": 600,
+    "n": 3
+   }
+  ],
+  "semence-riz": [
+   {
+    "date": "2026-11-10",
+    "med": 650,
+    "n": 2
+   },
+   {
+    "date": "2026-11-11",
+    "med": 600,
+    "n": 3
+   },
+   {
+    "date": "2026-11-14",
+    "med": 600,
+    "n": 3
+   }
+  ],
+  "semence-sorgho": [
+   {
+    "date": "2026-11-10",
+    "med": 900,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 900,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 900,
+    "n": 1
+   }
+  ],
+  "semence-mil": [
+   {
+    "date": "2026-11-10",
+    "med": 900,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 900,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 900,
+    "n": 1
+   }
+  ],
+  "semence-arachide": [
+   {
+    "date": "2026-11-10",
+    "med": 1400,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 1400,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 1400,
+    "n": 1
+   }
+  ],
+  "semence-sesame": [
+   {
+    "date": "2026-11-10",
+    "med": 1500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 1500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 1500,
+    "n": 1
+   }
+  ],
+  "semence-soja": [
+   {
+    "date": "2026-11-10",
+    "med": 1200,
+    "n": 1
+   },
+   {
+    "date": "2026-11-11",
+    "med": 1200,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 1200,
+    "n": 1
+   }
+  ],
+  "soja": [
+   {
+    "date": "2026-11-11",
+    "med": 325,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 325,
+    "n": 1
+   }
+  ],
+  "arachide-decortiquee": [
+   {
+    "date": "2026-11-11",
+    "med": 575,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 575,
+    "n": 1
+   }
+  ],
+  "cajou": [
+   {
+    "date": "2026-11-11",
+    "med": 385,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 385,
+    "n": 1
+   }
+  ],
+  "mangue": [
+   {
+    "date": "2026-11-11",
+    "med": 95,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 95,
+    "n": 1
+   }
+  ],
+  "engrais": [
+   {
+    "date": "2026-11-11",
+    "med": 20000,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 20000,
+    "n": 2
+   }
+  ],
+  "gingembre": [
+   {
+    "date": "2026-11-14",
+    "med": 2250,
+    "n": 3
+   }
+  ],
+  "lance-bolus": [
+   {
+    "date": "2026-11-14",
+    "med": 13250,
+    "n": 2
+   }
+  ]
+ }
+}
