@@ -93,6 +93,10 @@ export async function visitAll(page) {
     await selects("#v-personnel");
     await click("#v-personnel .btn.ghost:has-text(/Annuler|Cancel|Annulla|Cancelar/) >> nth=0", 400);
   }
+  // simulation Pro et formulaire du business plan pour la banque
+  await page.evaluate(() => window.B2A_SIM && window.B2A_SIM.open()); await W(1200);
+  await click(".sim-actions .btn >> nth=0", 600); await openDetails();
+  await page.evaluate(() => window.B2A_SIM && window.B2A_SIM.close()); await W(300);
   await tab("couvoir"); await click("#v-couvoir >> text=/couveuse|incubator|incubatrice|incubadora/i", 700);
   await tab("poulailler"); await W(3500);
   for (const p of ["chaleur", "eau", "sonde"]) await click(`#pc-simbox [data-panne=${p}]`, 1500);

@@ -187,8 +187,170 @@ function calc(){
   e(tS+(p.verger?36:(p.etale?p.delai:p.cycle)),null,p.verger?"Première récolte (le verger produit à plein vers la 7e année)":"Premières ventes");
   if(!cul&&!p.uneFois)e(tS+c,null,"Bande suivante (rythme de croisière)");
   const show=Math.min(H,Math.max(36,Math.ceil(((payback!=null?payback:H)+12)/12)*12));curve.splice(Math.floor(show));
-  return {p,N,cul,bats,annexes,surfBat,surfAnnex,surfTerrain,plotW,plotD,perim,layout,inv,total,an,ventesAn,chargesAn,amort,margeAn,netAn,payback,curve,et,tS,nOuv,cyc};
+  return {flows,niv:st.niv,p,N,cul,bats,annexes,surfBat,surfAnnex,surfTerrain,plotW,plotD,perim,layout,inv,total,an,ventesAn,chargesAn,amort,margeAn,netAn,payback,curve,et,tS,nOuv,cyc};
 }
+
+/* ================= business plan pour la banque (PDF, version Pro) =================
+   Reprend la simulation et ajoute le financement : apport, prêt (taux, durée, différé), tableau du prêt,
+   compte de résultat et trésorerie prévisionnels sur 5 ans, seuil de rentabilité, ratios bancaires et risques.
+   Le document est en français (langue des banques au Burkina Faso et en Afrique de l'Ouest). */
+function bpForm(box,r){
+  const b=st.bp=st.bp||{};const c=el("section","card");
+  c.append(el("h2","sec","Business plan pour la banque"),el("p","note","Complétez ces informations : l'application prépare un dossier PDF complet à présenter à la banque ou à un partenaire."));
+  const txt=(k,lbl,ph,max)=>{const i=el("input");i.type="text";i.maxLength=max||80;i.value=b[k]||"";if(ph)i.placeholder=ph;i.oninput=()=>{b[k]=i.value;save()};return field(lbl,notr(i))};
+  const num=(k,lbl,def,step,help)=>{const i=numIn(b[k]!=null?b[k]:def,step);i.oninput=()=>{const v=Number(String(i.value).replace(",","."));if(i.value===""||!isFinite(v))delete b[k];else b[k]=v;save()};return field(lbl,i,help)};
+  const g=el("div","grid2");
+  g.append(txt("nom","Nom du promoteur","ex. Bayere Abdoul Aziz"),txt("ent","Entreprise (facultatif)","ex. B2A Élevage"),txt("tel","Téléphone","ex. 70 12 34 56",30),txt("lieu","Lieu du projet","ex. Koubri, Burkina Faso"));
+  c.append(g);
+  const ta=el("textarea");ta.maxLength=800;ta.value=b.pres||"";ta.placeholder="ex. 5 ans d'expérience en élevage de pondeuses, formation en aviculture, clients déjà trouvés (boutiques, hôtels)…";ta.oninput=()=>{b.pres=ta.value;save()};
+  c.append(field("Présentation du promoteur et du projet (facultatif)",notr(ta)));
+  c.append(el("h3","sec","Financement"));
+  const g2=el("div","grid2");
+  g2.append(num("apport","Apport personnel (F)",Math.round(r.total*.3/10000)*10000,"10000","Les banques demandent souvent 20 à 30 % du projet."),
+    num("taux","Taux d'intérêt (% par an)",9,"0.5"),num("duree","Durée du prêt (années)",5,"1"),num("diff","Différé de remboursement (mois)",6,"1","Mois sans rembourser le capital, le temps que le projet démarre."));
+  c.append(g2);
+  const m=el("span","msg");m.setAttribute("aria-live","polite");
+  const go=el("button","btn","Créer le business plan (PDF)");go.type="button";
+  go.onclick=async()=>{const A=B.app;if(!A||!A.pdfReady){m.textContent=tr("Le PDF n'a pas pu être créé.");m.className="msg err";return}
+    const t=go.textContent;go.disabled=true;go.textContent=tr("Préparation…");
+    try{await A.pdfReady();await bpPdf(r,b);m.textContent=tr("Business plan enregistré.");m.className="msg good"}
+    catch(e){console.warn(e);m.textContent=tr("Le PDF n'a pas pu être créé.");m.className="msg err"}
+    go.disabled=false;go.textContent=t};
+  const row=el("div","sim-actions");row.append(go,m);c.append(row);box.append(c)}
+
+/* financement et prévisions année par année */
+function bpCalc(r,b){
+  const total=r.total,apport=Math.min(total,Math.max(0,Number(b.apport!=null?b.apport:Math.round(total*.3/10000)*10000)||0)),pret=total-apport;
+  const taux=Math.max(0,Number(b.taux!=null?b.taux:9)||0),duree=Math.max(1,Math.round(Number(b.duree!=null?b.duree:5)||5)),diff=Math.max(0,Math.min(duree*12-1,Math.round(Number(b.diff!=null?b.diff:6)||0)));
+  const i=taux/1200,n=duree*12,nA=n-diff;const ann=pret<=0?0:i>0?pret*i/(1-Math.pow(1+i,-nA)):pret/nA;
+  const loanY=[];let crd=pret;for(let mo=1;mo<=n;mo++){const y=Math.floor((mo-1)/12);loanY[y]=loanY[y]||{int:0,cap:0,crd:0};const it=crd*i;let cap=mo>diff?ann-it:0;if(mo===n)cap=crd;crd-=cap;loanY[y].int+=it;loanY[y].cap+=cap;loanY[y].crd=Math.max(0,crd)}
+  const Y=5,yrs=[];let tres=total;
+  for(let y=0;y<Y;y++){let rev=0,opex=0,inv=0,act=0;
+    r.flows.forEach(f=>{if(f.t<12*y||f.t>=12*(y+1))return;rev+=f.inn;if(f.t>=r.tS){opex+=f.out;act+=.25}else inv+=f.out});
+    const L=loanY[y]||{int:0,cap:0,crd:0},amort=r.amort*Math.min(12,act)/12;
+    const ebe=rev-opex,res=ebe-amort-L.int,caf=res+amort;tres+=rev-opex-inv-L.int-L.cap;
+    yrs.push({rev,opex,inv,ebe,amort,int:L.int,cap:L.cap,crd:L.crd,res,caf,tres,serv:L.int+L.cap,dscr:L.int+L.cap>0?ebe/(L.int+L.cap):null})}
+  const fixeMO=r.an.filter(x=>/^Main-d'œuvre \(|^Gardien$/.test(x.lbl)).reduce((a,x)=>a+x.v,0);
+  const intPlein=(yrs[2]||yrs[yrs.length-1]).int;const variables=r.chargesAn-fixeMO;
+  const tm=r.ventesAn>0?1-variables/r.ventesAn:0,fixes=fixeMO+r.amort+intPlein,seuil=tm>0?fixes/tm:null;
+  return {total,apport,pret,taux,duree,diff,ann,loanY,yrs,seuil,fixes,tm}}
+
+function bpPdf(r,b){
+  const {jsPDF}=window.jspdf;const doc=new jsPDF({unit:"mm",format:"a4"});const W=doc.internal.pageSize.getWidth();
+  const PF=s=>String(s??"").replace(/[   ]/g," ").replace(/[−–—]/g,"-").replace(/≈\s?/g,"~").replace(/[’‘]/g,"'").replace(/[“”«»]/g,'"').replace(/…/g,"...").replace(/œ/g,"oe").replace(/Œ/g,"Oe").replace(/[•]/g,"-").replace(/[^\x00-\xff]/g,"");
+  const M=v=>(v<0?"- ":"")+fmt(Math.abs(Math.round(v)))+" F";
+  const NAVY=[27,46,76],INK=[20,29,46],MUTED=[90,100,119],GREEN=[114,172,72];
+  const fin=bpCalc(r,b);const y0=fin.yrs;const P={y:0};
+  const nomProj=`${r.p.nom} : ${fmt(r.N,r.cul?1:0)} ${r.cul?"ha":r.p.u}`;
+  /* page de garde */
+  doc.setFillColor(...NAVY);doc.rect(0,0,W,297,"F");
+  const ic=document.querySelector(".band .ic");try{if(ic)doc.addImage(ic.src,"PNG",W/2-15,40,30,30)}catch(e){}
+  doc.setTextColor(255,255,255);doc.setFont("helvetica","bold");doc.setFontSize(30);doc.text("BUSINESS PLAN",W/2,95,{align:"center"});
+  doc.setFontSize(16);doc.text(doc.splitTextToSize(PF(nomProj),W-40),W/2,110,{align:"center"});
+  doc.setFont("helvetica","normal");doc.setFontSize(12);doc.setTextColor(200,210,225);
+  let gy=135;[b.ent,b.nom?"Promoteur : "+b.nom:"",b.lieu?"Lieu : "+b.lieu:"",b.tel?"Téléphone : "+b.tel:""].filter(Boolean).forEach(t=>{doc.text(PF(t),W/2,gy,{align:"center"});gy+=8});
+  doc.setDrawColor(...GREEN);doc.setLineWidth(1);doc.line(W/2-25,gy+4,W/2+25,gy+4);
+  doc.setFontSize(13);doc.setTextColor(255,255,255);doc.text(PF("Financement demandé : "+M(fin.pret)),W/2,gy+18,{align:"center"});
+  doc.setFontSize(10);doc.setTextColor(200,210,225);doc.text(PF(new Date().toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"})),W/2,gy+28,{align:"center"});
+  doc.setFontSize(8);doc.text(PF("Préparé avec B2A Smart Farming · SMART BUILDING · SMART FARMING"),W/2,282,{align:"center"});
+  /* outils */
+  const page=()=>{doc.addPage();P.y=18};
+  let sec=0;const toc=[];const H=t=>{if(P.y>250)page();sec++;toc.push([sec+". "+t,doc.getNumberOfPages()]);doc.setFont("helvetica","bold");doc.setFontSize(13);doc.setTextColor(...NAVY);doc.text(PF(sec+". "+t),12,P.y+4);doc.setDrawColor(...GREEN);doc.setLineWidth(.7);doc.line(12,P.y+6.2,34,P.y+6.2);P.y+=12};
+  const T_=(t,o)=>{o=o||{};doc.setFont("helvetica",o.bold?"bold":"normal");doc.setFontSize(o.size||10);doc.setTextColor(...(o.color||INK));const L=doc.splitTextToSize(PF(t),W-24);if(P.y+L.length*4.6>284)page();doc.text(L,12,P.y);P.y+=L.length*4.6+1.5};
+  const TB=(head,body,o)=>{doc.autoTable(Object.assign({startY:P.y,head:head?[head.map(PF)]:undefined,body:body.map(x=>x.map(PF)),margin:{left:12,right:12,top:16},
+    styles:{font:"helvetica",fontSize:9,cellPadding:2,textColor:INK,lineColor:[216,221,231],lineWidth:.1,overflow:"linebreak"},headStyles:{fillColor:NAVY,textColor:255,fontStyle:"bold"},
+    alternateRowStyles:{fillColor:[244,246,250]},theme:"grid",
+    didParseCell:d=>{if(d.section==="body"&&o&&o.boldRows&&o.boldRows.includes(d.row.index))d.cell.styles.fontStyle="bold";if(d.section==="body"&&d.column.index>0&&o&&o.right!==false)d.cell.styles.halign="right"}},o&&o.at||{}));P.y=doc.lastAutoTable.finalY+7};
+  const ans=["Année 1","Année 2","Année 3","Année 4","Année 5"];
+  const rb=r.payback!=null?moisTxt(r.payback):(r.margeAn>0?"plus de 15 ans":"non rentable");
+  /* sommaire (rempli à la fin) */
+  page();const tocPage=doc.getNumberOfPages();
+  /* résumé */
+  page();H("Résumé du projet");
+  T_(`Le projet consiste à créer une exploitation de ${PF(nomProj).toLowerCase()} (niveau de construction ${NIV[st.niv].lbl.toLowerCase()})${b.lieu?" à "+b.lieu:""}. L'investissement total est de ${M(fin.total)}, financé par un apport personnel de ${M(fin.apport)} et un prêt bancaire de ${M(fin.pret)} sur ${fin.duree} ans.`);
+  TB(null,[["Investissement total",M(fin.total)],["Apport personnel",M(fin.apport)+(fin.total?` (${fmt(fin.apport/fin.total*100)} %)`:"")],["Prêt demandé",M(fin.pret)],
+    ["Conditions du prêt",`${fmt(fin.taux,1)} % par an, ${fin.duree} ans, différé ${fin.diff} mois`],["Remboursement mensuel (après le différé)",M(fin.ann)],
+    ["Chiffre d'affaires par an (plein régime)",M(r.ventesAn)],["Résultat net par an (plein régime, avant intérêts)",M(r.netAn)],["Investissement récupéré après",rb],
+    ["Couverture de la dette (année 3)",y0[2]&&y0[2].dscr!=null?fmt(y0[2].dscr,2):"-"],["Emplois créés",String(r.nOuv+(r.annexes.some(a=>a.c==="G")?1:0))]],{right:false});
+  if(b.pres){H("Le promoteur et le projet");T_(b.pres)}else{H("Le promoteur et le projet");T_(`${b.nom||"Le promoteur"}${b.ent?", gérant de "+b.ent+",":""} porte ce projet. Activité : ${r.p.nom.toLowerCase()}. Les produits seront vendus sur les marchés locaux, aux commerçants, restaurants et particuliers.`)}
+  /* marché */
+  H("Marché et stratégie commerciale");
+  const MK=r.cul?`Produit : ${r.p.nom.toLowerCase()}. Production prévue : ${fmt(r.N*r.p.rend*(r.p.saisons||1)/1000,1)} tonnes par an, vendues environ ${fmt(r.p.prix)} F le kg. Clients visés : commerçants grossistes, transformateurs, marchés de la ville et institutions (écoles, cantines). La demande locale est forte et une partie de la consommation est encore importée.`
+    :`Produits : ${r.p.venteLbl.toLowerCase()} (${fmt(r.p.vente)} F par ${r.p.u.replace(/s$/,"")} et par bande). Clients visés : boutiques et alimentations, hôtels, restaurants et maquis, revendeurs du marché, particuliers et vente en ligne (Marché B2A). En Afrique de l'Ouest, la demande en protéines animales augmente avec la population urbaine et dépasse encore la production locale.`;
+  T_(MK);
+  TB(null,[["Stratégie de prix","Prix proches du marché, remise pour les clients réguliers et les grosses quantités"],["Distribution","Livraison aux clients réguliers, vente à la ferme, revendeurs"],["Communication","Réseaux sociaux (WhatsApp, Facebook, TikTok), bouche-à-oreille, Marché B2A"],["Suivi","Ventes, dépenses et production notées chaque jour dans l'application B2A Smart Farming"]],{right:false});
+  /* hypothèses */
+  H("Hypothèses de calcul");
+  const p0=r.p,HY=r.cul?[["Surface cultivée",fmt(r.N,1)+" ha"],["Rendement",fmt(p0.rend)+" kg par ha"],["Prix de vente",fmt(p0.prix)+" F par kg"],["Saisons par an",fmt(p0.saisons||1)],["Semences",M(p0.semence)+" par ha"],["Engrais",M(p0.engrais)+" par ha"],["Traitements",M(p0.phyto)+" par ha"],["Main-d'oeuvre des champs",M(p0.mo)+" par ha"]]
+    :[["Effectif de départ",fmt(r.N)+" "+p0.u],["Prix d'achat d'un animal",M(p0.achat)],["Vente par animal et par bande",M(p0.vente)],["Aliment par animal et par bande",fmt(p0.alim,1)+" kg"],["Prix de l'aliment",fmt(p0.pAlim)+" F par kg"],["Santé par animal",M(p0.vet)],["Pertes",fmt(p0.mort)+" %"],["Durée d'une bande",fmt(p0.cycle,1)+" mois (+ "+fmt(p0.vide,1)+" mois de vide sanitaire)"],["Salaire d'un ouvrier",M(Number(st.salaire)||SALAIRE)+" par mois"]];
+  TB(["Hypothèse","Valeur"],HY.concat([["Niveau de construction",NIV[st.niv].lbl],["Amortissement","Bâtiments 15 ans, matériel 5 ans, clôture et eau 10 ans"]]),{right:false});
+  /* technique */
+  H("Description technique");
+  TB(["Ouvrage","Dimensions","Surface"],r.bats.map(x=>[x.nom,`${x.n} × ${fmt(x.L)} m × ${fmt(x.W)} m`,fmt(x.s)+" m²"]).concat(r.annexes.map(a=>[a.nom,`${fmt(a.L)} m × ${fmt(a.W)} m`,fmt(a.L*a.W)+" m²"]),
+    [["Terrain clôturé",`${fmt(r.plotW)} m × ${fmt(r.plotD)} m`,fmt(r.surfTerrain)+" m²"]]));
+  T_(r.cul?`Culture de ${fmt(r.N,1)} ha, ${fmt(r.cyc,1)} saison(s) par an.`:`Effectif : ${fmt(r.N)} ${r.p.u}. Bandes par an : ${fmt(r.cyc,1)}. Ouvriers : ${r.nOuv}${r.annexes.some(a=>a.c==="G")?", plus un gardien":""}.`);
+  /* 4. calendrier */
+  H("Calendrier de réalisation");
+  TB(["Période","Étape"],r.et.map(x=>[x.a!=null&&Math.ceil(x.a)>Math.floor(x.de)+1?`Mois ${fmt(Math.floor(x.de)+1)} à ${fmt(Math.ceil(x.a))}`:`Mois ${fmt(Math.floor(x.de)+1)}`,x.lbl]),{right:false});
+  /* 5. investissements et financement */
+  H("Investissements");
+  TB(["Poste","Montant"],r.inv.filter(x=>x.v>0).map(x=>[x.lbl,M(x.v)]).concat([["Total des investissements",M(fin.total)]]),{boldRows:[r.inv.filter(x=>x.v>0).length]});
+  H("Plan de financement");
+  TB(["Besoins","Montant","Ressources","Montant"],[["Investissements",M(fin.total-((r.inv.find(x=>x.k==="fdr")||{v:0}).v)),"Apport personnel",M(fin.apport)],
+    ["Fonds de roulement",M((r.inv.find(x=>x.k==="fdr")||{v:0}).v),"Prêt bancaire",M(fin.pret)],["Total",M(fin.total),"Total",M(fin.total)]],{boldRows:[2],right:false});
+  H("Remboursement du prêt");
+  if(fin.pret>0){T_(`Prêt de ${M(fin.pret)} à ${fmt(fin.taux,1)} % par an sur ${fin.duree} ans, dont ${fin.diff} mois de différé (intérêts seulement). Mensualité ensuite : ${M(fin.ann)}.`);
+    TB(["Année","Intérêts","Capital remboursé","Total payé","Reste dû"],fin.loanY.map((x,k)=>[String(k+1),M(x.int),M(x.cap),M(x.int+x.cap),M(x.crd)]))}
+  else T_("Pas de prêt : le projet est financé entièrement par l'apport personnel.");
+  /* 8. compte de résultat */
+  H("Compte de résultat prévisionnel (5 ans)");
+  const row=(l,k,f)=>[l,...y0.map(y=>M(f?f(y):y[k]))];
+  TB(["",...ans],[row("Chiffre d'affaires","rev"),row("Charges d'exploitation","opex",y=>-y.opex),row("Excédent brut d'exploitation","ebe"),row("Amortissements","amort",y=>-y.amort),row("Intérêts du prêt","int",y=>-y.int),row("Résultat avant impôt","res"),row("Capacité d'autofinancement","caf")],
+    {boldRows:[2,5],at:{styles:{font:"helvetica",fontSize:7.5,cellPadding:1.5,textColor:INK,lineColor:[216,221,231],lineWidth:.1}}});
+  T_("L'année 1 comprend la construction et le démarrage : les ventes commencent seulement après l'installation. Montants avant impôt sur les bénéfices.",{size:8.5,color:MUTED});
+  /* 9. trésorerie */
+  H("Plan de trésorerie (5 ans)");
+  TB(["",...ans],[row("Encaissements (ventes)","rev"),row("Dépenses d'exploitation","opex",y=>-y.opex),row("Investissements payés","inv",y=>-y.inv),row("Remboursement du prêt","serv",y=>-y.serv),row("Trésorerie en fin d'année","tres")],
+    {boldRows:[4],at:{styles:{font:"helvetica",fontSize:7.5,cellPadding:1.5,textColor:INK,lineColor:[216,221,231],lineWidth:.1}}});
+  T_("Trésorerie de départ : apport + prêt. Elle comprend la réserve pour imprévus.",{size:8.5,color:MUTED});
+  /* courbe : argent cumulé du projet (avant prêt) */
+  const cv=(r.curve||[]).filter(x=>x.m<=60);
+  if(cv.length>2){if(P.y>200)page();const x0=24,x1=W-14,yT=P.y+4,yB=P.y+58;const vs=cv.map(x=>x.v),mn=Math.min(0,...vs),mx=Math.max(0,...vs),rg=mx-mn||1;
+    const X=m=>x0+(x1-x0)*m/60,Yv=v=>yB-(yB-yT)*(v-mn)/rg;
+    doc.setFont("helvetica","bold");doc.setFontSize(9.5);doc.setTextColor(...NAVY);doc.text(PF("Argent cumulé du projet sur 5 ans (millions de F)"),12,P.y);
+    doc.setDrawColor(200,205,215);doc.setLineWidth(.2);doc.line(x0,yB,x1,yB);doc.line(x0,yT,x0,yB);
+    doc.setDrawColor(150,155,165);doc.setLineDashPattern([1,1],0);doc.line(x0,Yv(0),x1,Yv(0));doc.setLineDashPattern([],0);
+    doc.setFont("helvetica","normal");doc.setFontSize(7);doc.setTextColor(...MUTED);
+    [mn,0,mx].forEach(v=>doc.text(fmt(v/1e6,1),x0-2,Yv(v)+1,{align:"right"}));for(let a=0;a<=5;a++)doc.text(a?"An "+a:"0",X(a*12),yB+4,{align:"center"});
+    doc.setDrawColor(...GREEN);doc.setLineWidth(.8);for(let k=1;k<cv.length;k++)doc.line(X(cv[k-1].m),Yv(cv[k-1].v),X(cv[k].m),Yv(cv[k].v));
+    P.y=yB+10}
+  if(y0.some(y=>y.tres<0))T_("Attention : la trésorerie devient négative. Augmentez l'apport, allongez le différé ou la durée du prêt.",{bold:true,color:[180,40,40]});
+  /* 10. rentabilité */
+  H("Rentabilité et ratios");
+  const d3=y0[2]||{};
+  TB(["Indicateur","Valeur","Repère"],[
+    ["Seuil de rentabilité (chiffre d'affaires minimum par an)",fin.seuil!=null?M(fin.seuil):"-",fin.seuil!=null&&r.ventesAn?`${fmt(fin.seuil/r.ventesAn*100)} % du chiffre d'affaires prévu`:""],
+    ["Marge sur coûts variables",fmt(fin.tm*100)+" %",""],
+    ["Couverture de la dette (année 3)",d3.dscr!=null?fmt(d3.dscr,2):"-","Les banques demandent souvent au moins 1,3"],
+    ["Apport personnel / investissement",fin.total?fmt(fin.apport/fin.total*100)+" %":"-","Souvent 20 à 30 %"],
+    ["Investissement récupéré après",rb,""],
+    ["Rentabilité annuelle de l'investissement",fin.total?fmt(r.netAn/fin.total*100,1)+" %":"-","Résultat net / investissement"]],{right:false});
+  /* 11. risques */
+  H("Risques et mesures prévues");
+  const RK=r.cul?[["Pluies irrégulières, sécheresse","Point d'eau et irrigation, variétés adaptées, calendrier de semis"],["Ravageurs et maladies des plantes","Surveillance, traitements au bon moment, conseils de l'agent agricole"],["Prix bas à la récolte","Magasin de stockage, vente échelonnée, contrats avec acheteurs"],["Vol et divagation des animaux","Clôture et gardien"]]
+    :[["Maladies et mortalité","Plan de vaccination, biosécurité (pédiluve, vide sanitaire), suivi vétérinaire, suivi quotidien dans l'application"],["Hausse du prix de l'aliment","Stock de sécurité, formule d'aliment fabriquée sur place, achats groupés"],["Baisse du prix de vente","Clients réguliers (boutiques, hôtels, restaurants), vente directe, Marché B2A"],["Vol","Clôture, gardien, éclairage"],["Fortes chaleurs","Bâtiment orienté est-ouest, ventilation, eau fraîche en permanence"]];
+  TB(["Risque","Mesures"],RK,{right:false});
+  T_("Prévisions établies à partir des prix moyens indiqués dans la simulation. À compléter par les devis des artisans et des fournisseurs.",{size:8.5,color:MUTED});
+  P.y+=6;T_(`Fait à ${b.lieu||"................"}, le ${new Date().toLocaleDateString("fr-FR")}`);P.y+=4;T_("Signature du promoteur :");
+  /* sommaire */
+  doc.setPage(tocPage);P.y=18;doc.setFont("helvetica","bold");doc.setFontSize(16);doc.setTextColor(...NAVY);doc.text("Sommaire",12,P.y+6);P.y+=18;
+  doc.setFontSize(11);toc.forEach(([t,pg])=>{doc.setFont("helvetica","normal");doc.setTextColor(...INK);doc.text(PF(t),16,P.y);doc.text(String(pg-1),W-14,P.y,{align:"right"});
+    doc.setDrawColor(220,224,232);doc.setLineWidth(.1);doc.line(16+doc.getTextWidth(PF(t))+2,P.y,W-14-doc.getTextWidth(String(pg-1))-2,P.y);P.y+=9});
+  /* pied de page */
+  const n=doc.getNumberOfPages();for(let k=2;k<=n;k++){doc.setPage(k);doc.setFont("helvetica","normal");doc.setFontSize(8);doc.setTextColor(120,128,145);
+    doc.text(PF("Business plan · "+nomProj+(b.nom?" · "+b.nom:"")),12,290);doc.text((k-1)+" / "+(n-1),W-12,290,{align:"right"})}
+  const nm="business-plan-"+String(r.p.nom).normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"").toLowerCase().slice(0,30)+".pdf";
+  return claude.use("downloads").then(dl=>{if(!dl)throw new Error("dl");return dl.save({filename:nm,data:doc.output("blob")})})}
 
 /* ================= styles ================= */
 const css=document.createElement("style");css.textContent=`
@@ -354,7 +516,9 @@ function results(out){out.innerHTML="";let r;try{r=calc()}catch(e){console.warn(
   /* actions */
   const act=el("div","sim-actions");const sh=el("button","btn","Partager le résumé");sh.type="button";sh.onclick=()=>share(r);
   const dl=el("button","btn ghost","Télécharger le détail (CSV)");dl.type="button";dl.onclick=()=>csv(r);
-  act.append(sh,dl);out.append(act,el("p","note","Simulation indicative : demandez des devis aux artisans et aux fournisseurs avant d'investir."));
+  const bp=el("button","btn","Business plan pour la banque (PDF)");bp.type="button";const bpBox=el("div");
+  bp.onclick=()=>{bpBox.innerHTML="";bpForm(bpBox,r);bpBox.scrollIntoView({block:"start",behavior:"smooth"})};
+  act.prepend(bp);act.append(sh,dl);out.append(act,bpBox,el("p","note","Simulation indicative : demandez des devis aux artisans et aux fournisseurs avant d'investir."));
 }
 function summary(r){const L=[`B2A Smart Farming — ${tr("Simulation d'un projet")}`,`${tr(r.p.nom)} : ${fmt(r.N,r.cul?1:0)} ${r.cul?"ha":tr(r.p.u)} · ${tr(NIV[st.niv].lbl)}`,"",
   `${tr("Investissement total")} : ${F(r.total)}`,`${tr("Résultat net par an")} : ${F(r.netAn)}`,`${tr("Argent récupéré après")} : ${r.payback!=null?moisTxt(r.payback):tr(r.margeAn>0?"Plus de 15 ans":"Pas rentable")}`,`${tr("Surface du terrain")} : ${fmt(r.surfTerrain)} m² (${fmt(r.plotW)} × ${fmt(r.plotD)} m)`,"",
@@ -378,7 +542,7 @@ function homeCard(){if($("sim-home"))return;const lots=$("lots");const host=lots
   tx.append(h,el("p",null,"Avant d'investir : toutes les dépenses du début à la fin, les bâtiments, la surface du terrain et le plan de construction."));
   const b=el("button","btn","Faire une simulation");b.type="button";b.onclick=open;r.append(ic,tx);c.append(r,b);host.after(c)}
 homeCard();setTimeout(homeCard,1500);
-window.B2A_SIM={open,calc:()=>calc(),state:()=>st};
+window.B2A_SIM={open,close,calc:()=>calc(),state:()=>st};
 
 /* ================= traductions (anglais, italien, espagnol) ================= */
 const T={
@@ -512,6 +676,24 @@ const T={
 "Simulation indicative : demandez des devis aux artisans et aux fournisseurs avant d'investir.":["Indicative simulation: ask builders and suppliers for quotes before investing.","Simulazione indicativa: chiedi preventivi ad artigiani e fornitori prima di investire.","Simulación orientativa: pida presupuestos a albañiles y proveedores antes de invertir."],
 "Calcul impossible avec ces chiffres. Vérifiez les valeurs saisies.":["Cannot calculate with these figures. Check the values entered.","Calcolo impossibile con questi numeri. Controlla i valori inseriti.","Cálculo imposible con estas cifras. Compruebe los valores introducidos."],
 "Rubrique":["Section","Voce","Apartado"],"Détail":["Detail","Dettaglio","Detalle"],"Montant (F CFA)":["Amount (F CFA)","Importo (F CFA)","Importe (F CFA)"],
+"Business plan pour la banque (PDF)":["Business plan for the bank (PDF)","Business plan per la banca (PDF)","Plan de negocio para el banco (PDF)"],
+"Business plan pour la banque":["Business plan for the bank","Business plan per la banca","Plan de negocio para el banco"],
+"Complétez ces informations : l'application prépare un dossier PDF complet à présenter à la banque ou à un partenaire.":["Fill in this information: the app prepares a complete PDF file to present to the bank or a partner.","Completa queste informazioni: l'app prepara un dossier PDF completo da presentare alla banca o a un partner.","Complete esta información: la aplicación prepara un expediente PDF completo para presentar al banco o a un socio."],
+"Nom du promoteur":["Promoter's name","Nome del promotore","Nombre del promotor"],"Entreprise (facultatif)":["Company (optional)","Azienda (facoltativo)","Empresa (opcional)"],
+"Téléphone":["Phone","Telefono","Teléfono"],"Lieu du projet":["Project location","Luogo del progetto","Lugar del proyecto"],
+"Présentation du promoteur et du projet (facultatif)":["About the promoter and the project (optional)","Presentazione del promotore e del progetto (facoltativo)","Presentación del promotor y del proyecto (opcional)"],
+"ex. 5 ans d'expérience en élevage de pondeuses, formation en aviculture, clients déjà trouvés (boutiques, hôtels)…":["e.g. 5 years of experience with laying hens, poultry training, customers already found (shops, hotels)…","es. 5 anni di esperienza con le ovaiole, formazione in avicoltura, clienti già trovati (negozi, hotel)…","p. ej. 5 años de experiencia con ponedoras, formación en avicultura, clientes ya encontrados (tiendas, hoteles)…"],
+"Financement":["Financing","Finanziamento","Financiación"],
+"Apport personnel (F)":["Own contribution (F)","Apporto personale (F)","Aporte personal (F)"],
+"Les banques demandent souvent {0} à {1} % du projet.":["Banks often ask for {0} to {1} % of the project.","Le banche chiedono spesso dal {0} al {1} % del progetto.","Los bancos suelen pedir del {0} al {1} % del proyecto."],
+"Taux d'intérêt (% par an)":["Interest rate (% per year)","Tasso d'interesse (% annuo)","Tasa de interés (% anual)"],
+"Durée du prêt (années)":["Loan term (years)","Durata del prestito (anni)","Plazo del préstamo (años)"],
+"Différé de remboursement (mois)":["Repayment grace period (months)","Preammortamento (mesi)","Período de gracia (meses)"],
+"Mois sans rembourser le capital, le temps que le projet démarre.":["Months without repaying the capital, while the project starts.","Mesi senza rimborsare il capitale, il tempo che il progetto parta.","Meses sin devolver el capital, mientras el proyecto arranca."],
+"Créer le business plan (PDF)":["Create the business plan (PDF)","Crea il business plan (PDF)","Crear el plan de negocio (PDF)"],
+"Business plan enregistré.":["Business plan saved.","Business plan salvato.","Plan de negocio guardado."],
+"Le PDF n'a pas pu être créé.":["The PDF could not be created.","Non è stato possibile creare il PDF.","No se pudo crear el PDF."],
+"Préparation…":["Preparing…","Preparazione…","Preparando…"],
 "La version Pro demande une connexion internet et un compte (inscription).":["The Pro version requires an internet connection and an account (sign-up).","La versione Pro richiede una connessione internet e un account (iscrizione).","La versión Pro requiere conexión a internet y una cuenta (registro)."]
 };
 {const D=window.B2A_DICT=window.B2A_DICT||{};["en","it","es"].forEach((l,i)=>{D[l]=D[l]||{};for(const k in T)if(T[k]&&D[l][k]==null)D[l][k]=T[k][i]})}
