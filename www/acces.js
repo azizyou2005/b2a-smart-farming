@@ -13,6 +13,8 @@ const VERSION=((document.currentScript&&/[?&]v=([\d.]+)/.exec(document.currentSc
 const plateforme=()=>{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()?"android":/iphone|ipad/i.test(navigator.userAgent)?"iphone (web)":/android/i.test(navigator.userAgent)?"android (web)":"ordinateur (web)"};
 let acc=null;try{acc=JSON.parse(B.lsGet(LS_ACC)||"null")}catch(e){acc=null}
 const save=v=>{acc=v;B.lsSet(LS_ACC,v?JSON.stringify(v):null)};
+/* nom, ville et pays de l'inscription, gardés sur le téléphone pour pré-remplir le business plan (simulation Pro) */
+const profil=d=>{if(!d)return;try{B.lsSet("b2a-profil",JSON.stringify({prenom:d.prenom||"",nom:d.nom||"",ville:d.ville||"",pays:d.pays||""}))}catch(e){}};
 
 /* ---------- écran ---------- */
 const ov=el("div","acces");ov.id="acces";ov.setAttribute("role","dialog");ov.setAttribute("aria-modal","true");ov.setAttribute("aria-labelledby","acc-t");
@@ -133,7 +135,7 @@ function form(err){const c=head("Inscription","Remplissez ce formulaire pour ouv
       if(linked&&u.email){const x={email:u.email};if(B.farm)x.ferme=B.farm;ref.update(x).catch(()=>{})}
       marquer(ks,u.uid,linked);
       if(!B.lsGet(B.LS_NAME))B.lsSet(B.LS_NAME,d.prenom+" "+d.nom);
-      save({uid:u.uid,statut:"approuve"});notify(d,linked?u.email:"");hide();toast("Inscription réussie. Bienvenue dans B2A Smart Farming.");listen()}
+      profil(d);save({uid:u.uid,statut:"approuve"});notify(d,linked?u.email:"");hide();toast("Inscription réussie. Bienvenue dans B2A Smart Farming.");listen()}
     catch(err){console.warn(err);reset("L'inscription a échoué. Vérifiez la connexion et réessayez.")}}}
 
 /* connexion avec l'e-mail et le mot de passe choisis à l'inscription */
@@ -153,7 +155,7 @@ function login(err){const c=head("Se connecter","Entrez l'e-mail et le mot de pa
     try{await B.loadFirebase(B.CFG);const cr=await firebase.auth().signInWithEmailAndPassword(mail,pass);const u=cr.user;
       const s=await firebase.firestore().doc("inscriptions/"+u.uid).get();
       if(!s.exists){save(null);B.lsSet(LS_MSG,"Aucune inscription pour ce compte : remplissez le formulaire.");location.reload();return}
-      const v=s.data();save({uid:u.uid,statut:v.statut});
+      const v=s.data();profil(v);save({uid:u.uid,statut:v.statut});
       if(v.ferme)B.lsSet(B.LS_FARM,v.ferme);
       if(!B.lsGet(B.LS_NAME)&&v.prenom)B.lsSet(B.LS_NAME,(v.prenom+" "+(v.nom||"")).trim());
       B.lsSet(LS_MSG,"ok");location.reload()}
@@ -216,7 +218,7 @@ function notify(d,mail){const to=window.B2A_NOTIFY_ID||window.B2A_NOTIFY_EMAIL;i
    L'e-mail et le mot de passe ne sont jamais gardés sur le téléphone : ils s'ajoutent plus tard dans Réglages. */
 function offlineStart(d,hadMail){
   if(!B.lsGet(B.LS_NAME))B.lsSet(B.LS_NAME,d.prenom+" "+d.nom);
-  save({statut:"local",d,le:today()});hide();
+  profil(d);save({statut:"local",d,le:today()});hide();
   toast(hadMail?"Inscription gardée sur le téléphone. Sans internet, l'e-mail n'a pas pu être enregistré : ajoutez-le plus tard dans Réglages > Compte."
                :"Inscription gardée sur le téléphone. Elle sera envoyée à B2A dès que vous aurez internet.");}
 let sending=false;
@@ -240,7 +242,7 @@ function refused(st){const c=head("Accès retiré","Votre accès à l'applicatio
 
 async function listen(){if(off)return;try{const u=await B.ensureUser(B.CFG);
   off=firebase.firestore().doc("inscriptions/"+u.uid).onSnapshot(d=>{if(!d.exists){if(d.metadata.fromCache)return;save(null);off&&off();off=null;show();form();return}
-    const v=d.data(),st=v.statut;const was=acc&&acc.statut;save({uid:u.uid,statut:st});
+    const v=d.data(),st=v.statut;profil(v);const was=acc&&acc.statut;save({uid:u.uid,statut:st});
     if(st==="approuve"){if(was!=="approuve"){hide();toast("Accès accordé. Bienvenue dans B2A Smart Farming.")}else hide();
       if(v.vuLe!==today()||v.version!==VERSION)d.ref.update({vuLe:today(),version:VERSION,plateforme:plateforme()}).catch(()=>{});
       /* compte e-mail : on garde le code de la ferme pour le retrouver après une réinstallation */

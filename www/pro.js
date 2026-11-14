@@ -624,5 +624,7 @@ B.lotTabs=(B.lotTabs||[]).concat([
 /* clé des boutons d'onglet (pour savoir lequel est ouvert) */
 new MutationObserver(()=>{const st=document.querySelector("#lotdetail .subtabs");if(!st)return;const ks=["resume","argent","saisies",...B.lotTabs.map(x=>x.k)];
   [...st.querySelectorAll("button")].forEach((b,i)=>{if(!b.dataset.k)b.dataset.k=ks[i]||""})}).observe(document.body,{childList:true,subtree:true});
-window.B2A_PRO={isPro,start,cfg:()=>cfg,lockCard};
+window.B2A_PRO={isPro,start,cfg:()=>cfg,lockCard,
+  /* prix du marché trouvés sur internet (pour la simulation et le business plan) */
+  marche:{charger:loadPrix,etude:(pid,ville)=>etude(pid,ville==null?(B.lsGet(LS_VILLE)||""):ville),maj:()=>prixWeb&&prixWeb.maj||null,pret:()=>!!prixWeb}};
 })();

@@ -194,8 +194,25 @@ function calc(){
    Reprend la simulation et ajoute le financement : apport, prêt (taux, durée, différé), tableau du prêt,
    compte de résultat et trésorerie prévisionnels sur 5 ans, seuil de rentabilité, ratios bancaires et risques.
    Le document est en français (langue des banques au Burkina Faso et en Afrique de l'Ouest). */
-function bpForm(box,r){
-  const b=st.bp=st.bp||{};const c=el("section","card");
+/* prix du marché (internet, version Pro) liés à chaque projet : produit, réglage de la simulation remplacé, conversion */
+const MK_MAP={pondeuse:[["oeufs-plateau"],["pondeuse-reforme"],["aliment-ponte","pAlim",v=>v/50]],
+  chair:[["poulet-chair","vente"],["poussin-chair","achat"],["aliment-chair","pAlim",v=>v/50]],
+  caillepond:[["aliment-ponte","pAlim",v=>v/50]],caillechair:[["aliment-chair","pAlim",v=>v/50]],
+  local:[["poulet-local","vente"],["poussin-local","achat"],["pintadeau"]],porc:[],
+  mouton:[["mouton","vente"],["aliment-betail","pAlim",v=>v/50]],bovin:[["boeuf","vente"],["aliment-betail","pAlim",v=>v/50]],
+  vache:[["lait"],["aliment-betail","pAlim",v=>v/50]],tilapia:[["tilapia"]],clarias:[],
+  mais:[["mais","prix",v=>v/100],["semence-mais"],["engrais"]],sorgho:[["sorgho","prix",v=>v/100],["semence-sorgho"],["engrais"]],
+  riz:[["riz"],["semence-riz"],["engrais"]],soja:[["soja","prix"],["semence-soja"]],arachide:[["arachide","prix"],["semence-arachide"]],
+  oignon:[["oignon","prix"]],tomate:[["tomate","prix"]],anacarde:[["cajou","prix"]]};
+const profil=()=>{try{return JSON.parse(B.lsGet("b2a-profil")||"null")||{}}catch(e){return {}}};
+function marche(r){const M=window.B2A_PRO&&window.B2A_PRO.marche;if(!M||!M.pret())return null;const v=(st.bp&&st.bp.lieu||profil().ville||"").split(",")[0].trim();
+  return (MK_MAP[st.type]||[]).map(([pid,k,cv])=>{const e=M.etude(pid,v);if(!e||!e.n)return null;const conv=cv||(x=>x);
+    return {pid,nom:(e.p.nom&&e.p.nom.fr)||pid,unite:e.p.unite||"",med:e.prix,q1:e.q1,q3:e.q3,n:e.n,k,pm:k?Math.round(conv(e.prix)):null,ps:k?r.p[k]:null}}).filter(Boolean)}
+function bpForm(box,r,refresh){
+  const b=st.bp=st.bp||{};const pf=profil();
+  /* pré-rempli avec l'inscription */
+  if(b.nom==null&&(pf.prenom||B.lsGet(B.LS_NAME)))b.nom=((pf.prenom||"")+" "+(pf.nom||"")).trim()||B.lsGet(B.LS_NAME)||"";
+  if(b.lieu==null&&(pf.ville||pf.pays))b.lieu=[pf.ville,pf.pays].filter(Boolean).join(", ");save();const c=el("section","card");
   c.append(el("h2","sec","Business plan pour la banque"),el("p","note","Complétez ces informations : l'application prépare un dossier PDF complet à présenter à la banque ou à un partenaire."));
   const txt=(k,lbl,ph,max)=>{const i=el("input");i.type="text";i.maxLength=max||80;i.value=b[k]||"";if(ph)i.placeholder=ph;i.oninput=()=>{b[k]=i.value;save()};return field(lbl,notr(i))};
   const num=(k,lbl,def,step,help)=>{const i=numIn(b[k]!=null?b[k]:def,step);i.oninput=()=>{const v=Number(String(i.value).replace(",","."));if(i.value===""||!isFinite(v))delete b[k];else b[k]=v;save()};return field(lbl,i,help)};
@@ -209,6 +226,19 @@ function bpForm(box,r){
   g2.append(num("apport","Apport personnel (F)",Math.round(r.total*.3/10000)*10000,"10000","Les banques demandent souvent 20 à 30 % du projet."),
     num("taux","Taux d'intérêt (% par an)",9,"0.5"),num("duree","Durée du prêt (années)",5,"1"),num("diff","Différé de remboursement (mois)",6,"1","Mois sans rembourser le capital, le temps que le projet démarre."));
   c.append(g2);
+  /* prix du marché trouvés sur internet */
+  c.append(el("h3","sec","Prix du marché (internet)"));const mk=el("div");c.append(mk);
+  const paintMk=()=>{mk.innerHTML="";const M=window.B2A_PRO&&window.B2A_PRO.marche;
+    if(!M||!M.pret()){mk.append(el("p","note",navigator.onLine?"Chargement…":"Les prix du marché demandent une connexion internet la première fois."));if(M&&navigator.onLine){M.charger();setTimeout(paintMk,2500)}return}
+    const L=marche(r);if(!L||!L.length){mk.append(el("p","note","Pas encore de prix trouvé sur internet pour ce projet. Le business plan utilise les prix de la simulation."));return}
+    const t=el("table","sim-t");L.forEach(x=>{const tr_=el("tr");const a=el("td");a.append(notr(el("span",null,x.nom)));a.append(notr(el("small",null,fmt(x.n)+" "+tr("prix relevés")+" · "+fmt(x.q1)+" – "+fmt(x.q3)+" F")));
+      tr_.append(a,notr(el("td","n",fmt(x.med)+" F")));t.append(tr_)});mk.append(t);
+    const use=L.filter(x=>x.k&&x.pm>0&&Math.abs(x.pm-x.ps)/Math.max(1,x.ps)>.02);
+    if(use.length){const ub=el("button","btn small","Utiliser les prix du marché dans la simulation");ub.type="button";
+      ub.onclick=()=>{const o=st.over[st.type]=st.over[st.type]||{};use.forEach(x=>{o[x.k]=x.pm});save();if(refresh)refresh()};mk.append(ub)}
+    else mk.append(el("p","note good","La simulation utilise déjà les prix du marché."));
+    const M2=M.maj();if(M2){const p_=el("p","note");p_.append(el("span",null,"Mise à jour :"),document.createTextNode(" "),notr(el("span",null,new Date(Date.parse(M2)).toLocaleDateString("fr-FR"))));mk.append(p_)}};
+  paintMk();
   const m=el("span","msg");m.setAttribute("aria-live","polite");
   const go=el("button","btn","Créer le business plan (PDF)");go.type="button";
   go.onclick=async()=>{const A=B.app;if(!A||!A.pdfReady){m.textContent=tr("Le PDF n'a pas pu être créé.");m.className="msg err";return}
@@ -272,12 +302,18 @@ function bpPdf(r,b){
     ["Conditions du prêt",`${fmt(fin.taux,1)} % par an, ${fin.duree} ans, différé ${fin.diff} mois`],["Remboursement mensuel (après le différé)",M(fin.ann)],
     ["Chiffre d'affaires par an (plein régime)",M(r.ventesAn)],["Résultat net par an (plein régime, avant intérêts)",M(r.netAn)],["Investissement récupéré après",rb],
     ["Couverture de la dette (année 3)",y0[2]&&y0[2].dscr!=null?fmt(y0[2].dscr,2):"-"],["Emplois créés",String(r.nOuv+(r.annexes.some(a=>a.c==="G")?1:0))]],{right:false});
+  if(r.netAn<0)T_("Attention : avec ces prix, le projet perd de l'argent chaque année. Revoyez la taille, le niveau de construction ou les prix avant de présenter ce dossier.",{bold:true,color:[180,40,40]});
+  else if(y0[2]&&y0[2].dscr!=null&&y0[2].dscr<1.3)T_("Point d'attention : la couverture de la dette est faible. Un apport plus grand ou un prêt plus long rendra le dossier plus solide.",{bold:true,color:[160,100,20]});
   if(b.pres){H("Le promoteur et le projet");T_(b.pres)}else{H("Le promoteur et le projet");T_(`${b.nom||"Le promoteur"}${b.ent?", gérant de "+b.ent+",":""} porte ce projet. Activité : ${r.p.nom.toLowerCase()}. Les produits seront vendus sur les marchés locaux, aux commerçants, restaurants et particuliers.`)}
   /* marché */
   H("Marché et stratégie commerciale");
   const MK=r.cul?`Produit : ${r.p.nom.toLowerCase()}. Production prévue : ${fmt(r.N*r.p.rend*(r.p.saisons||1)/1000,1)} tonnes par an, vendues environ ${fmt(r.p.prix)} F le kg. Clients visés : commerçants grossistes, transformateurs, marchés de la ville et institutions (écoles, cantines). La demande locale est forte et une partie de la consommation est encore importée.`
     :`Produits : ${r.p.venteLbl.toLowerCase()} (${fmt(r.p.vente)} F par ${r.p.u.replace(/s$/,"")} et par bande). Clients visés : boutiques et alimentations, hôtels, restaurants et maquis, revendeurs du marché, particuliers et vente en ligne (Marché B2A). En Afrique de l'Ouest, la demande en protéines animales augmente avec la population urbaine et dépasse encore la production locale.`;
   T_(MK);
+  const ML=marche(r);
+  if(ML&&ML.length){T_("Prix relevés sur le marché (internet) :",{bold:true});
+    TB(["Produit","Unité","Prix médian","Fourchette","Relevés"],ML.map(x=>[x.nom,x.unite,M(x.med),fmt(x.q1)+" - "+fmt(x.q3)+" F",fmt(x.n)]));
+    const mj=window.B2A_PRO.marche.maj();T_(`Source : relevés B2A Smart Farming${mj?" du "+new Date(Date.parse(mj)).toLocaleDateString("fr-FR"):""} (annonces, prix officiels, presse, boutiques au Burkina Faso). Les prix du plan sont ${ML.some(x=>x.k&&x.pm>0&&Math.abs(x.pm-x.ps)/Math.max(1,x.ps)>.02)?"comparés à":"alignés sur"} ces prix du marché.`,{size:8.5,color:MUTED})}
   TB(null,[["Stratégie de prix","Prix proches du marché, remise pour les clients réguliers et les grosses quantités"],["Distribution","Livraison aux clients réguliers, vente à la ferme, revendeurs"],["Communication","Réseaux sociaux (WhatsApp, Facebook, TikTok), bouche-à-oreille, Marché B2A"],["Suivi","Ventes, dépenses et production notées chaque jour dans l'application B2A Smart Farming"]],{right:false});
   /* hypothèses */
   H("Hypothèses de calcul");
@@ -517,7 +553,8 @@ function results(out){out.innerHTML="";let r;try{r=calc()}catch(e){console.warn(
   const act=el("div","sim-actions");const sh=el("button","btn","Partager le résumé");sh.type="button";sh.onclick=()=>share(r);
   const dl=el("button","btn ghost","Télécharger le détail (CSV)");dl.type="button";dl.onclick=()=>csv(r);
   const bp=el("button","btn","Business plan pour la banque (PDF)");bp.type="button";const bpBox=el("div");
-  bp.onclick=()=>{bpBox.innerHTML="";bpForm(bpBox,r);bpBox.scrollIntoView({block:"start",behavior:"smooth"})};
+  bp.onclick=()=>{bpBox.innerHTML="";bpForm(bpBox,r,()=>{results(out);const x=out.querySelector("[data-bp]");if(x)x.click()});bpBox.scrollIntoView({block:"start",behavior:"smooth"})};
+  bp.setAttribute("data-bp","");
   act.prepend(bp);act.append(sh,dl);out.append(act,bpBox,el("p","note","Simulation indicative : demandez des devis aux artisans et aux fournisseurs avant d'investir."));
 }
 function summary(r){const L=[`B2A Smart Farming — ${tr("Simulation d'un projet")}`,`${tr(r.p.nom)} : ${fmt(r.N,r.cul?1:0)} ${r.cul?"ha":tr(r.p.u)} · ${tr(NIV[st.niv].lbl)}`,"",
@@ -690,6 +727,14 @@ const T={
 "Durée du prêt (années)":["Loan term (years)","Durata del prestito (anni)","Plazo del préstamo (años)"],
 "Différé de remboursement (mois)":["Repayment grace period (months)","Preammortamento (mesi)","Período de gracia (meses)"],
 "Mois sans rembourser le capital, le temps que le projet démarre.":["Months without repaying the capital, while the project starts.","Mesi senza rimborsare il capitale, il tempo che il progetto parta.","Meses sin devolver el capital, mientras el proyecto arranca."],
+"Prix du marché (internet)":["Market prices (internet)","Prezzi di mercato (internet)","Precios del mercado (internet)"],
+"prix relevés":["prices found","prezzi rilevati","precios encontrados"],
+"Utiliser les prix du marché dans la simulation":["Use market prices in the simulation","Usa i prezzi di mercato nella simulazione","Usar los precios del mercado en la simulación"],
+"La simulation utilise déjà les prix du marché.":["The simulation already uses market prices.","La simulazione usa già i prezzi di mercato.","La simulación ya usa los precios del mercado."],
+"Pas encore de prix trouvé sur internet pour ce projet. Le business plan utilise les prix de la simulation.":["No price found on the internet for this project yet. The business plan uses the simulation prices.","Nessun prezzo ancora trovato su internet per questo progetto. Il business plan usa i prezzi della simulazione.","Aún no se encontró precio en internet para este proyecto. El plan de negocio usa los precios de la simulación."],
+"Mise à jour :":["Updated:","Aggiornamento:","Actualización:"],
+"Chargement…":["Loading…","Caricamento…","Cargando…"],
+"Les prix du marché demandent une connexion internet la première fois.":["Market prices need an internet connection the first time.","I prezzi di mercato richiedono una connessione internet la prima volta.","Los precios del mercado necesitan conexión a internet la primera vez."],
 "Créer le business plan (PDF)":["Create the business plan (PDF)","Crea il business plan (PDF)","Crear el plan de negocio (PDF)"],
 "Business plan enregistré.":["Business plan saved.","Business plan salvato.","Plan de negocio guardado."],
 "Le PDF n'a pas pu être créé.":["The PDF could not be created.","Non è stato possibile creare il PDF.","No se pudo crear el PDF."],
