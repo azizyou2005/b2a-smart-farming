@@ -2,7 +2,7 @@
  "version": 1,
  "devise": "XOF",
  "pays": "Burkina Faso",
- "maj": "2026-11-11T05:45Z",
+ "maj": "2026-11-14T05:47Z",
  "produits": [
   {
    "id": "oeufs-plateau",
@@ -825,6 +825,40 @@
     "fertilisant",
     "fumure"
    ]
+  },
+  {
+   "id": "gingembre",
+   "cat": "recoltes",
+   "unite": "kg",
+   "nom": {
+    "fr": "Gingembre",
+    "en": "Ginger",
+    "it": "Zenzero",
+    "es": "Jengibre"
+   },
+   "mots": [
+    "gingembre",
+    "gnamakou",
+    "ginger"
+   ]
+  },
+  {
+   "id": "lance-bolus",
+   "cat": "materiel",
+   "unite": "unité",
+   "nom": {
+    "fr": "Lance-bolus (pistolet à bolus)",
+    "en": "Bolus gun",
+    "it": "Pistola per boli",
+    "es": "Pistola de bolos"
+   },
+   "mots": [
+    "lance bolus",
+    "bolus",
+    "pistolet",
+    "vermifuge",
+    "comprime"
+   ]
   }
  ],
  "releves": [
@@ -1137,6 +1171,36 @@
    "variante": "marche"
   },
   {
+   "produit": "gingembre",
+   "prix": 1500,
+   "source": "Sidwaya (marché Accart-ville, au kg)",
+   "url": "https://www.sidwaya.info/2026/08/20/consommation-du-gingembre-la-rarete-du-gnamakou-pimente-les-prix/",
+   "ville": "Bobo-Dioulasso",
+   "type": "presse",
+   "date": "2026-08-20",
+   "variante": "bobo-kg"
+  },
+  {
+   "produit": "gingembre",
+   "prix": 2250,
+   "source": "Sidwaya (marché de Larlé : 45 000 F le sac de 20 kg, ramené au kg)",
+   "url": "https://www.sidwaya.info/2026/08/20/consommation-du-gingembre-la-rarete-du-gnamakou-pimente-les-prix/",
+   "ville": "Ouagadougou",
+   "type": "presse",
+   "date": "2026-08-20",
+   "variante": "ouaga-sac20"
+  },
+  {
+   "produit": "gingembre",
+   "prix": 3250,
+   "source": "Sidwaya (300 000 à 350 000 F le sac de 100 kg, milieu de fourchette ramené au kg)",
+   "url": "https://www.sidwaya.info/2026/08/20/consommation-du-gingembre-la-rarete-du-gnamakou-pimente-les-prix/",
+   "ville": "Bobo-Dioulasso",
+   "type": "presse",
+   "date": "2026-08-20",
+   "variante": "bobo-sac100"
+  },
+  {
    "produit": "lait",
    "prix": 1464,
    "source": "Combien-coûte / Numbeo (lait en bouteille)",
@@ -1144,6 +1208,26 @@
    "ville": "Ouagadougou",
    "type": "boutique",
    "date": "2026-11-07"
+  },
+  {
+   "produit": "lance-bolus",
+   "prix": 4000,
+   "source": "CoinAfrique (petit modèle ; autres modèles 7 500, 17 500 et 22 500 F)",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/lance-bolus-5993006",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-14",
+   "variante": "petit"
+  },
+  {
+   "produit": "lance-bolus",
+   "prix": 22500,
+   "source": "CoinAfrique (grand modèle)",
+   "url": "https://bf.coinafrique.com/annonce/materiel-pour-animaux/lance-bolus-5993006",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-14",
+   "variante": "grand"
   },
   {
    "produit": "lapin",
@@ -1356,6 +1440,15 @@
   },
   {
    "produit": "mouton",
+   "prix": 120000,
+   "source": "Studio Yafa, Tabaski 2026 (acheteur à Tanghin : 100 000 à 140 000 F, milieu de fourchette)",
+   "url": "https://www.studioyafa.bf/39429-tabaski-2026-a-ouaga-des-moutons-chers-malgre-linterdiction-dexportation",
+   "ville": "Ouagadougou",
+   "type": "presse",
+   "date": "2026-05-26"
+  },
+  {
+   "produit": "mouton",
    "prix": 125000,
    "source": "CoinAfrique",
    "url": "https://bf.coinafrique.com/annonce/moutons/mouton-5328693",
@@ -1416,6 +1509,26 @@
    "ville": "Burkina Faso",
    "type": "officiel",
    "date": "2026-10-17"
+  },
+  {
+   "produit": "oeufs-plateau",
+   "prix": 3000,
+   "source": "FasoAmazone : prix officiel consommateur (100 F l'œuf) depuis le 10/07/2026",
+   "url": "https://www.fasoamazone.net/2026/07/10/burkina-faso-le-gouvernement-fixe-de-nouveaux-prix-officiels-des-oeufs-de-poules-pondeuses-a-compter-du-10-juillet-2026/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-07-10",
+   "variante": "consommateur"
+  },
+  {
+   "produit": "oeufs-plateau",
+   "prix": 2600,
+   "source": "FasoAmazone : prix officiel producteur → grossiste (plateau de 30)",
+   "url": "https://www.fasoamazone.net/2026/07/10/burkina-faso-le-gouvernement-fixe-de-nouveaux-prix-officiels-des-oeufs-de-poules-pondeuses-a-compter-du-10-juillet-2026/",
+   "ville": "Burkina Faso",
+   "type": "officiel",
+   "date": "2026-07-10",
+   "variante": "producteur"
   },
   {
    "produit": "oeufs-plateau",
@@ -1650,6 +1763,33 @@
    "ville": "Bobo-Dioulasso",
    "type": "annonce",
    "date": "2026-11-07"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 2500,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poules-3788053",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-14"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 3000,
+   "source": "CoinAfrique",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulets-1386023",
+   "ville": "Ouagadougou",
+   "type": "annonce",
+   "date": "2026-11-14"
+  },
+  {
+   "produit": "poulet-local",
+   "prix": 4000,
+   "source": "CoinAfrique (poulet bleu de Hollande)",
+   "url": "https://bf.coinafrique.com/annonce/poules-lapins-et-pigeons/poulet-bleu-dhollande-2940321",
+   "ville": "Bobo-Dioulasso",
+   "type": "annonce",
+   "date": "2026-11-14"
   },
   {
    "produit": "poussin-chair",
@@ -1996,6 +2136,11 @@
     "date": "2026-11-11",
     "med": 3378,
     "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 3000,
+    "n": 4
    }
   ],
   "pondeuse-reforme": [
@@ -2021,6 +2166,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 3500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
     "med": 3500,
     "n": 1
    }
@@ -2050,6 +2200,11 @@
     "date": "2026-11-11",
     "med": 2500,
     "n": 7
+   },
+   {
+    "date": "2026-11-14",
+    "med": 2500,
+    "n": 7
    }
   ],
   "poulet-local": [
@@ -2077,6 +2232,11 @@
     "date": "2026-11-11",
     "med": 3000,
     "n": 10
+   },
+   {
+    "date": "2026-11-14",
+    "med": 3000,
+    "n": 13
    }
   ],
   "dinde": [
@@ -2102,6 +2262,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 35000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-14",
     "med": 35000,
     "n": 7
    }
@@ -2131,6 +2296,11 @@
     "date": "2026-11-11",
     "med": 6000,
     "n": 5
+   },
+   {
+    "date": "2026-11-14",
+    "med": 6000,
+    "n": 5
    }
   ],
   "mouton": [
@@ -2158,6 +2328,11 @@
     "date": "2026-11-11",
     "med": 150000,
     "n": 10
+   },
+   {
+    "date": "2026-11-14",
+    "med": 150000,
+    "n": 11
    }
   ],
   "chevre": [
@@ -2183,6 +2358,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 42500,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
     "med": 42500,
     "n": 2
    }
@@ -2212,6 +2392,11 @@
     "date": "2026-11-11",
     "med": 400000,
     "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 400000,
+    "n": 1
    }
   ],
   "poussin-chair": [
@@ -2237,6 +2422,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 750,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
     "med": 750,
     "n": 1
    }
@@ -2266,6 +2456,11 @@
     "date": "2026-11-11",
     "med": 1375,
     "n": 4
+   },
+   {
+    "date": "2026-11-14",
+    "med": 1375,
+    "n": 4
    }
   ],
   "pintadeau": [
@@ -2291,6 +2486,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 600,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
     "med": 600,
     "n": 2
    }
@@ -2320,6 +2520,11 @@
     "date": "2026-11-11",
     "med": 3700,
     "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 3700,
+    "n": 1
    }
   ],
   "viande-boeuf": [
@@ -2345,6 +2550,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 3003,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
     "med": 3003,
     "n": 2
    }
@@ -2374,6 +2584,11 @@
     "date": "2026-11-11",
     "med": 1464,
     "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 1464,
+    "n": 1
    }
   ],
   "mais": [
@@ -2399,6 +2614,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 17100,
+    "n": 3
+   },
+   {
+    "date": "2026-11-14",
     "med": 17100,
     "n": 3
    }
@@ -2428,6 +2648,11 @@
     "date": "2026-11-11",
     "med": 17500,
     "n": 3
+   },
+   {
+    "date": "2026-11-14",
+    "med": 17500,
+    "n": 3
    }
   ],
   "aliment-chair": [
@@ -2453,6 +2678,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 19000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
     "med": 19000,
     "n": 1
    }
@@ -2482,6 +2712,11 @@
     "date": "2026-11-11",
     "med": 12500,
     "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 12500,
+    "n": 1
    }
   ],
   "son": [
@@ -2507,6 +2742,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 7000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
     "med": 7000,
     "n": 1
    }
@@ -2536,6 +2776,11 @@
     "date": "2026-11-11",
     "med": 80000,
     "n": 7
+   },
+   {
+    "date": "2026-11-14",
+    "med": 80000,
+    "n": 7
    }
   ],
   "mangeoire": [
@@ -2561,6 +2806,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 2250,
+    "n": 6
+   },
+   {
+    "date": "2026-11-14",
     "med": 2250,
     "n": 6
    }
@@ -2590,6 +2840,11 @@
     "date": "2026-11-11",
     "med": 40000,
     "n": 4
+   },
+   {
+    "date": "2026-11-14",
+    "med": 40000,
+    "n": 4
    }
   ],
   "chauffage": [
@@ -2615,6 +2870,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 35000,
+    "n": 3
+   },
+   {
+    "date": "2026-11-14",
     "med": 35000,
     "n": 3
    }
@@ -2644,6 +2904,11 @@
     "date": "2026-11-11",
     "med": 125000,
     "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 125000,
+    "n": 1
    }
   ],
   "pierre-lecher": [
@@ -2671,6 +2936,11 @@
     "date": "2026-11-11",
     "med": 2375,
     "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 2375,
+    "n": 2
    }
   ],
   "mil": [
@@ -2686,6 +2956,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 26700,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
     "med": 26700,
     "n": 2
    }
@@ -2705,6 +2980,11 @@
     "date": "2026-11-11",
     "med": 21150,
     "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 21150,
+    "n": 2
    }
   ],
   "niebe": [
@@ -2720,6 +3000,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 426,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
     "med": 426,
     "n": 2
    }
@@ -2739,6 +3024,11 @@
     "date": "2026-11-11",
     "med": 22149,
     "n": 5
+   },
+   {
+    "date": "2026-11-14",
+    "med": 22149,
+    "n": 5
    }
   ],
   "tourteau-soja": [
@@ -2754,6 +3044,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 16500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
     "med": 16500,
     "n": 1
    }
@@ -2773,6 +3068,11 @@
     "date": "2026-11-11",
     "med": 32500,
     "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 32500,
+    "n": 1
    }
   ],
   "thermometre": [
@@ -2790,6 +3090,11 @@
     "date": "2026-11-11",
     "med": 9250,
     "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 9250,
+    "n": 2
    }
   ],
   "arachide": [
@@ -2800,6 +3105,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 360,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
     "med": 360,
     "n": 1
    }
@@ -2814,6 +3124,11 @@
     "date": "2026-11-11",
     "med": 450,
     "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 450,
+    "n": 1
    }
   ],
   "oignon": [
@@ -2824,6 +3139,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 165,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
     "med": 165,
     "n": 1
    }
@@ -2838,6 +3158,11 @@
     "date": "2026-11-11",
     "med": 195,
     "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 195,
+    "n": 1
    }
   ],
   "miel": [
@@ -2848,6 +3173,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 1000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
     "med": 1000,
     "n": 1
    }
@@ -2862,6 +3192,11 @@
     "date": "2026-11-11",
     "med": 600,
     "n": 3
+   },
+   {
+    "date": "2026-11-14",
+    "med": 600,
+    "n": 3
    }
   ],
   "semence-riz": [
@@ -2872,6 +3207,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 600,
+    "n": 3
+   },
+   {
+    "date": "2026-11-14",
     "med": 600,
     "n": 3
    }
@@ -2886,6 +3226,11 @@
     "date": "2026-11-11",
     "med": 900,
     "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 900,
+    "n": 1
    }
   ],
   "semence-mil": [
@@ -2896,6 +3241,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 900,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
     "med": 900,
     "n": 1
    }
@@ -2910,6 +3260,11 @@
     "date": "2026-11-11",
     "med": 1400,
     "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 1400,
+    "n": 1
    }
   ],
   "semence-sesame": [
@@ -2920,6 +3275,11 @@
    },
    {
     "date": "2026-11-11",
+    "med": 1500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
     "med": 1500,
     "n": 1
    }
@@ -2934,11 +3294,21 @@
     "date": "2026-11-11",
     "med": 1200,
     "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 1200,
+    "n": 1
    }
   ],
   "soja": [
    {
     "date": "2026-11-11",
+    "med": 325,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
     "med": 325,
     "n": 1
    }
@@ -2948,11 +3318,21 @@
     "date": "2026-11-11",
     "med": 575,
     "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 575,
+    "n": 1
    }
   ],
   "cajou": [
    {
     "date": "2026-11-11",
+    "med": 385,
+    "n": 1
+   },
+   {
+    "date": "2026-11-14",
     "med": 385,
     "n": 1
    }
@@ -2962,12 +3342,36 @@
     "date": "2026-11-11",
     "med": 95,
     "n": 1
+   },
+   {
+    "date": "2026-11-14",
+    "med": 95,
+    "n": 1
    }
   ],
   "engrais": [
    {
     "date": "2026-11-11",
     "med": 20000,
+    "n": 2
+   },
+   {
+    "date": "2026-11-14",
+    "med": 20000,
+    "n": 2
+   }
+  ],
+  "gingembre": [
+   {
+    "date": "2026-11-14",
+    "med": 2250,
+    "n": 3
+   }
+  ],
+  "lance-bolus": [
+   {
+    "date": "2026-11-14",
+    "med": 13250,
     "n": 2
    }
   ]
