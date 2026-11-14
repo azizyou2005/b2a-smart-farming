@@ -109,7 +109,16 @@ service cloud.firestore {
     // Il n'existe aucune règle pour lister "farms" : personne ne peut voir la liste des fermes ni leurs codes.
     match /farms/{farm}/{col}/{doc} {
       allow read, write: if canUse(farm)
-        && col in ['lots', 'saisies', 'soins', 'analyses', 'previsions', 'formules', 'factures', 'reglages', 'contacts', 'depenses', 'couveuses', 'couvees', 'mesures'];
+        && col in ['lots', 'saisies', 'soins', 'analyses', 'previsions', 'formules', 'factures', 'reglages', 'contacts', 'depenses', 'couveuses', 'couvees', 'mesures',
+                   'personnel', 'presences', 'taches'];
+    }
+
+    // Ressources humaines privées (salaires, paie, évaluations) : seulement le propriétaire de la ferme.
+    // Ferme sans propriétaire (ancienne version) : les membres actifs, comme pour les autres données.
+    function canBoss(farm) { return approved() && validCode(farm)
+      && (isOwner(farm) || (!hasOwner(farm) && activeMember(farm))); }
+    match /farms/{farm}/{rhcol}/{doc} {
+      allow read, write: if rhcol in ['rh_contrats', 'paies', 'evaluations'] && canBoss(farm);
     }
 
     // ---------- Marché B2A (partie payante) ----------

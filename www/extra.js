@@ -206,7 +206,7 @@ $("x-delbtn").onclick=async()=>{const b=$("x-delbtn"),m=$("x-delmsg");
     m.textContent="Envoyez l'e-mail qui vient de s'ouvrir pour terminer la demande.";m.className="msg";b.disabled=false;b.dataset.c="";b.textContent="Supprimer mon compte"}};
 $("x-export").onclick=async()=>{
   if(!db)return;const out={app:"B2A Smart Farming",version:2,exporte:new Date().toISOString()};
-  for(const n of B.COLS){const s=await db.collection(n).get();out[n]=s.docs.map(d=>({id:d.id,...d.data()}))}
+  for(const n of B.COLS){try{const s=await db.collection(n).get();out[n]=s.docs.map(d=>({id:d.id,...d.data()}))}catch(e){}}
   const blob=new Blob([JSON.stringify(out)],{type:"application/json"});
   try{const dl=await window.claude.use("downloads");await dl.save({filename:"b2a-sauvegarde-"+today()+".json",data:blob});$("x-bmsg").textContent="Sauvegarde téléchargée. Gardez-la ou envoyez-la par WhatsApp.";
     try{localStorage.setItem("b2a-last-backup",String(Date.now()))}catch(e){}lastBackup();const nd=$("x-bkp");if(nd)nd.remove()}
@@ -217,7 +217,7 @@ $("x-import").onchange=async e=>{const f=e.target.files[0];if(!f||!db)return;
     const okId=v=>typeof v==="string"&&/^[A-Za-z0-9_.-]{1,150}$/.test(v)&&v!=="."&&v!=="..";
     const plain=v=>v&&typeof v==="object"&&!Array.isArray(v);
     const scrub=v=>Array.isArray(v)?v.map(scrub):plain(v)?Object.fromEntries(Object.entries(v).filter(([k])=>!/^__|^(constructor|prototype)$/.test(k)).map(([k,x])=>[k,scrub(x)])):v;
-    let n=0;for(const col of B.COLS){const arr=d[col];if(!Array.isArray(arr))continue;for(const x of arr){if(!plain(x))continue;const {id,...rest}=x;if(okId(id)){await db.doc(col+"/"+id).set(scrub(rest));n++}}}
+    let n=0;for(const col of B.COLS){const arr=d[col];if(!Array.isArray(arr))continue;for(const x of arr){if(!plain(x))continue;const {id,...rest}=x;if(okId(id)){try{await db.doc(col+"/"+id).set(scrub(rest));n++}catch(e){}}}}
     $("x-bmsg").textContent=n+" éléments importés. Vos données sont de retour."}catch(err){$("x-bmsg").textContent="Fichier non reconnu."}e.target.value=""};
 let installEvt=null;addEventListener("beforeinstallprompt",e=>{e.preventDefault();installEvt=e;$("x-install").hidden=false});
 $("x-install").onclick=async()=>{if(!installEvt)return;installEvt.prompt();await installEvt.userChoice;installEvt=null;$("x-install").hidden=true};

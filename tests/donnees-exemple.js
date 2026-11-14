@@ -6,6 +6,12 @@ const saisies={};
 for(let i=20;i>=0;i--){const d=iso(i);saisies["L1_"+d]={lotId:"L1",date:d,oeufs:Math.round(430+Math.sin(i)*12+(20-i)*0.6),morts:i%7===0?1:0,alimentKg:58,alimentRecu:i===10?500:null,poidsG:null,note:"",by:"demo",updatedAt:Date.now()};}
 for(let i=20;i>=0;i-=2){const d=iso(i);saisies["L2_"+d]={lotId:"L2",date:d,oeufs:null,morts:i%6===0?2:0,alimentKg:Math.round(20+ (20-i)*1.6),alimentRecu:null,poidsG:i%4===0?Math.round(1800-(i*70)):null,note:"",by:"demo",updatedAt:Date.now()};}
 const contacts={C1:{nom:IT?"Dott. Ouédraogo (veterinario)":"Dr Ouédraogo (vétérinaire)",tel:"+22670000000",type:"Vétérinaire"}};
-localStorage.setItem("b2a-farm-data-v1",JSON.stringify({lots,saisies,contacts}));
+const personnel={P1:{nom:"Awa Ouédraogo",poste:"Soigneur / soigneuse",tel:"70112233",embauche:iso(300),membre:null,actif:true,createdAt:1},P2:{nom:"Issa Kaboré",poste:"Gardien",tel:"76445566",embauche:iso(90),membre:null,actif:true,createdAt:2}};
+const rh_contrats={P1:{salaire:45000},P2:{salaire:35000}};
+const presences={};for(let i=10;i>=1;i--){const d=iso(i);presences[d]={date:d,p:{P1:i===4?"absent":"present",P2:i===2?"retard":"present"},by:"demo"}}
+const taches={T1:{titre:"Nourrir les animaux",pid:"P1",date:iso(10),rep:"jour",faits:{[iso(1)]:{par:"Awa",le:1},[iso(2)]:{par:"Awa",le:1}},by:"demo",createdAt:1},T2:{titre:"Nettoyer le bâtiment",pid:"P2",date:iso(7),rep:"semaine",faits:{},by:"demo",createdAt:2}};
+const paies={Y1:{pid:"P1",mois:iso(0).slice(0,7),type:"avance",montant:10000,mode:"orange",date:iso(0),depId:null,by:"demo",createdAt:1}};
+const evaluations={E1:{pid:"P1",date:iso(40),notes:{ponctualite:3,travail:4,animaux:4,hygiene:3,comportement:5},moyenne:3.8,commentaire:"",by:"demo",createdAt:1},E2:{pid:"P1",date:iso(3),notes:{ponctualite:4,travail:5,animaux:5,hygiene:4,comportement:5},moyenne:4.6,commentaire:"",by:"demo",createdAt:2}};
+localStorage.setItem("b2a-farm-data-v1",JSON.stringify({lots,saisies,contacts,personnel,rh_contrats,presences,taches,paies,evaluations}));
 localStorage.setItem("b2a-my-name","Aziz");
 })();

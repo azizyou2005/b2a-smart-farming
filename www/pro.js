@@ -191,7 +191,7 @@ async function start(){if(started)return;started=true;
   let s=null;try{s=await store()}catch(e){s=null}if(!s)return;uid=s.uid;
   try{firebase.auth().onAuthStateChanged(()=>rerender())}catch(e){}
   const k=cle();
-  if(k)s.doc("pro_fermes/"+k).onSnapshot(d=>{proFin=d.exists?ms(d.data().finLe):0;B.lsSet(LS_PRO,String(proFin));rerender()},()=>{});
+  if(k)s.doc("pro_fermes/"+k).onSnapshot(d=>{proFin=d.exists?ms(d.data().finLe):0;B.lsSet(LS_PRO,String(proFin));rerender();window.dispatchEvent(new CustomEvent("b2a-pro"))},()=>{});
   s.doc("marche_config/global").onSnapshot(d=>{cfg={...DEF,...(d.exists?d.data():{})};rerender()},()=>{});
   s.col("pro_paiements").where("uid","==",uid).onSnapshot(q=>{mesPaie=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>ms(b.creeLe)-ms(a.creeLe));rerender()},()=>{});
   s.col("formations").where("publie","==",true).onSnapshot(q=>{formations=q.docs.map(d=>({id:d.id,...d.data()}));
@@ -206,7 +206,7 @@ function lockCard(D,feature){
   const c=el("div","pro-lock");const h=el("h3");h.append(notr(el("span","pro-badge","PRO")),document.createTextNode(("Fonction de la version Pro")));c.append(h);
   if(!B.CFG){c.append(el("p","note","La version Pro demande une connexion internet et un compte (inscription)."));D.append(c);return}
   c.append(el("p",null,"Avec la version Pro, vous avez :"));
-  const ul=el("ul");["des vidéos et des fiches PDF de formation adaptées à l'âge du lot, à garder sur le téléphone ;","l'enregistrement des mesures (température, humidité, eau) avec alertes et export pour l'étude ;","la validation de vos vaccins par le vétérinaire de votre choix (service payant) ;","l'étude du marché en temps réel et le prix de vente conseillé pour vos animaux, produits et matériel.","la simulation complète d'un nouveau projet d'élevage ou de culture : dépenses, bâtiments, surface et plan de construction."].forEach(t=>ul.append(el("li",null,t)));c.append(ul);
+  const ul=el("ul");["des vidéos et des fiches PDF de formation adaptées à l'âge du lot, à garder sur le téléphone ;","l'enregistrement des mesures (température, humidité, eau) avec alertes et export pour l'étude ;","la validation de vos vaccins par le vétérinaire de votre choix (service payant) ;","l'étude du marché en temps réel et le prix de vente conseillé pour vos animaux, produits et matériel.","la simulation complète d'un nouveau projet d'élevage ou de culture : dépenses, bâtiments, surface et plan de construction.","la gestion du personnel : présences, tâches, paie et évaluations des employés."].forEach(t=>ul.append(el("li",null,t)));c.append(ul);
   c.append(el("p","note","Toute l'équipe de la ferme en profite avec un seul abonnement."));
   const wait=mesPaie.find(p=>p.statut==="attente"),ref=mesPaie.find(p=>p.statut==="refuse");
   if(wait){c.append(el("p","msg","Paiement en cours de vérification par B2A."));D.append(c);return}

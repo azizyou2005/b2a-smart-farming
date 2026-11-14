@@ -214,3 +214,22 @@ test("version Pro : la validation vétérinaire demande un abonnement Pro en cou
   // abonnement Pro en cours : accepté
   await assertSucceeds(as("bob0000000").collection("veto_demandes").add(demande({ eleveur: "bob0000000", cle: "u_bob0000000" })));
 });
+
+test("personnel : salaires, paie et évaluations réservés au propriétaire ; tâches partagées avec l'équipe", async () => {
+  await setup(async db => {
+    await db.doc("farms/ABCDE12345").set({ owner: "alice", approbation: false });
+    await db.doc("farms/ABCDE12345/members/alice").set({ name: "A", role: "proprietaire", statut: "actif" });
+    await db.doc("farms/ABCDE12345/members/bob").set({ name: "B", role: "employe", statut: "actif" });
+    await db.doc("farms/ABCDE12345/evaluations/e1").set({ pid: "p1", moyenne: 4 });
+    await db.doc("farms/ABCDE12345/taches/t1").set({ titre: "Nourrir", faits: {} });
+  });
+  await assertSucceeds(as("alice").doc("farms/ABCDE12345/evaluations/e1").get());
+  await assertSucceeds(as("alice").doc("farms/ABCDE12345/paies/x1").set({ pid: "p1", montant: 30000 }));
+  await assertSucceeds(as("alice").doc("farms/ABCDE12345/rh_contrats/p1").set({ salaire: 30000 }));
+  await assertFails(as("bob").doc("farms/ABCDE12345/evaluations/e1").get());
+  await assertFails(as("bob").doc("farms/ABCDE12345/rh_contrats/p1").get());
+  await assertFails(as("bob").doc("farms/ABCDE12345/paies/x2").set({ pid: "p1", montant: 999999 }));
+  await assertFails(as("bob").collection("farms/ABCDE12345/paies").get());
+  await assertSucceeds(as("bob").doc("farms/ABCDE12345/taches/t1").update({ faits: { "2026-11-14": { par: "B" } } }));
+  await assertFails(as("vendeur").doc("farms/ABCDE12345/taches/t1").get());
+});

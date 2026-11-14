@@ -84,6 +84,15 @@ export async function visitAll(page) {
   await tab("calendrier"); await selects("#v-calendrier");
   await tab("formules"); await selects("#v-formules");
   await tab("ventes"); await click("#v-new", 700); await selects("#v-ventes"); await click("#v-cancel", 400);
+  await tab("personnel");
+  // écran sans abonnement (offre Pro), puis écrans Pro (abonnement simulé)
+  await page.evaluate(() => { if (window.B2A_PRO) window.B2A_PRO.isPro = () => true; window.renderPersonnel && window.renderPersonnel(); }); await W(400);
+  for (const k of [0, 1, 2, 3, 4]) {
+    await click(`#v-personnel .rh-tabs button >> nth=${k}`, 500);
+    await click("#v-personnel .card button.btn.small:not(.ghost) >> nth=0", 600);
+    await selects("#v-personnel");
+    await click("#v-personnel .btn.ghost:has-text(/Annuler|Cancel|Annulla|Cancelar/) >> nth=0", 400);
+  }
   await tab("couvoir"); await click("#v-couvoir >> text=/couveuse|incubator|incubatrice|incubadora/i", 700);
   await tab("poulailler"); await W(3500);
   for (const p of ["chaleur", "eau", "sonde"]) await click(`#pc-simbox [data-panne=${p}]`, 1500);

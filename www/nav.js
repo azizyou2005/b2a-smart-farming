@@ -14,7 +14,8 @@ const CATS=[
   ["tableau","Accueil et alertes","Résumé du jour, alertes et lots en cours"],
   ["saisie","Saisie du jour","Œufs, morts, aliment et eau du jour"],
   ["ventes","Ventes et caisse","Factures, dépenses et bénéfice du mois"],
-  ["@bilan","Bilan de l'année","Chiffre d'affaires, dépenses et bénéfice net"]]},
+  ["@bilan","Bilan de l'année","Chiffre d'affaires, dépenses et bénéfice net"],
+  ["personnel","Personnel et équipe","Pro : présences, tâches, paie et évaluations des employés"]]},
  {k:"technique",t:"Technique d'élevage",d:"Santé, soins, aliment et matériel",items:[
   ["calendrier","Calendrier des soins","Vaccins, traitements et rappels"],
   ["diagnostic","Photo IA et guide santé","Signes de maladie, causes probables, analyse photo"],
