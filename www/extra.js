@@ -166,10 +166,12 @@ function renderSet(){
 /* gestion de l'équipe, réservée au propriétaire */
 const ST_TXT={actif:"Actif",attente:"En attente",retire:"Retiré"};
 function renderOwner(box){
-  const T=B.team,fs=firebase.firestore();
+  const T=B.team;
+  /* le SDK Firebase est chargé à la demande : ne pas l'appeler avant (sinon « Can't find variable: firebase ») */
+  const fsP=async()=>{await B.loadFirebase(B.CFG);return firebase.firestore()};
   box.append(el("p","note good","Vous êtes le propriétaire de cette ferme. Vous voyez en direct ce que l'équipe enregistre."));
   const lab=el("label","row");const cb=el("input");cb.type="checkbox";cb.checked=!!T.approbation;
-  cb.onchange=async()=>{cb.disabled=true;try{await fs.doc("farms/"+B.farm).update({approbation:cb.checked})}catch(e){cb.checked=!cb.checked}cb.disabled=false};
+  cb.onchange=async()=>{cb.disabled=true;try{await (await fsP()).doc("farms/"+B.farm).update({approbation:cb.checked})}catch(e){cb.checked=!cb.checked}cb.disabled=false};
   lab.append(cb,el("span",null,"J'accepte moi-même chaque nouveau membre"));box.append(lab);
   const list=T.list.filter(m=>m.statut);
   box.append(el("span","label","Équipe"));
@@ -182,7 +184,7 @@ function renderOwner(box){
     if(m.vu){const v=el("span","note",m.vu);v.setAttribute("data-notr","");li.append(el("span","note","Vu le"),v)}
     const act=(t,s,ghost)=>{const b=el("button","btn small"+(ghost?" ghost":""),t);b.type="button";
       b.onclick=async()=>{if(s==="retire"&&b.dataset.c!=="1"){b.dataset.c="1";b.textContent="Confirmer : retirer";return}
-        b.disabled=true;try{await fs.doc("farms/"+B.farm+"/members/"+m.id).update({statut:s})}catch(e){b.disabled=false}};li.append(b)};
+        b.disabled=true;try{await (await fsP()).doc("farms/"+B.farm+"/members/"+m.id).update({statut:s})}catch(e){b.disabled=false}};li.append(b)};
     if(m.id!==T.uid){
       if(m.statut==="attente"){act("Accepter","actif");act("Refuser","retire",true)}
       else if(m.statut==="actif")act("Retirer","retire",true);
