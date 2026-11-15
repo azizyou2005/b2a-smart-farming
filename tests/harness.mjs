@@ -97,6 +97,13 @@ export async function visitAll(page) {
   await page.evaluate(() => window.B2A_SIM && window.B2A_SIM.open()); await W(1200);
   await click(".sim-actions .btn >> nth=0", 600); await openDetails();
   await page.evaluate(() => window.B2A_SIM && window.B2A_SIM.close()); await W(300);
+  // caméras de la ferme : écran vide, réglages, une caméra (injoignable dans les tests), retour
+  await tab("tableau"); await click("#btn-cameras", 600);
+  await click("#cam-wrap .btn >> nth=0", 500); await click("#cam-wrap .btn >> text=/Ajouter|Add|Aggiungi|Añadir/", 400);
+  await page.evaluate(() => { const i = document.querySelectorAll("#cam-wrap input"); if (i[0]) { i[0].value = "http://127.0.0.1:9"; i[0].dispatchEvent(new Event("input")); } const n = document.querySelectorAll("#cam-wrap .cam-li input"); if (n[1]) { n[1].value = "test"; n[1].dispatchEvent(new Event("input")); } });
+  await click("#cam-wrap .btn >> text=/Rechercher|Find|Cerca|Buscar/", 1500);
+  await click("#cam-wrap .cam-row2 .btn >> nth=0", 2500); await W(1000);
+  await page.evaluate(() => { try { localStorage.removeItem("b2a-cameras"); } catch {} window.B2A_CAMS && window.B2A_CAMS.close(); }); await W(300);
   await tab("couvoir"); await click("#v-couvoir >> text=/couveuse|incubator|incubatrice|incubadora/i", 700);
   await tab("poulailler"); await W(3500);
   for (const p of ["chaleur", "eau", "sonde"]) await click(`#pc-simbox [data-panne=${p}]`, 1500);

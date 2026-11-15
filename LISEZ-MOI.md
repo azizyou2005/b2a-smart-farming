@@ -243,3 +243,23 @@ Le guide et l'IA aident à réagir vite mais ne remplacent pas un vétérinaire.
 **Côté ministère** : https://azizyou2005.github.io/b2a-smart-farming/ministere.html (e-mail + mot de passe). Il voit seulement les rapports publiés, peut les imprimer en PDF ou les télécharger pour Excel. Il n'a aucun accès aux fermes, aux inscriptions ni au code.
 
 **Important** : après la mise à jour, publiez le nouveau `firestore.rules` dans Firebase (Firestore > Règles > Publier), sinon rien ne s'enregistre.
+
+## Caméras de la ferme (en direct dans l'application)
+
+Sur l'accueil, **Ouvrir les caméras** ouvre directement l'écran des caméras (aussi dans le menu Technique). Les caméras IP (ONVIF/RTSP, par exemple les caméras solaires) passent par un **boîtier vidéo** installé à la ferme : un mini-PC ou un Raspberry Pi avec [go2rtc](https://github.com/AlexxIT/go2rtc) et ffmpeg. Le téléphone le joint sur le Wi-Fi de la ferme, ou à distance avec la **VPN du routeur B2A** (WireGuard). Aucun port n'est ouvert sur internet.
+
+1. Installer go2rtc et ffmpeg sur le boîtier, puis écrire `go2rtc.yaml` (un flux par caméra, de préférence le sous-flux, plus léger en données mobiles) :
+   ```yaml
+   api:
+     listen: ":1984"
+     origin: "*"          # permet à l'application de rechercher les caméras
+   streams:
+     pondoir: rtsp://UTILISATEUR:MOT_DE_PASSE@192.168.1.21:554/stream2
+     entree:  rtsp://UTILISATEUR:MOT_DE_PASSE@192.168.1.22:554/stream2
+   ```
+   Les mots de passe des caméras restent dans ce fichier, sur le boîtier : jamais dans ce dépôt public.
+2. Dans l'application : **Ouvrir les caméras › Réglages des caméras**, adresse du boîtier (ex. `http://192.168.1.10:1984`), puis **Rechercher les caméras** et **Enregistrer**. Ces réglages restent sur le téléphone.
+3. À distance : activer la VPN B2A sur le téléphone (Android : « VPN permanente » conseillée), puis ouvrir les caméras.
+4. Secours : **Ouvrir EseeCloud (secours)** lance directement l'application EseeCloud (ou sa fiche Play Store si elle n'est pas installée).
+
+Application Android : le boîtier répond en http sur le réseau local, d'où `allowMixedContent` (capacitor.config.json) et `cleartextTrafficPermitted` (build.yml). Sur le site web (https), le navigateur bloque les images http : chaque caméra s'ouvre alors dans un nouvel onglet.

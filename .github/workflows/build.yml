@@ -92,6 +92,9 @@ jobs:
           M=android/app/src/main/AndroidManifest.xml
           grep -q TTS_SERVICE "$M" || sed -i 's#</manifest>#    <queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>\n</manifest>#' "$M"
           grep -n TTS_SERVICE "$M" || true
+          # Caméras de la ferme : ouvrir directement EseeCloud (application de secours) sans passer par le Play Store (Android 11+)
+          grep -q 'com.juanvision.eseecloud30' "$M" || sed -i '0,/<\/queries>/s##<package android:name="com.juanvision.eseecloud30" /></queries>#' "$M"
+          grep -n eseecloud "$M" || true
           # Google Play : pas d'alarmes exactes (les rappels utilisent des alarmes normales, allowWhileIdle)
           grep -q 'xmlns:tools' "$M" || sed -i 's#<manifest #<manifest xmlns:tools="http://schemas.android.com/tools" #' "$M"
           grep -q 'SCHEDULE_EXACT_ALARM" tools:node' "$M" || sed -i 's#</manifest>#    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" tools:node="remove" />\n</manifest>#' "$M"
@@ -101,8 +104,9 @@ jobs:
           grep -n "LOCATION\|location.gps" "$M" || true
           # Dispositif B2A Smart Building : son certificat HTTPS est auto-signé. On accepte aussi les certificats installés par l'utilisateur
           # sur son téléphone (Réglages > Sécurité > Installer un certificat), sinon Android refuse la connexion.
+          # Caméras de la ferme : le boîtier vidéo (go2rtc) répond en http sur le réseau local ou la VPN B2A (cleartextTrafficPermitted).
           mkdir -p android/app/src/main/res/xml
-          printf '<?xml version="1.0" encoding="utf-8"?>\n<network-security-config>\n  <base-config>\n    <trust-anchors>\n      <certificates src="system" />\n      <certificates src="user" />\n    </trust-anchors>\n  </base-config>\n</network-security-config>\n' > android/app/src/main/res/xml/network_security_config.xml
+          printf '<?xml version="1.0" encoding="utf-8"?>\n<network-security-config>\n  <base-config cleartextTrafficPermitted="true">\n    <trust-anchors>\n      <certificates src="system" />\n      <certificates src="user" />\n    </trust-anchors>\n  </base-config>\n</network-security-config>\n' > android/app/src/main/res/xml/network_security_config.xml
           grep -q networkSecurityConfig "$M" || sed -i '0,/<application/s##<application android:networkSecurityConfig="@xml/network_security_config"#' "$M"
           grep -n networkSecurityConfig "$M" || true
           VERSION_NAME=$(node -p "require('./package.json').version")

@@ -8,7 +8,7 @@ const nav=document.querySelector("nav.tabs");if(!nav)return;
 const $=id=>document.getElementById(id);
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 /* Fonctions rangées par catégorie : [id, titre, description]
-   id = onglet (tab-<id>) ou action spéciale (@bilan, @services, @reglages) */
+   id = onglet (tab-<id>) ou action spéciale (@bilan, @services, @cameras, @reglages) */
 const CATS=[
  {k:"gestion",t:"Gestion de la ferme",d:"Suivi du travail, chiffres et argent",items:[
   ["tableau","Accueil et alertes","Résumé du jour, alertes et lots en cours"],
@@ -21,7 +21,8 @@ const CATS=[
   ["diagnostic","Photo IA et guide santé","Signes de maladie, causes probables, analyse photo"],
   ["formules","Formules d'aliment","Fabriquer l'aliment et calculer son coût"],
   ["couvoir","Couvoir","Couveuses, couvées et vente des poussins"],
-  ["poulailler","Poulailler connecté","Aliment, eau, lumière, ventilation et alertes à distance"]]},
+  ["poulailler","Poulailler connecté","Aliment, eau, lumière, ventilation et alertes à distance"],
+  ["@cameras","Caméras de la ferme","Voir les caméras en direct, sur place ou avec la VPN B2A"]]},
  {k:"marche",t:"Marché et services",d:"Acheter, vendre, trouver un professionnel",items:[
   ["marche","Marché B2A","Acheter et vendre œufs, volailles, aliment, matériel"],
   ["@services","Vétérinaires et services","Trouver un vétérinaire ou un technicien près de chez soi"]]},
@@ -57,14 +58,16 @@ function item(icon,title,desc,go,id){const b=el("button","np-item");b.type="butt
 const ICON={
  "@bilan":'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
  "@services":'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.5-7 10-7 10z"/><path d="M9 11h6M12 8v6"/></svg>',
+ "@cameras":'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/></svg>',
  "@reglages":'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>'};
 const gear=document.querySelector(".gearbtn");
 const tab=id=>$("tab-"+id);
 const ACT={
  "@bilan":()=>{const v=tab("ventes");if(!v)return;v.click();setTimeout(()=>{const c=$("b-bilan");if(c)c.scrollIntoView({behavior:"smooth",block:"start"})},250)},
  "@services":()=>{const m=tab("marche");if(m)m.click();setTimeout(()=>{if(window.B2A_SERVICES&&window.B2A_SERVICES.open)window.B2A_SERVICES.open()},60)},
+ "@cameras":()=>{if(window.B2A_CAMS)window.B2A_CAMS.open()},
  "@reglages":()=>{if(gear)gear.click()}};
-CATS.forEach(c=>{const its=c.items.filter(([id])=>id[0]==="@"?(id==="@reglages"?!!gear:id==="@bilan"?!!tab("ventes"):!!window.B2A_SERVICES):!!tab(id));if(!its.length)return;
+CATS.forEach(c=>{const its=c.items.filter(([id])=>id[0]==="@"?(id==="@reglages"?!!gear:id==="@bilan"?!!tab("ventes"):id==="@cameras"?!!window.B2A_CAMS:!!window.B2A_SERVICES):!!tab(id));if(!its.length)return;
   const g=el("section","np-cat");g.dataset.cat=c.k;const h=el("div","np-cat-h");h.append(el("b",null,c.t));if(c.d)h.append(el("small",null,c.d));g.append(h);
   its.forEach(([id,title,desc])=>{if(id[0]==="@"){g.append(item(ICON[id],title,desc,ACT[id]));return}
     const tb=tab(id);const svg=tb.querySelector("svg");g.append(item(svg?svg.outerHTML:"",title,desc,()=>tb.click(),id))});
