@@ -64,6 +64,37 @@
    "publie": true
   },
   {
+   "id": "chair-chaleur-video",
+   "type": "video",
+   "titre": "Poulets de chair : protéger le lot contre la chaleur",
+   "desc": "Reconnaître le coup de chaleur, aérer et ombrager, donner l'eau fraîche et adapter l'alimentation aux heures chaudes.",
+   "duree": 2,
+   "taille": 2024507,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/chair-chaleur.mp4",
+   "ordre": 4,
+   "especes": [
+    "chair"
+   ],
+   "semDe": 3,
+   "semA": 8,
+   "publie": true
+  },
+  {
+   "id": "chair-chaleur-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Poulets de chair : protéger le lot contre la chaleur",
+   "desc": "Reconnaître le coup de chaleur, aérer et ombrager, donner l'eau fraîche et adapter l'alimentation aux heures chaudes.",
+   "taille": 71673,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/chair-chaleur.pdf",
+   "ordre": 5,
+   "especes": [
+    "chair"
+   ],
+   "semDe": 3,
+   "semA": 8,
+   "publie": true
+  },
+  {
    "id": "local-pintades-video",
    "type": "video",
    "titre": "Poulets locaux et pintades : produire plus",
