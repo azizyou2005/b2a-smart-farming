@@ -49,15 +49,21 @@ function render(){
   const K=$("u-kpis");K.innerHTML="";
   /* fidélité : parmi les personnes inscrites depuis plus de 30 jours, combien ont encore ouvert l'app ces 30 derniers jours */
   const old=acc.filter(u=>u.creeLe&&u.creeLe.toDate&&u.creeLe.toDate()<new Date(Date.now()-30*864e5)),kept=old.filter(u=>(u.vuLe||"")>=dayAgo(30)).length;
+  /* retour après 1 semaine : parmi les personnes inscrites depuis plus de 7 jours, combien ont rouvert l'app
+     au moins 7 jours après leur inscription (et combien l'ont ouverte ces 7 derniers jours) */
+  const ds=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+  const sem=acc.filter(u=>u.creeLe&&u.creeLe.toDate&&u.creeLe.toDate()<new Date(Date.now()-7*864e5));
+  const rev=sem.filter(u=>(u.vuLe||"")>=ds(new Date(u.creeLe.toDate().getTime()+7*864e5))).length,sem7=sem.filter(u=>(u.vuLe||"")>=dayAgo(7)).length;
   const new7=users.filter(u=>u.creeLe&&u.creeLe.toDate&&u.creeLe.toDate()>=new Date(Date.now()-7*864e5)).length;
   K.append(kpi("Utilisateurs avec accès",fmt(acc.length),fmt(users.length)+" inscrits au total","ok"),
     kpi("Nouveaux 7 jours",fmt(new7),"inscriptions récentes"),
     kpi("Actifs 7 jours",fmt(a7),"ont ouvert l'app"),kpi("Actifs 30 jours",fmt(a30),"ont ouvert l'app"),
     kpi("Fidélité",old.length?fmt(Math.round(kept/old.length*100))+" %":"—",old.length?fmt(kept)+" sur "+fmt(old.length)+" inscrits depuis plus de 30 jours ont rouvert l'app ce mois-ci":"pas encore d'inscrits de plus de 30 jours",old.length&&kept/old.length<0.3?"warn":""),
+    kpi("Retour après 1 semaine",sem.length?fmt(Math.round(rev/sem.length*100))+" %":"—",sem.length?fmt(rev)+" sur "+fmt(sem.length)+" inscrits depuis plus de 7 jours sont revenus après leur 1re semaine · "+fmt(sem7)+" ont ouvert l'app ces 7 derniers jours":"pas encore d'inscrits de plus de 7 jours",sem.length&&rev/sem.length<0.3?"warn":""),
     kpi("Accès retiré",fmt(by("refuse")+by("bloque"))),
     kpi("À vérifier",fmt(nV),"noms suspects et doublons",nV?"warn":""));
   const cv=document.querySelector('#u-filter .chip[data-f="verifier"]');if(cv)cv.textContent="À vérifier"+(nV?" ("+nV+")":"");
-  note("users",{total:users.length,acces:acc.length,new7,a7,a30,fidelite:old.length?kept/old.length:null,
+  note("users",{total:users.length,acces:acc.length,new7,a7,a30,fidelite:old.length?kept/old.length:null,retour7:sem.length?rev/sem.length:null,
     list:users.map(u=>({statut:u.statut,pays:u.pays,elevage:u.elevage,plateforme:u.plateforme,langue:u.langue,vu:u.vuLe||"",cree:u.creeLe&&u.creeLe.toMillis?u.creeLe.toMillis():0}))});
   document.querySelectorAll("#u-filter .chip").forEach(b=>b.setAttribute("aria-pressed",b.dataset.f===filter));
   const q=$("u-q").value.trim().toLowerCase();
