@@ -15,6 +15,13 @@ const PAGE="https://azizyou2005.github.io/b2a-smart-farming/ministere.html";
 const UEMOA=["burkina faso","cote d ivoire","mali","niger","senegal","togo","benin","guinee bissau"];
 const CATS={aliment:"Aliment",animaux:"Animaux vivants",oeufs:"Œufs",poussins:"Poussins",viande:"Viande et volaille abattue",lait:"Lait et produits laitiers",
   recoltes:"Récoltes",plants:"Plants et semences",fourrage:"Fourrage et foin",fumier:"Fumier et compost",materiel:"Matériel",autre:"Autre"};
+/* alertes sanitaires de zone (alertes_zone, écrites par alertes.js) : noms en clair pour le rapport */
+const AZ_G={volaille:"Volailles",porc:"Porcs",petitsrum:"Moutons et chèvres",bovin:"Bovins",lapin:"Lapins",poisson:"Poissons",autre:"Autres animaux"};
+const AZ_M={newcastle:"Maladie de Newcastle",grippe:"Grippe aviaire",gumboro:"Maladie de Gumboro",variole:"Variole aviaire",cholera:"Choléra aviaire (pasteurellose)",coccidiose:"Coccidiose",
+  respiratoire:"Maladie respiratoire",typhose:"Typhose ou pullorose",ppa:"Peste porcine africaine",rouget:"Rouget du porc",diarrhee:"Diarrhées",ppr:"Peste des petits ruminants (PPR)",
+  pasteurellose:"Pasteurellose",clavelee:"Clavelée ou variole caprine",aphteuse:"Fièvre aphteuse",charbon:"Charbon",ppcb:"Péripneumonie contagieuse bovine (PPCB)",dermatose:"Dermatose nodulaire",
+  trypano:"Trypanosomose",vhd:"Maladie hémorragique du lapin",myxomatose:"Myxomatose",mortalite:"Mortalité de poissons",inconnue:"Maladie inconnue ou mortalité anormale"};
+const AZ_J=21;const azMin=()=>new Date(Date.now()-AZ_J*864e5).toISOString().slice(0,10);
 const ESPK=["pondeuse","chair","local","caillepond","caillechair","porc","petitsrum","bovin","poisson","lapin","autre"];
 
 const host=$("u-main");if(!host)return;
@@ -30,8 +37,11 @@ const sec=el("section","card");sec.id="mi-admin";sec.innerHTML=`<h2>Statistiques
   <div class="acts"><button class="btn small" id="mi-calc" type="button">Calculer l'aperçu</button><button class="btn small ok" id="mi-pub" type="button" disabled>Publier pour le ministère</button>
     <button class="btn small ghost" id="mi-csv" type="button" disabled>Télécharger (Excel)</button><span class="msg" id="mi-msg" aria-live="polite"></span></div>
   <div id="mi-prev" class="mi-prev" hidden></div>
-  <h3>2. Rapports publiés</h3><div class="list" id="mi-pubs"><p class="note">Chargement…</p></div>
-  <h3>3. Accès du ministère</h3>
+  <h3>2. Signalements de maladies (21 derniers jours)</h3>
+  <p class="note">Signalements anonymes envoyés par les éleveurs (Accueil > Santé dans ma zone). Ils entrent dans le rapport, regroupés par zone. Retirez ici une fausse alerte : elle disparaît aussi chez les éleveurs.</p>
+  <div class="list" id="mi-az"><p class="note">Chargement…</p></div>
+  <h3>3. Rapports publiés</h3><div class="list" id="mi-pubs"><p class="note">Chargement…</p></div>
+  <h3>4. Accès du ministère</h3>
   <p class="note">Créez d'abord le compte de la personne du ministère dans Firebase : <b>Authentication > Users > Ajouter un utilisateur</b> (son e-mail et un mot de passe). Copiez son <b>UID</b> (colonne « UID de l'utilisateur »), puis collez-le ci-dessous. Elle se connecte ensuite sur la page du ministère.</p>
   <div class="mi-row">
     <div class="field"><label for="mi-uid">UID Firebase du compte</label><input id="mi-uid" maxlength="40" autocomplete="off" placeholder="ex. 7fK2…"></div>
@@ -48,12 +58,13 @@ const css=el("style");css.textContent=`#mi-admin h3{margin:10px 0 0;font:700 16p
 .mi-prev{display:grid;gap:12px;border:2px dashed var(--line);border-radius:14px;padding:10px}.mi-prev .card{box-shadow:none}
 #mi-admin .u-top b{font-size:16px}`;document.head.append(css);
 
-const db=firebase.firestore();let contribs=[],pubs=[],acces=[],annonces=[],last=null,offs=[];
+const db=firebase.firestore();let contribs=[],pubs=[],acces=[],annonces=[],alertes=[],last=null,offs=[];
 const note=d=>{(window.__adm=window.__adm||{}).ministere=d;document.dispatchEvent(new CustomEvent("b2a-admin",{detail:{k:"ministere",d}}))};
 firebase.auth().onAuthStateChanged(u=>{offs.forEach(f=>f());offs=[];if(!u||u.isAnonymous)return;
   const err=x=>()=>{$(x).textContent="Lecture impossible : publiez les nouvelles règles Firestore (firestore.rules)."};
   offs.push(db.collection("stats_contrib").onSnapshot(s=>{contribs=s.docs.map(d=>({id:d.id,...d.data()}));renderKpis()},err("mi-msg")));
   offs.push(db.collection("ministere_rapports").orderBy("creeLe","desc").limit(30).onSnapshot(s=>{pubs=s.docs.map(d=>({id:d.id,...d.data()}));renderPubs()},()=>{$("mi-pubs").textContent="Lecture impossible : publiez les nouvelles règles Firestore."}));
+  offs.push(db.collection("alertes_zone").where("jour",">=",azMin()).limit(3000).onSnapshot(s=>{alertes=s.docs.map(d=>({id:d.id,...d.data()}));renderAz()},()=>{$("mi-az").textContent="Lecture impossible : publiez les nouvelles règles Firestore (firestore.rules)."}));
   offs.push(db.collection("ministere_acces").onSnapshot(s=>{acces=s.docs.map(d=>({id:d.id,...d.data()}));renderAcc()},()=>{$("mi-acc").textContent=""}));
 });
 
@@ -91,6 +102,12 @@ function build(paysK,seuil,titreTxt){const C=actifs().filter(x=>norm(x.pays)===p
   zones.sort((a,b)=>b.fermes.size-a.fermes.size);if(autres.fermes.size>=seuil)zones.push(autres);
   zones=zones.map(z=>({zone:z.lab,fermes:z.fermes.size,lots:z.lots,effectif:z.effectif,morts30:z.morts30,vaccDus:z.vaccDus,vaccFaits:z.vaccFaits,alerte:z.alerte,
     top:Object.entries(z.esp).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]),especesAlerte:[...z.espA]}));
+  /* maladies signalées par les éleveurs (21 derniers jours) : par zone, espèce et maladie */
+  const MZ={};alertes.filter(a=>norm(a.pays)===paysK&&a.jour>=azMin()).forEach(a=>{const raw=(a.province||"").trim()||(a.ville||"").trim();const zk=norm(raw)||"non precise";
+    const k=zk+"|"+a.groupe+"|"+a.maladie;const o=MZ[k]=MZ[k]||{zone:raw?titre(raw):"Non précisé",espece:AZ_G[a.groupe]||a.groupe,maladie:AZ_M[a.maladie]||a.maladie,grave:["grippe","ppa","aphteuse","charbon","ppcb","ppr"].includes(a.maladie),f:new Set(),malades:0,morts:0,dernier:""};
+    o.f.add(a.cle||a.auteur||a.id);o.malades+=Number(a.malades)||0;o.morts+=Number(a.morts)||0;if(a.jour>o.dernier)o.dernier=a.jour});
+  const maladies=Object.values(MZ).map(o=>({zone:o.zone,espece:o.espece,maladie:o.maladie,grave:o.grave,fermes:o.f.size,malades:o.malades,morts:o.morts,dernier:o.dernier}))
+    .sort((a,b)=>(b.fermes>=2)-(a.fermes>=2)||b.grave-a.grave||b.fermes-a.fermes||b.morts-a.morts).slice(0,80);
   /* cultures */
   const CU={};C.forEach(x=>{for(const [k,o] of Object.entries(x.cultures||{})){const c=CU[k]=CU[k]||{n:o.n||k,fermes:new Set(),lots:0,ha:0};c.fermes.add(x.id);c.lots+=Number(o.lots)||0;c.ha+=Number(o.ha)||0}});
   const cAut={n:"Autres cultures",fermes:new Set(),lots:0,ha:0};let cultures=[];
@@ -104,10 +121,11 @@ function build(paysK,seuil,titreTxt){const C=actifs().filter(x=>norm(x.pays)===p
   const prix=Object.values(PG).filter(g=>g.v.length>=seuil&&g.vend.size>=Math.min(2,seuil)).map(g=>{const v=g.v.sort((a,b)=>a-b);const m=v.length>>1;
     return {cat:g.cat,unite:g.unite,n:v.length,med:Math.round(v.length%2?v[m]:(v[m-1]+v[m])/2),min:Math.round(v[0]),max:Math.round(v[v.length-1])}}).sort((a,b)=>b.n-a.n).slice(0,40);
   return {titre:titreTxt||"Statistiques nationales de l'élevage",pays:titre(paysLab.replace(/\s*\(\d+ fermes?\)$/,"")),seuil,nbFermes:C.length,nbZones:zones.length,
-    especes,zones,cultures,prix,prixDevise:dev==="XOF"?"FCFA":"monnaie des annonces",genereLe:Date.now()}}
+    especes,zones,cultures,prix,maladies,maladiesJours:AZ_J,prixDevise:dev==="XOF"?"FCFA":"monnaie des annonces",genereLe:Date.now()}}
 
 $("mi-calc").onclick=async()=>{const m=$("mi-msg");m.textContent="Calcul…";m.className="msg";
   const seuil=Math.max(3,Math.min(20,Math.round(Number($("mi-seuil").value)||3)));$("mi-seuil").value=seuil;
+  try{const s=await db.collection("alertes_zone").where("jour",">=",azMin()).limit(3000).get();alertes=s.docs.map(d=>({id:d.id,...d.data()}))}catch(e){}
   try{const s=await db.collection("marche_annonces").where("statut","==","actif").limit(2000).get();annonces=s.docs.map(d=>d.data())}catch(e){annonces=[]}
   last=build($("mi-pays").value,seuil,$("mi-titre").value.trim());
   const P=$("mi-prev");P.hidden=false;R.render(P,last);
@@ -121,6 +139,12 @@ $("mi-pub").onclick=async()=>{if(!last)return;const b=$("mi-pub"),m=$("mi-msg");
   catch(e){console.warn(e);m.textContent="Publication impossible : vérifiez les règles Firestore et la connexion.";m.className="msg err"}
   b.dataset.c="";b.textContent="Publier pour le ministère";b.disabled=false};
 
+function renderAz(){const L=$("mi-az");if(!L)return;L.innerHTML="";const A=alertes.filter(a=>a.jour>=azMin()).sort((a,b)=>a.jour<b.jour?1:-1);
+  if(!A.length){L.append(el("p","note","Aucun signalement."));return}
+  A.slice(0,200).forEach(a=>{const r=el("div","u-top");const t=el("div");t.append(el("b",null,(AZ_M[a.maladie]||a.maladie)+" · "+(AZ_G[a.groupe]||a.groupe)),
+      el("div","note",[a.ville,a.province,a.pays].filter(Boolean).join(", ")+" · "+fmt(a.malades)+" malades, "+fmt(a.morts)+" morts · "+a.jour));
+    const d=el("button","btn small ghost","Retirer");d.type="button";d.onclick=async()=>{if(d.dataset.c!=="1"){d.dataset.c="1";d.textContent="Confirmer";return}d.disabled=true;
+      try{await db.doc("alertes_zone/"+a.id).delete()}catch(e){d.disabled=false;d.textContent="Échec"}};r.append(t,d);L.append(r)})}
 function renderPubs(){const L=$("mi-pubs");L.innerHTML="";if(!pubs.length){L.append(el("p","note","Aucun rapport publié."));return}
   pubs.forEach(p=>{const c=el("article","u");const t=el("div","u-top");t.append(el("b",null,(p.titre||"Rapport")+" · "+(p.pays||"")),el("span","pill p-approuve",fmt(p.nbFermes)+" fermes"));c.append(t);
     c.append(el("small",null,"Publié le "+R.dLong(ms(p.creeLe))));

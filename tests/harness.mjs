@@ -115,6 +115,12 @@ export async function visitAll(page) {
   await tab("marche");
   for (const m of ["acheter", "vendre", "services", "mes"]) await click(`#m-seg [data-m=${m}]`, 700);
   await click("#m-seg [data-m=services]", 500); await click(".s-card", 500); await click("#m-body .back", 400); await click(".s-join .btn", 600);
+  // alertes sanitaires de zone : signalements d'exemple (2 fermes Newcastle = alerte, 1 grippe = à surveiller, 1 porc = autre espèce), formulaire
+  await tab("tableau");
+  await page.evaluate(() => { const j = new Date().toISOString().slice(0, 10); const r = (id, a, g, m) => ({ id, pays: "Burkina Faso", province: "", ville: "Ouagadougou", groupe: g, maladie: m, malades: 30, morts: 8, jour: j, auteur: a });
+    localStorage.setItem("b2a-az-cache", JSON.stringify({ le: Date.now(), list: [r("a", "u1", "volaille", "newcastle"), r("b", "u2", "volaille", "newcastle"), r("c", "u3", "volaille", "grippe"), r("d", "u4", "porc", "ppa")] }));
+    localStorage.setItem("b2a-az-geo", JSON.stringify({ pays: "Burkina Faso", ville: "Ouagadougou" })); window.B2A_ALERTES && window.B2A_ALERTES.render(); });
+  await W(400); await click("#az-sig", 600); await selects("#az-card"); await click("#az-ok", 500); await click("#az-form .btn.ghost", 400);
   await tab("diagnostic"); await selects("#v-diagnostic");
   await page.evaluate(() => [...document.querySelectorAll("#v-diagnostic [aria-pressed=false]")].slice(0, 30).forEach(b => { try { b.click(); } catch {} }));
   await click("#v-diagnostic >> text=/Voir les causes|See likely|Vedi le cause|Ver las causas/", 700);

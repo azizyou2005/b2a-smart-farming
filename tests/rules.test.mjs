@@ -269,3 +269,32 @@ test("statistiques nationales : résumé anonyme par l'éleveur, rapports lus se
   await assertFails(anon().doc("ministere_rapports/r1").get());
   await assertSucceeds(as("x", ADMIN).doc("ministere_acces/nouveau").set({ nom: "DPA" }));
 });
+
+test("alertes sanitaires de zone : signalement anonyme par un inscrit, lu par les inscrits, retiré par son auteur", async () => {
+  await setup();
+  const { serverTimestamp } = await import("firebase/firestore");
+  const sig = o => ({ pays: "Burkina Faso", province: "Kadiogo", ville: "Ouaga", groupe: "volaille", maladie: "newcastle", malades: 40, morts: 12,
+    jour: "2026-11-23", auteur: "alice", cle: "", version: "60.36", creeLe: serverTimestamp(), ...o });
+  await assertSucceeds(as("alice").doc("alertes_zone/alice_2026-11-23_volaille").set(sig()));
+  await assertSucceeds(as("alice").doc("alertes_zone/alice_2026-11-23_volaille").set(sig({ morts: 20, geo: { lat: 12.35, lon: -1.5 } })));
+  // les autres inscrits lisent (pour être prévenus) mais ne modifient ni ne retirent
+  await assertSucceeds(as("bob").collection("alertes_zone").where("jour", ">=", "2026-11-01").get());
+  await assertFails(as("bob").doc("alertes_zone/alice_2026-11-23_volaille").set(sig({ auteur: "bob" })));
+  await assertFails(as("bob").doc("alertes_zone/alice_2026-11-23_volaille").delete());
+  // anonyme : pas de nom ni de téléphone ; identifiant imposé ; espèce et nombres contrôlés
+  await assertFails(as("bob").doc("alertes_zone/bob_2026-11-23_volaille").set(sig({ auteur: "bob", nom: "Bob" })));
+  await assertFails(as("bob").doc("alertes_zone/bob_2026-11-23_volaille").set(sig({ auteur: "bob", tel: "70000000" })));
+  await assertFails(as("bob").doc("alertes_zone/autre_id").set(sig({ auteur: "bob" })));
+  await assertFails(as("bob").doc("alertes_zone/bob_2026-11-23_chat").set(sig({ auteur: "bob", groupe: "chat" })));
+  await assertFails(as("bob").doc("alertes_zone/bob_2026-11-23_volaille").set(sig({ auteur: "bob", morts: -1 })));
+  await assertFails(as("bob").doc("alertes_zone/bob_2026-11-23_volaille").set(sig({ auteur: "bob", cle: "CODEFERME1" })));
+  // non inscrit ou sans compte : ni lecture ni écriture
+  await assertFails(as("carol").collection("alertes_zone").get());
+  await assertFails(as("carol").doc("alertes_zone/carol_2026-11-23_volaille").set(sig({ auteur: "carol" })));
+  await assertFails(anon().collection("alertes_zone").get());
+  // B2A lit tout et retire une fausse alerte ; l'auteur retire la sienne
+  await assertSucceeds(as("bob").doc("alertes_zone/bob_2026-11-23_porc").set(sig({ auteur: "bob", groupe: "porc", maladie: "ppa" })));
+  await assertSucceeds(as("x", ADMIN).collection("alertes_zone").get());
+  await assertSucceeds(as("x", ADMIN).doc("alertes_zone/bob_2026-11-23_porc").delete());
+  await assertSucceeds(as("alice").doc("alertes_zone/alice_2026-11-23_volaille").delete());
+});

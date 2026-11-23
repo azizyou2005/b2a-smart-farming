@@ -244,6 +244,16 @@ Le guide et l'IA aident à réagir vite mais ne remplacent pas un vétérinaire.
 
 **Important** : après la mise à jour, publiez le nouveau `firestore.rules` dans Firebase (Firestore > Règles > Publier), sinon rien ne s'enregistre.
 
+## Alertes sanitaires de zone (version 60.36)
+
+**Côté éleveur** : sur l'accueil, carte **Santé dans ma zone** (et un raccourci dans l'onglet Diagnostic). *Signaler une maladie dans ma ferme* : espèce, maladie suspectée, malades, morts, ville, province, pays et, si l'éleveur le coche, une position arrondie à ≈ 5 km. **Anonyme** : ni nom, ni téléphone, ni ferme. Sans réseau, le signalement part au retour du réseau. Quand un lot a une mortalité anormale (plus de 0,5 % en 7 jours), l'application propose de le signaler.
+
+**Alerte** : les éleveurs proches (même province ou même ville, ou à moins de 40 km si les deux positions sont connues) voient les signalements des 21 derniers jours pour les espèces qu'ils élèvent. Dès que **2 fermes différentes** signalent la même maladie sur la même espèce, la carte passe en rouge, avec les gestes à faire, et le téléphone reçoit une notification (si les notifications sont autorisées). Une seule ferme = « À surveiller ».
+
+**Côté B2A** : page des utilisateurs, onglet **Ministère**, partie *Signalements de maladies* : liste des signalements et bouton *Retirer* pour une fausse alerte. Le rapport du ministère contient un tableau *Maladies signalées par les éleveurs* (par zone, espèce et maladie).
+
+**Important** : publiez le nouveau `firestore.rules` dans Firebase (Firestore > Règles > Publier : nouvelle collection `alertes_zone`), sinon les signalements ne s'enregistrent pas.
+
 ## Caméras de la ferme (en direct dans l'application)
 
 Sur l'accueil, **Ouvrir les caméras** ouvre directement l'écran des caméras (aussi dans le menu Technique). Les caméras IP (ONVIF/RTSP, par exemple les caméras solaires) passent par un **boîtier vidéo** installé à la ferme : un mini-PC ou un Raspberry Pi avec [go2rtc](https://github.com/AlexxIT/go2rtc) et ffmpeg. Le téléphone le joint sur le Wi-Fi de la ferme, ou à distance avec la **VPN du routeur B2A** (WireGuard). Aucun port n'est ouvert sur internet.

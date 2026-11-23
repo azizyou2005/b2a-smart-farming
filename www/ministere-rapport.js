@@ -32,6 +32,10 @@ function render(host,rep){host.innerHTML="";if(!rep){host.append(el("p","note","
     kpi("Lots en alerte mortalité",fmt(T.alerte),fmt(zA.length)+" zone(s) concernée(s)",T.alerte?"warn":null));
   head.append(K);host.append(head);
 
+  const MA=rep.maladies||[];if(MA.length){const s=el("section","card mr-alert");s.append(el("h2",null,"Maladies signalées par les éleveurs"),
+      el("p","note",`Signalements anonymes des ${rep.maladiesJours||21} derniers jours, par zone. En rouge : au moins 2 fermes de la même zone signalent la même maladie (alerte envoyée aux éleveurs proches). Maladie suspectée par l'éleveur, à confirmer par les services vétérinaires.`));
+    s.append(table(["Zone","Espèce","Maladie suspectée","Fermes","Malades","Morts","Dernier signalement"],MA.map(m=>({cls:m.fermes>=2?"mr-bad":"",c:[m.zone,m.espece,m.maladie+(m.grave?" (grave)":""),fmt(m.fermes),fmt(m.malades),fmt(m.morts),m.dernier?dLong(new Date(m.dernier+"T12:00:00").getTime()):"—"]})),3));
+    host.append(s)}
   if(zA.length){const s=el("section","card mr-alert");s.append(el("h2",null,"Zones à surveiller"),
       el("p","note","Zones où au moins un lot a perdu plus de 0,5 % de ses animaux en 7 jours. Une visite des services vétérinaires peut être utile."));
     s.append(table(["Zone","Fermes","Lots en alerte","Animaux","Espèces touchées"],zA.sort((a,b)=>b.alerte-a.alerte).map(z=>[z.zone,fmt(z.fermes),fmt(z.alerte),fmt(z.effectif),(z.especesAlerte||[]).map(k=>ESP[k]||k).join(", ")||"—"]),1));
@@ -68,13 +72,15 @@ function csv(rep){const q=v=>{const s=String(v==null?"":v);return /[;"\n]/.test(
   (rep.especes||[]).forEach(o=>row([ESP[o.k]||o.k,o.fermes,o.lots,o.effectif,o.morts30,mortPct(o)==null?"":mortPct(o).toFixed(2).replace(".",","),o.oeufs30,o.lait30,o.vaccDus,o.vaccFaits,o.alerte]));row([]);
   row(["PAR ZONE"]);row(["Zone","Fermes","Animaux","Morts 30 j","Vaccins prévus","Vaccins faits","Lots en alerte","Espèces principales"]);
   (rep.zones||[]).forEach(z=>row([z.zone,z.fermes,z.effectif,z.morts30,z.vaccDus,z.vaccFaits,z.alerte,(z.top||[]).map(k=>ESP[k]||k).join(", ")]));
+  if((rep.maladies||[]).length){row([]);row(["MALADIES SIGNALÉES ("+(rep.maladiesJours||21)+" derniers jours)"]);row(["Zone","Espèce","Maladie suspectée","Grave","Fermes","Malades","Morts","Dernier signalement"]);
+    rep.maladies.forEach(m=>row([m.zone,m.espece,m.maladie,m.grave?"oui":"",m.fermes,m.malades,m.morts,m.dernier]))}
   if((rep.cultures||[]).length){row([]);row(["CULTURES"]);row(["Culture","Fermes","Parcelles","Surface (ha)"]);rep.cultures.forEach(c=>row([c.n,c.fermes,c.lots,String(c.ha||0).replace(".",",")]))}
   if((rep.prix||[]).length){row([]);row(["PRIX DU MARCHÉ ("+(rep.prixDevise||"FCFA")+")"]);row(["Produit","Unité","Annonces","Prix médian","Prix le plus bas","Prix le plus haut"]);rep.prix.forEach(p=>row([p.cat,p.unite,p.n,p.med,p.min,p.max]))}
   return "﻿"+L.join("\r\n")}
 function download(rep){const b=new Blob([csv(rep)],{type:"text/csv;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(b);
   const d=new Date(ms(rep.creeLe)||rep.genereLe||Date.now());a.download="statistiques-elevage-"+d.toISOString().slice(0,10)+".csv";document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),20000)}
 
-const css=el("style");css.textContent=`tr.mr-warn td{background:var(--warn-bg)}.mr-alert{border-left:5px solid var(--gold)}.mr-meth .note{font-size:13px}
+const css=el("style");css.textContent=`tr.mr-warn td{background:var(--warn-bg)}tr.mr-bad td{background:var(--bad-bg,#f8e1dc)}.mr-alert{border-left:5px solid var(--gold)}.mr-meth .note{font-size:13px}
 @media print{body{background:#fff!important;color:#000}.band .out,.mr-noprint,.an-tabs,#mi-tools,#u-login{display:none!important}.card{box-shadow:none;break-inside:avoid;border-color:#ccc}h1,.lead,.foot{color:#000!important}}`;
 document.head.append(css);
 window.B2A_RAPPORT={render,csv,download,ESP,ms,dLong,fmt};
