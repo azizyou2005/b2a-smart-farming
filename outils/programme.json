@@ -2,7 +2,7 @@
  "sujets":[
   {"id":"pondeuse-coccidiose","especes":["pondeuse","chair","local"],"semDe":2,"semA":12,"titre":"Coccidiose des volailles : reconnaître et prévenir","fait":true},
   {"id":"chair-chaleur","especes":["chair"],"semDe":3,"semA":8,"titre":"Poulets de chair : protéger le lot contre la chaleur","fait":true},
-  {"id":"aliment-volaille","especes":["pondeuse","chair","local"],"semDe":null,"semA":null,"titre":"Fabriquer son aliment volaille à la ferme","fait":false},
+  {"id":"aliment-volaille","especes":["pondeuse","chair","local"],"semDe":null,"semA":null,"titre":"Fabriquer son aliment volaille à la ferme","fait":true},
   {"id":"porc-mise-bas","especes":["porc"],"semDe":null,"semA":null,"titre":"Truie : réussir la mise bas et les premiers jours","fait":false},
   {"id":"petitsrum-deparasitage","especes":["petitsrum","chevrelait"],"semDe":null,"semA":null,"titre":"Déparasiter moutons et chèvres au bon moment","fait":false},
   {"id":"bovin-maladies","especes":["bovin","vachelait"],"semDe":null,"semA":null,"titre":"Bovins : reconnaître les maladies graves","fait":false},

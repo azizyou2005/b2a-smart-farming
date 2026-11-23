@@ -221,6 +221,41 @@
    "publie": true
   },
   {
+   "id": "aliment-volaille-video",
+   "type": "video",
+   "titre": "Fabriquer son aliment volaille à la ferme",
+   "desc": "Choisir de bonnes matières premières, respecter une formule équilibrée, bien mélanger et bien stocker l'aliment.",
+   "duree": 2,
+   "taille": 2456722,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/videos/aliment-volaille.mp4",
+   "ordre": 6,
+   "especes": [
+    "pondeuse",
+    "chair",
+    "local"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
+   "id": "aliment-volaille-pdf",
+   "type": "pdf",
+   "titre": "Fiche : Fabriquer son aliment volaille à la ferme",
+   "desc": "Choisir de bonnes matières premières, respecter une formule équilibrée, bien mélanger et bien stocker l'aliment.",
+   "taille": 72590,
+   "url": "https://azizyou2005.github.io/b2a-smart-farming/formations/pdf/aliment-volaille.pdf",
+   "ordre": 7,
+   "especes": [
+    "pondeuse",
+    "chair",
+    "local"
+   ],
+   "semDe": null,
+   "semA": null,
+   "publie": true
+  },
+  {
    "id": "pondeuse-vaccins-video",
    "type": "video",
    "titre": "Vacciner ses volailles correctement",
