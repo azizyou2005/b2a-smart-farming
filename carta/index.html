@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bayere Abdoul Aziz – B2A</title>
+<meta name="description" content="Biglietto da visita digitale · Carte de visite digitale – B2A High Technology Automation">
+<meta property="og:title" content="Bayere Abdoul Aziz – B2A High Technology Automation">
+<meta property="og:description" content="Gérant · BMS Project Engineer · Smart Building · Smart Farming">
+<meta property="og:image" content="https://azizyou2005.github.io/b2a-smart-farming/carta/recto.jpg">
+<meta name="theme-color" content="#0e1117">
+<link rel="icon" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<style>
+:root{--bg:#0e1117;--card:#161b24;--line:#262d3a;--ink:#fff;--muted:#b9c0cc;--dim:#8f97a6;--blue:#2f4777;--green:#86a85e;--gold:#d6a95a}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+main{max-width:520px;margin:0 auto;display:grid;gap:18px}
+.flip{perspective:1400px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.flip-in{position:relative;aspect-ratio:1206/776;transition:transform .7s;transform-style:preserve-3d}
+.flip.on .flip-in{transform:rotateY(180deg)}
+.flip img{position:absolute;inset:0;width:100%;height:100%;border-radius:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:0 18px 50px rgba(0,0,0,.55)}
+.flip img.b{transform:rotateY(180deg)}
+.hint{text-align:center;color:var(--dim);font-size:13px;letter-spacing:.06em;margin-top:-6px}
+.who{display:flex;gap:14px;align-items:center}
+.who img{width:56px;height:56px;border-radius:14px}
+h1{font-size:24px;line-height:1.15;margin:0}
+.role{color:var(--muted);margin:2px 0 0;font-size:15px}
+.save{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--green);color:#0e1117;font-weight:800;font-size:18px;text-decoration:none;border-radius:14px;padding:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px;color:var(--ink);text-decoration:none;font-weight:600;min-width:0}
+.btn span{display:block;min-width:0}
+.btn small{display:block;color:var(--dim);font-weight:500;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn svg{flex:none;width:22px;height:22px;stroke:var(--green);fill:none;stroke-width:1.8}
+.wide{grid-column:1/-1}
+.co{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.co h2{margin:0;font-size:16px;letter-spacing:.04em}
+.co .tag{color:var(--gold);font-size:12px;letter-spacing:.22em;margin:2px 0 10px}
+.co dl{display:grid;grid-template-columns:90px 1fr;gap:8px 12px;margin:0;font-size:14px}
+.co dt{color:var(--dim);text-transform:uppercase;font-size:11px;letter-spacing:.14em;padding-top:3px}
+.co dd{margin:0;overflow-wrap:anywhere}
+.wtxt{color:var(--muted);font-size:14px;margin:6px 0 12px}.wimg{display:block;width:200px;max-width:100%;margin:0 auto;border-radius:12px;background:#fff}
+footer{text-align:center;color:var(--dim);font-size:12px;letter-spacing:.2em}
+a:focus-visible,.flip:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){.flip-in{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <div class="flip" id="flip" role="button" tabindex="0" aria-label="Gira il biglietto">
+    <div class="flip-in">
+      <img src="recto.jpg" alt="Biglietto da visita, fronte">
+      <img class="b" src="verso.jpg" alt="Biglietto da visita, retro">
+    </div>
+  </div>
+  <div class="hint" id="hint">Tocca il biglietto per girarlo</div>
+
+  <div class="who">
+    <img src="logo.png" alt="B2A">
+    <div><h1>Bayere Abdoul Aziz</h1><p class="role">Gérant · BMS Project Engineer<br>B2A High Technology Automation</p></div>
+  </div>
+
+  <a class="save" href="bayere-abdoul-aziz.vcf" id="save">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+    <span id="saveTxt">Salva il contatto</span>
+  </a>
+
+  <div class="grid">
+    <a class="btn" href="tel:+393341728026"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg><span><span class="l-call">Chiama</span> IT<small>+39 334 172 8026</small></span></a>
+    <a class="btn" href="tel:+22670714279"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg><span><span class="l-call">Chiama</span> BF<small>+226 70 71 42 79</small></span></a>
+    <a class="btn" href="https://wa.me/393341728026"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg><span>WhatsApp IT<small>+39 334 172 8026</small></span></a>
+    <a class="btn" href="https://wa.me/22670714279"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z"/></svg><span>WhatsApp BF<small>+226 70 71 42 79</small></span></a>
+    <a class="btn wide" href="https://u.wechat.com/kEe7oIopVgXhHX-pkGMKoQU?s=2"><svg viewBox="0 0 24 24"><path d="M9.5 4C5.4 4 2 6.8 2 10.2c0 1.9 1 3.6 2.7 4.7L4 17l2.6-1.3c.9.3 1.9.4 2.9.4"/><path d="M15.5 9c-3.6 0-6.5 2.4-6.5 5.3s2.9 5.3 6.5 5.3c.8 0 1.6-.1 2.3-.4L20 20.5l-.6-2a5 5 0 0 0 2.6-4.2C22 11.4 19.1 9 15.5 9z"/></svg><span>WeChat<small>B2A-Smart Building · Burkina Faso</small></span></a>
+    <a class="btn wide" href="mailto:Azizyou2005@yahoo.fr"><svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="m3 6 9 7 9-7"/></svg><span>E-mail<small>Azizyou2005@yahoo.fr</small></span></a>
+    <a class="btn wide" href="https://azizyou2005.github.io/b2a-smart-farming/"><svg viewBox="0 0 24 24"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg><span>App B2A Smart Farming<small id="appTxt">Gratuita, funziona senza internet</small></span></a>
+  </div>
+
+  <section class="co">
+    <h2>B2A-HIGH-TECHNOLOGY-AUTOMATION</h2>
+    <div class="tag">SMART BUILDING · SMART FARMING</div>
+    <dl>
+      <dt>Gérant</dt><dd>Bayere Abdoul Aziz</dd>
+      <dt>RCCM</dt><dd>BF-OUA-01-2024-B13-13308</dd>
+      <dt id="l-siege">Sede</dt><dd>01 BP 2132 Ouaga 01 · Ouagadougou, Kadiogo, Burkina Faso</dd>
+      <dt>Tel.</dt><dd>+226 70 71 42 79</dd>
+    </dl>
+  </section>
+  <section class="co wc">
+    <h2>WeChat</h2>
+    <p class="wtxt" id="wtxt">Inquadra questo codice con WeChat (Scansiona) per aggiungermi.</p>
+    <img src="wechat.png" alt="QR code WeChat" class="wimg">
+  </section>
+  <footer>B2A · BURKINA FASO · ITALIA</footer>
+</main>
+<script>
+const f=document.getElementById("flip");const t=()=>f.classList.toggle("on");
+f.onclick=t;f.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();t()}};
+if((navigator.language||"").toLowerCase().startsWith("fr")){
+  document.documentElement.lang="fr";
+  document.getElementById("hint").textContent="Touchez la carte pour la retourner";
+  document.getElementById("saveTxt").textContent="Enregistrer le contact";
+  document.querySelectorAll(".l-call").forEach(e=>e.textContent="Appeler");
+  document.getElementById("appTxt").textContent="Gratuite, fonctionne sans internet";
+  document.getElementById("l-siege").textContent="Siège";
+  document.getElementById("wtxt").textContent="Scannez ce code avec WeChat (Scan) pour m'ajouter.";
+  f.setAttribute("aria-label","Retourner la carte");
+}
+</script>
+</body>
+</html>
