@@ -136,7 +136,10 @@ jobs:
             -Pandroid.injected.signing.store.password="$KS_PASS" \
             -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
             -Pandroid.injected.signing.key.password="$KEY_PASS"
-          cp app/build/outputs/apk/release/app-release.apk ../www/b2a-smart-farming.apk
+          # APK : seulement dans la « Release » GitHub (tests), plus sur le site.
+          # Il est signé avec la clé d'envoi, pas avec la clé Google Play : installé par-dessus l'application
+          # du Play Store, Android le refuse (« App non installée »). Les utilisateurs passent par Google Play.
+          cp app/build/outputs/apk/release/app-release.apk ../b2a-smart-farming-test.apk
           cp app/build/outputs/bundle/release/app-release.aab ../b2a-smart-farming-${VERSION_NAME}-${VERSION_CODE}.aab
           rm -f "$KS_FILE"
 
@@ -146,9 +149,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="v${VERSION_NAME}-${VERSION_CODE}"
-          gh release create "$TAG" "b2a-smart-farming-${VERSION_NAME}-${VERSION_CODE}.aab" www/b2a-smart-farming.apk \
+          gh release create "$TAG" "b2a-smart-farming-${VERSION_NAME}-${VERSION_CODE}.aab" b2a-smart-farming-test.apk \
             --title "B2A Smart Farming ${VERSION_NAME} (version ${VERSION_CODE})" \
-            --notes "Fichier .aab : à envoyer dans Google Play Console. Fichier .apk : installation directe sur Android." \
+            --notes "Fichier .aab : envoyé dans Google Play Console. Fichier .apk : tests seulement, à ne pas distribuer (autre signature que Google Play)." \
             --target "$GITHUB_SHA" --latest
 
       # Envoi automatique dans Google Play Console (secret PLAY_SERVICE_ACCOUNT_JSON, voir LISEZ-MOI-GOOGLE-PLAY.md).
@@ -177,10 +180,8 @@ jobs:
           status: completed
           whatsNewDirectory: ${{ runner.temp }}/nouveautes
 
-      - name: Garder l'APK déjà publié (si pas de nouvelle compilation)
-        if: steps.cle.outputs.ok != 'true'
-        run: |
-          git fetch origin gh-pages 2>/dev/null && git show origin/gh-pages:b2a-smart-farming.apk > www/b2a-smart-farming.apk 2>/dev/null || rm -f www/b2a-smart-farming.apk
+      - name: Pas d'APK sur le site (Google Play seulement)
+        run: rm -f www/b2a-smart-farming.apk
 
       # Version d'essai du Marché (branche marche) : https://azizyou2005.github.io/b2a-smart-farming/essai/
       # Non indexée, absente de l'APK et de Google Play ; même Firebase que l'application publiée.

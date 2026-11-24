@@ -273,3 +273,10 @@ Sur l'accueil, **Ouvrir les caméras** ouvre directement l'écran des caméras (
 4. Secours : **Ouvrir EseeCloud (secours)** lance directement l'application EseeCloud (ou sa fiche Play Store si elle n'est pas installée).
 
 Application Android : le boîtier répond en http sur le réseau local, d'où `allowMixedContent` (capacitor.config.json) et `cleartextTrafficPermitted` (build.yml). Sur le site web (https), le navigateur bloque les images http : chaque caméra s'ouvre alors dans un nouvel onglet.
+
+## Google Play seulement, plus d'APK sur le site (version 60.37)
+L'APK du site était signé avec la clé d'envoi, l'application du Play Store avec la clé Google Play : Android refusait d'installer l'un par-dessus l'autre (« App non installée »).
+- Le bouton « Mettre à jour » de l'application ouvre maintenant Google Play.
+- La page Installer propose « Installer depuis Google Play » au lieu de l'APK.
+- L'APK n'est plus publié sur le site ; il reste dans la « Release » GitHub pour les tests seulement (à ne pas distribuer).
+- Qui a encore l'ancien APK : vérifier e-mail et mot de passe dans Réglages, désinstaller, puis installer depuis Google Play.

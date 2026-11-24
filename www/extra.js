@@ -41,7 +41,7 @@ sheet.innerHTML=`<div class="sheet-in">
     <h3 class="sec">Installer l'application</h3>
     <p class="note">Android (Chrome) : menu ⋮ puis “Ajouter à l'écran d'accueil”. iPhone (Safari) : bouton Partager puis “Sur l'écran d'accueil”. Après la première ouverture, l'application marche sans internet.</p>
     <div class="row"><button class="btn small" id="x-install" type="button" hidden>Installer maintenant</button>
-      <button class="btn small ghost" id="x-apk" type="button">Télécharger l'application Android (APK)</button></div>
+      <button class="btn small ghost" id="x-apk" type="button">Installer depuis Google Play (Android)</button></div>
     <span class="msg" id="x-amsg" aria-live="polite"></span>
     <div class="x-ios" id="x-ios"><b>iPhone et iPad (Apple)</b>
       <span>L'application n'est pas encore sur l'App Store. Installez-la en raccourci, c'est la même application :</span>
@@ -231,16 +231,14 @@ if(window.Capacitor)$("x-inst").hidden=true;
   const URL_APP="https://azizyou2005.github.io/b2a-smart-farming/";
   $("x-ioscopy").onclick=async()=>{const m=$("x-iosmsg");m.className="msg";
     try{await navigator.clipboard.writeText(URL_APP);m.className="msg good";m.textContent="Lien copié : collez-le dans Safari."}catch(e){window.prompt("",URL_APP)}}})();
-/* APK : on vérifie d'abord que le fichier existe, et on ne quitte jamais l'application */
-const APK="b2a-smart-farming.apk";
-$("x-apk").onclick=async()=>{const b=$("x-apk"),m=$("x-amsg");m.className="msg";
-  if(!navigator.onLine){m.textContent="Il faut internet pour télécharger l'application Android.";return}
-  b.disabled=true;m.textContent="Vérification…";
-  let ok=false;try{const r=await fetch(APK,{method:"HEAD",cache:"no-store"});ok=r.ok&&!/text\/html/i.test(r.headers.get("content-type")||"")}catch(e){}
-  b.disabled=false;
-  if(!ok){m.className="msg err";m.textContent="L'application Android (APK) n'est pas encore disponible. Utilisez « Ajouter à l'écran d'accueil » ci-dessus : c'est la même application.";return}
-  const a=document.createElement("a");a.href=APK;a.download=APK;a.target="_blank";a.rel="noopener";document.body.append(a);a.click();a.remove();
-  m.className="msg good";m.textContent="Téléchargement lancé. Ouvrez le fichier reçu pour installer l'application."};
+/* Android : une seule source, Google Play (novembre 2026, version 60.37).
+   L'APK du site était signé avec une autre clé que celle de Google Play : Android refusait la mise à jour
+   (« App non installata »). L'APK n'est plus proposé ; tout passe par Google Play. */
+const PLAY_ID="com.b2a.smartfarming",PLAY_URL="https://play.google.com/store/apps/details?id="+PLAY_ID;
+const openPlay=()=>{const ua=navigator.userAgent||"";
+  if(window.Capacitor||/Android/i.test(ua)){window.location.href="market://details?id="+PLAY_ID;setTimeout(()=>{if(document.visibilityState==="visible")window.open(PLAY_URL,"_blank","noopener")},1500);return}
+  window.open(PLAY_URL,"_blank","noopener")};
+$("x-apk").onclick=()=>{openPlay();const m=$("x-amsg");m.className="msg good";m.textContent="Google Play s'ouvre : touchez « Installer »."};
 
 /* ================= Code d'accès IA (onglet Photo IA) ================= */
 const V=$("v-diagnostic");
@@ -328,8 +326,9 @@ if(window.Capacitor&&navigator.onLine){
     if(!v||!newer(v.v,APP_VERSION)||document.getElementById("x-upd"))return;
     const d=document.createElement("div");d.id="x-upd";d.setAttribute("role","status");
     d.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:60;background:#1b2e4c;color:#fff;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgb(0 0 0/.3);font:600 14px/1.35 'Source Sans 3',sans-serif";
-    const t=document.createElement("span");t.style.flex="1";t.textContent="Une nouvelle version de l'application est disponible.";
-    const a=document.createElement("a");a.href="https://azizyou2005.github.io/b2a-smart-farming/b2a-smart-farming.apk";a.target="_blank";a.rel="noopener";
+    const t=document.createElement("span");t.style.flex="1";t.textContent="Une nouvelle version de l'application est disponible sur Google Play.";
+    /* mise à jour toujours par Google Play (même signature que l'application installée) */
+    const a=document.createElement("a");a.href=PLAY_URL;a.target="_blank";a.rel="noopener";a.onclick=e=>{e.preventDefault();openPlay()};
     a.textContent="Mettre à jour";a.style.cssText="background:#72ac48;color:#fff;text-decoration:none;padding:8px 12px;border-radius:10px;font-weight:700;white-space:nowrap";
     const x=document.createElement("button");x.textContent="✕";x.setAttribute("aria-label","Fermer");x.style.cssText="background:none;border:0;color:#fff;font-size:18px;cursor:pointer";x.onclick=()=>d.remove();
     d.append(t,a,x);document.body.append(d);
