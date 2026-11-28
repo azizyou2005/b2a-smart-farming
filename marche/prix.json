@@ -2,7 +2,7 @@
  "version": 1,
  "devise": "XOF",
  "pays": "Burkina Faso",
- "maj": "2026-11-22T05:50Z",
+ "maj": "2026-11-28T05:49Z",
  "produits": [
   {
    "id": "oeufs-plateau",
@@ -946,6 +946,24 @@
     "engrais",
     "fertilisant"
    ]
+  },
+  {
+   "id": "tete-mouton",
+   "cat": "viande",
+   "unite": "tête",
+   "nom": {
+    "fr": "Tête de mouton (abats)",
+    "en": "Sheep head (offal)",
+    "it": "Testa di montone (frattaglie)",
+    "es": "Cabeza de cordero (casquería)"
+   },
+   "mots": [
+    "tete",
+    "mouton",
+    "ruminant",
+    "abats",
+    "pattes"
+   ]
   }
  ],
  "releves": [
@@ -1130,6 +1148,24 @@
    "date": "2026-11-07"
   },
   {
+   "produit": "chauffage",
+   "prix": 4000,
+   "source": "BoutikOBF (K.SAMY), ampoule chauffante infrarouge 100 W",
+   "url": "https://boutikobf.com/marketplace/boutique/ksamy/produit/ampoule-chauffante-infrarouge-100w",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-28"
+  },
+  {
+   "produit": "chauffage",
+   "prix": 3000,
+   "source": "BoutikOBF (K.SAMY), ampoule chauffante solaire 12 V",
+   "url": "https://boutikobf.com/marketplace/boutique/ksamy/produit/ampoule-chauffante-solaire-12v",
+   "ville": "Ouagadougou",
+   "type": "boutique",
+   "date": "2026-11-28"
+  },
+  {
    "produit": "chevre",
    "prix": 40000,
    "source": "CoinAfrique",
@@ -1305,26 +1341,6 @@
   },
   {
    "produit": "engrais",
-   "prix": 15000,
-   "source": "Minute.bf : grille du ministère de l'Agriculture, NPK sac de 50 kg (petits producteurs)",
-   "url": "https://www.minute.bf/burkina-le-ministere-en-charge-de-lagriculture-fixe-les-prix-dengrais-pour-les-petits-producteurs/",
-   "ville": "Burkina Faso",
-   "type": "officiel",
-   "date": "2026-05-29",
-   "variante": "npk"
-  },
-  {
-   "produit": "engrais",
-   "prix": 15000,
-   "source": "Minute.bf : grille du ministère de l'Agriculture, urée sac de 50 kg (petits producteurs)",
-   "url": "https://www.minute.bf/burkina-le-ministere-en-charge-de-lagriculture-fixe-les-prix-dengrais-pour-les-petits-producteurs/",
-   "ville": "Burkina Faso",
-   "type": "officiel",
-   "date": "2026-05-29",
-   "variante": "uree"
-  },
-  {
-   "produit": "engrais",
    "prix": 17500,
    "source": "Burkina 24 : Conseil des ministres, prix de cession à crédit, sac de 50 kg (campagne cotonnière 2026-2027)",
    "url": "https://burkina24.com/?p=445412",
@@ -1485,15 +1501,6 @@
   },
   {
    "produit": "mais",
-   "prix": 17100,
-   "source": "INSD, relevé de mai 2026 (Kadiogo), cité par Beezy",
-   "url": "https://blog.iambeezy.app/fr/acheter-au-meilleur-prix-calendrier-courses-burkina-faso-2026/",
-   "ville": "Ouagadougou",
-   "type": "officiel",
-   "date": "2026-05-31"
-  },
-  {
-   "produit": "mais",
    "prix": 12000,
    "source": "SONAGESS, prix social (6 000 F le sac de 50 kg, converti en 100 kg)",
    "url": "https://www.ouestinfo.bf/burkina-faso-la-sonagess-met-en-vente-du-mais-du-mil-du-sorgho-et-du-riz-a-prix-social/",
@@ -1509,6 +1516,15 @@
    "ville": "Ouagadougou",
    "type": "officiel",
    "date": "2026-08-11"
+  },
+  {
+   "produit": "mais",
+   "prix": 12000,
+   "source": "SONAGESS, prix subventionné (6 000 F le sac de 50 kg, converti en 100 kg), Minute.bf",
+   "url": "https://www.minute.bf/ouagadougou-la-sonagess-propose-du-riz-local-et-du-mais-a-prix-subventionnes/",
+   "ville": "Ouagadougou",
+   "type": "officiel",
+   "date": "2026-08-25"
   },
   {
    "produit": "mais",
@@ -1626,24 +1642,6 @@
    "ville": "Burkina Faso",
    "type": "officiel",
    "date": "2026-10-17"
-  },
-  {
-   "produit": "mouton",
-   "prix": 225000,
-   "source": "Sidwaya / AllAfrica (2 béliers 450 000 F, Lanoag-Yiri, Tabaski 2026)",
-   "url": "https://fr.allafrica.com/stories/202605260546.html",
-   "ville": "Ouagadougou",
-   "type": "presse",
-   "date": "2026-05-26"
-  },
-  {
-   "produit": "mouton",
-   "prix": 120000,
-   "source": "Studio Yafa, Tabaski 2026 (acheteur à Tanghin : 100 000 à 140 000 F, milieu de fourchette)",
-   "url": "https://www.studioyafa.bf/39429-tabaski-2026-a-ouaga-des-moutons-chers-malgre-linterdiction-dexportation",
-   "ville": "Ouagadougou",
-   "type": "presse",
-   "date": "2026-05-26"
   },
   {
    "produit": "mouton",
@@ -2123,6 +2121,15 @@
   },
   {
    "produit": "riz",
+   "prix": 20000,
+   "source": "SONAGESS, riz local à prix subventionné (10 000 F le sac de 25 kg, converti en 50 kg), Minute.bf",
+   "url": "https://www.minute.bf/ouagadougou-la-sonagess-propose-du-riz-local-et-du-mais-a-prix-subventionnes/",
+   "ville": "Ouagadougou",
+   "type": "officiel",
+   "date": "2026-08-25"
+  },
+  {
+   "produit": "riz",
    "prix": 22418,
    "source": "DGEP note n°162 via OuagaNews (riz importé, août 2026)",
    "url": "https://ouaganews.net/burkina-les-prix-des-cereales-nettement-moins-chers-quun-an-plus-tot/",
@@ -2326,6 +2333,26 @@
    "date": "2026-10-17"
   },
   {
+   "produit": "tete-mouton",
+   "prix": 3000,
+   "source": "Sidwaya via AllAfrica, marché Bouzout Yaar (bas de la fourchette 3 000-5 000 F)",
+   "url": "https://fr.allafrica.com/stories/202609100394.html",
+   "ville": "Ouagadougou",
+   "type": "presse",
+   "date": "2026-09-10",
+   "variante": "min"
+  },
+  {
+   "produit": "tete-mouton",
+   "prix": 5000,
+   "source": "Sidwaya via AllAfrica, marché Bouzout Yaar (haut de la fourchette 3 000-5 000 F)",
+   "url": "https://fr.allafrica.com/stories/202609100394.html",
+   "ville": "Ouagadougou",
+   "type": "presse",
+   "date": "2026-09-10",
+   "variante": "max"
+  },
+  {
    "produit": "thermometre",
    "prix": 6000,
    "source": "CoinAfrique (modèle HTC-1)",
@@ -2448,6 +2475,11 @@
     "date": "2026-11-22",
     "med": 3000,
     "n": 5
+   },
+   {
+    "date": "2026-11-28",
+    "med": 3000,
+    "n": 5
    }
   ],
   "pondeuse-reforme": [
@@ -2493,6 +2525,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 3500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-28",
     "med": 3500,
     "n": 1
    }
@@ -2542,6 +2579,11 @@
     "date": "2026-11-22",
     "med": 2500,
     "n": 7
+   },
+   {
+    "date": "2026-11-28",
+    "med": 2500,
+    "n": 7
    }
   ],
   "poulet-local": [
@@ -2587,6 +2629,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 3000,
+    "n": 13
+   },
+   {
+    "date": "2026-11-28",
     "med": 3000,
     "n": 13
    }
@@ -2636,6 +2683,11 @@
     "date": "2026-11-22",
     "med": 35000,
     "n": 7
+   },
+   {
+    "date": "2026-11-28",
+    "med": 35000,
+    "n": 7
    }
   ],
   "lapin": [
@@ -2681,6 +2733,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 6000,
+    "n": 5
+   },
+   {
+    "date": "2026-11-28",
     "med": 6000,
     "n": 5
    }
@@ -2730,6 +2787,11 @@
     "date": "2026-11-22",
     "med": 165000,
     "n": 7
+   },
+   {
+    "date": "2026-11-28",
+    "med": 165000,
+    "n": 5
    }
   ],
   "chevre": [
@@ -2775,6 +2837,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 42500,
+    "n": 2
+   },
+   {
+    "date": "2026-11-28",
     "med": 42500,
     "n": 2
    }
@@ -2824,6 +2891,11 @@
     "date": "2026-11-22",
     "med": 400000,
     "n": 1
+   },
+   {
+    "date": "2026-11-28",
+    "med": 400000,
+    "n": 1
    }
   ],
   "poussin-chair": [
@@ -2869,6 +2941,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 750,
+    "n": 1
+   },
+   {
+    "date": "2026-11-28",
     "med": 750,
     "n": 1
    }
@@ -2918,6 +2995,11 @@
     "date": "2026-11-22",
     "med": 1375,
     "n": 4
+   },
+   {
+    "date": "2026-11-28",
+    "med": 1375,
+    "n": 4
    }
   ],
   "pintadeau": [
@@ -2963,6 +3045,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 600,
+    "n": 2
+   },
+   {
+    "date": "2026-11-28",
     "med": 600,
     "n": 2
    }
@@ -3012,6 +3099,11 @@
     "date": "2026-11-22",
     "med": 3700,
     "n": 1
+   },
+   {
+    "date": "2026-11-28",
+    "med": 3700,
+    "n": 1
    }
   ],
   "viande-boeuf": [
@@ -3057,6 +3149,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 3003,
+    "n": 2
+   },
+   {
+    "date": "2026-11-28",
     "med": 3003,
     "n": 2
    }
@@ -3106,6 +3203,11 @@
     "date": "2026-11-22",
     "med": 1174,
     "n": 1
+   },
+   {
+    "date": "2026-11-28",
+    "med": 1174,
+    "n": 1
    }
   ],
   "mais": [
@@ -3153,6 +3255,11 @@
     "date": "2026-11-22",
     "med": 14550,
     "n": 4
+   },
+   {
+    "date": "2026-11-28",
+    "med": 12000,
+    "n": 4
    }
   ],
   "aliment-ponte": [
@@ -3198,6 +3305,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 17500,
+    "n": 3
+   },
+   {
+    "date": "2026-11-28",
     "med": 17500,
     "n": 3
    }
@@ -3247,6 +3359,11 @@
     "date": "2026-11-22",
     "med": 19000,
     "n": 1
+   },
+   {
+    "date": "2026-11-28",
+    "med": 19000,
+    "n": 1
    }
   ],
   "aliment-betail": [
@@ -3292,6 +3409,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 12500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-28",
     "med": 12500,
     "n": 1
    }
@@ -3341,6 +3463,11 @@
     "date": "2026-11-22",
     "med": 7000,
     "n": 1
+   },
+   {
+    "date": "2026-11-28",
+    "med": 7000,
+    "n": 1
    }
   ],
   "couveuse": [
@@ -3386,6 +3513,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 80000,
+    "n": 7
+   },
+   {
+    "date": "2026-11-28",
     "med": 80000,
     "n": 7
    }
@@ -3435,6 +3567,11 @@
     "date": "2026-11-22",
     "med": 2250,
     "n": 6
+   },
+   {
+    "date": "2026-11-28",
+    "med": 2250,
+    "n": 6
    }
   ],
   "cage": [
@@ -3480,6 +3617,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 40000,
+    "n": 4
+   },
+   {
+    "date": "2026-11-28",
     "med": 40000,
     "n": 4
    }
@@ -3529,6 +3671,11 @@
     "date": "2026-11-22",
     "med": 35000,
     "n": 3
+   },
+   {
+    "date": "2026-11-28",
+    "med": 15000,
+    "n": 5
    }
   ],
   "plumeuse": [
@@ -3574,6 +3721,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 125000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-28",
     "med": 125000,
     "n": 1
    }
@@ -3623,6 +3775,11 @@
     "date": "2026-11-22",
     "med": 2375,
     "n": 2
+   },
+   {
+    "date": "2026-11-28",
+    "med": 2375,
+    "n": 2
    }
   ],
   "mil": [
@@ -3658,6 +3815,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 26700,
+    "n": 2
+   },
+   {
+    "date": "2026-11-28",
     "med": 26700,
     "n": 2
    }
@@ -3697,6 +3859,11 @@
     "date": "2026-11-22",
     "med": 21150,
     "n": 2
+   },
+   {
+    "date": "2026-11-28",
+    "med": 21150,
+    "n": 2
    }
   ],
   "niebe": [
@@ -3732,6 +3899,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 426,
+    "n": 2
+   },
+   {
+    "date": "2026-11-28",
     "med": 426,
     "n": 2
    }
@@ -3771,6 +3943,11 @@
     "date": "2026-11-22",
     "med": 22418,
     "n": 9
+   },
+   {
+    "date": "2026-11-28",
+    "med": 22284,
+    "n": 10
    }
   ],
   "tourteau-soja": [
@@ -3806,6 +3983,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 16500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-28",
     "med": 16500,
     "n": 1
    }
@@ -3845,6 +4027,11 @@
     "date": "2026-11-22",
     "med": 32500,
     "n": 1
+   },
+   {
+    "date": "2026-11-28",
+    "med": 32500,
+    "n": 1
    }
   ],
   "thermometre": [
@@ -3882,6 +4069,11 @@
     "date": "2026-11-22",
     "med": 9250,
     "n": 2
+   },
+   {
+    "date": "2026-11-28",
+    "med": 9250,
+    "n": 2
    }
   ],
   "arachide": [
@@ -3912,6 +4104,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 360,
+    "n": 2
+   },
+   {
+    "date": "2026-11-28",
     "med": 360,
     "n": 2
    }
@@ -3946,6 +4143,11 @@
     "date": "2026-11-22",
     "med": 450,
     "n": 2
+   },
+   {
+    "date": "2026-11-28",
+    "med": 450,
+    "n": 2
    }
   ],
   "oignon": [
@@ -3976,6 +4178,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 750,
+    "n": 2
+   },
+   {
+    "date": "2026-11-28",
     "med": 750,
     "n": 2
    }
@@ -4010,6 +4217,11 @@
     "date": "2026-11-22",
     "med": 2250,
     "n": 1
+   },
+   {
+    "date": "2026-11-28",
+    "med": 2250,
+    "n": 1
    }
   ],
   "miel": [
@@ -4040,6 +4252,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 1000,
+    "n": 2
+   },
+   {
+    "date": "2026-11-28",
     "med": 1000,
     "n": 2
    }
@@ -4074,6 +4291,11 @@
     "date": "2026-11-22",
     "med": 600,
     "n": 3
+   },
+   {
+    "date": "2026-11-28",
+    "med": 600,
+    "n": 3
    }
   ],
   "semence-riz": [
@@ -4104,6 +4326,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 600,
+    "n": 3
+   },
+   {
+    "date": "2026-11-28",
     "med": 600,
     "n": 3
    }
@@ -4138,6 +4365,11 @@
     "date": "2026-11-22",
     "med": 900,
     "n": 1
+   },
+   {
+    "date": "2026-11-28",
+    "med": 900,
+    "n": 1
    }
   ],
   "semence-mil": [
@@ -4168,6 +4400,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 900,
+    "n": 1
+   },
+   {
+    "date": "2026-11-28",
     "med": 900,
     "n": 1
    }
@@ -4202,6 +4439,11 @@
     "date": "2026-11-22",
     "med": 1400,
     "n": 1
+   },
+   {
+    "date": "2026-11-28",
+    "med": 1400,
+    "n": 1
    }
   ],
   "semence-sesame": [
@@ -4232,6 +4474,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 1500,
+    "n": 1
+   },
+   {
+    "date": "2026-11-28",
     "med": 1500,
     "n": 1
    }
@@ -4266,6 +4513,11 @@
     "date": "2026-11-22",
     "med": 1200,
     "n": 1
+   },
+   {
+    "date": "2026-11-28",
+    "med": 1200,
+    "n": 1
    }
   ],
   "soja": [
@@ -4291,6 +4543,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 325,
+    "n": 2
+   },
+   {
+    "date": "2026-11-28",
     "med": 325,
     "n": 2
    }
@@ -4320,6 +4577,11 @@
     "date": "2026-11-22",
     "med": 575,
     "n": 2
+   },
+   {
+    "date": "2026-11-28",
+    "med": 575,
+    "n": 2
    }
   ],
   "cajou": [
@@ -4345,6 +4607,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 385,
+    "n": 2
+   },
+   {
+    "date": "2026-11-28",
     "med": 385,
     "n": 2
    }
@@ -4374,6 +4641,11 @@
     "date": "2026-11-22",
     "med": 95,
     "n": 2
+   },
+   {
+    "date": "2026-11-28",
+    "med": 95,
+    "n": 2
    }
   ],
   "engrais": [
@@ -4401,6 +4673,11 @@
     "date": "2026-11-22",
     "med": 17500,
     "n": 7
+   },
+   {
+    "date": "2026-11-28",
+    "med": 17500,
+    "n": 5
    }
   ],
   "gingembre": [
@@ -4421,6 +4698,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 2250,
+    "n": 3
+   },
+   {
+    "date": "2026-11-28",
     "med": 2250,
     "n": 3
    }
@@ -4445,6 +4727,11 @@
     "date": "2026-11-22",
     "med": 13250,
     "n": 2
+   },
+   {
+    "date": "2026-11-28",
+    "med": 13250,
+    "n": 2
    }
   ],
   "pomme-de-terre": [
@@ -4460,6 +4747,11 @@
    },
    {
     "date": "2026-11-22",
+    "med": 918,
+    "n": 1
+   },
+   {
+    "date": "2026-11-28",
     "med": 918,
     "n": 1
    }
@@ -4479,6 +4771,11 @@
     "date": "2026-11-22",
     "med": 310,
     "n": 3
+   },
+   {
+    "date": "2026-11-28",
+    "med": 310,
+    "n": 3
    }
   ],
   "tourteau-coton": [
@@ -4491,11 +4788,21 @@
     "date": "2026-11-22",
     "med": 17500,
     "n": 1
+   },
+   {
+    "date": "2026-11-28",
+    "med": 17500,
+    "n": 1
    }
   ],
   "fumure-organique": [
    {
     "date": "2026-11-22",
+    "med": 4000,
+    "n": 1
+   },
+   {
+    "date": "2026-11-28",
     "med": 4000,
     "n": 1
    }
@@ -4505,6 +4812,18 @@
     "date": "2026-11-22",
     "med": 2500,
     "n": 1
+   },
+   {
+    "date": "2026-11-28",
+    "med": 2500,
+    "n": 1
+   }
+  ],
+  "tete-mouton": [
+   {
+    "date": "2026-11-28",
+    "med": 4000,
+    "n": 2
    }
   ]
  }
